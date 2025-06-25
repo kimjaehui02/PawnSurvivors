@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -16,25 +17,17 @@ public interface IDamageable
     /// </summary>
     float MaxHealth { get; }
 
-    /// <summary>
-    /// 대상에게 피해를 입히는 메서드입니다.
-    /// </summary>
-    /// <param name="amount">입힐 피해량</param>
-    void TakeDamage(float amount);
+    event Action<float> OnHit;
 
     /// <summary>
-    /// 대상의 체력을 회복시키는 메서드입니다.
+    /// 지정된 양의 피해를 입힙니다.
     /// </summary>
-    /// <param name="amount">회복할 체력량</param>
-    void Heal(float amount); // 새로 추가되는 체력 회복 함수
+    /// <param name="amount">입힐 피해량입니다.</param>
+    void TakeDamage(float amount); // <-- 이런 메서드가 추가될 수 있습니다.
 
-    /// <summary>
-    /// 대상이 사망했을 때 호출되는 메서드입니다.
-    /// </summary>
-    void Die();
+    // 추가적으로 체력 변경 이벤트도 포함될 수 있습니다.
+    // event Action<float, float> OnHealthChanged; // (currentHealth, maxHealth)
+    // event Action OnDeath;
 
-    // 선택적으로 추가할 수 있는 이벤트 (예: 체력이 변경될 때, 사망할 때)
-    // event System.Action<float> OnHealthChanged;
-    // event System.Action OnDied;
 }
 
