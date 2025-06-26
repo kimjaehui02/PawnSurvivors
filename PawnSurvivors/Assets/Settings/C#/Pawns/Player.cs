@@ -21,8 +21,8 @@ public class Player : Pawn
         // 메서드 이름만 전달해야 합니다!
         if (m_Damageable != null) // Null 체크는 항상 좋습니다.
         {
-            m_Damageable.OnHit += OnPlayerHit; // OnHit과 이름 중복 방지를 위해 OnPlayerHit으로 변경
-            m_Damageable.OnHit += OnPlayerHit22; // OnHit과 이름 중복 방지를 위해 OnPlayerHit으로 변경
+            m_Damageable.OnDamaged += OnPlayerHit; // OnHit과 이름 중복 방지를 위해 OnPlayerHit으로 변경
+            m_Damageable.OnDamaged += OnPlayerHit22; // OnHit과 이름 중복 방지를 위해 OnPlayerHit으로 변경
             // 만약 플레이어 사망 시 특정 로직이 있다면, OnDeath도 구독할 수 있습니다.
             // m_Damageable.OnDeath += OnPlayerDeath;
         }

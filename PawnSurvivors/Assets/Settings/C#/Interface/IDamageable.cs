@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 /// <summary>
 /// 피해를 입을 수 있는 모든 게임 오브젝트가 구현해야 하는 인터페이스입니다.
@@ -17,17 +16,12 @@ public interface IDamageable
     /// </summary>
     float MaxHealth { get; }
 
-    event Action<float> OnHit;
+    event Action<float> OnDamaged; // 객체가 피해를 입었을 때 발생합니다.
 
     /// <summary>
-    /// 지정된 양의 피해를 입힙니다.
+    /// 지정된 양의 피해를 '받습니다'.
     /// </summary>
-    /// <param name="amount">입힐 피해량입니다.</param>
-    void TakeDamage(float amount); // <-- 이런 메서드가 추가될 수 있습니다.
-
-    // 추가적으로 체력 변경 이벤트도 포함될 수 있습니다.
-    // event Action<float, float> OnHealthChanged; // (currentHealth, maxHealth)
-    // event Action OnDeath;
+    /// <param name="amount">'받을' 피해량입니다.</param>
+    void TakeDamage(float amount);
 
 }
-

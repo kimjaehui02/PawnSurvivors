@@ -12,11 +12,11 @@ public class DamageableComponent : MonoBehaviour, IDamageable // 클래스 이�
 
     public float CurrentHealth { get; private set; }
 
-    public event Action<float> OnHit;
+    public event Action<float> OnDamaged;
 
     public void TakeDamage(float amount)
     {
         Debug.Log(amount);
-        OnHit?.Invoke(amount);
+        OnDamaged?.Invoke(amount);
     }
 }
