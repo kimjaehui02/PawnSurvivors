@@ -10,6 +10,8 @@ public interface IMoveable
     /// </summary>
     float MoveSpeed { get; }
 
+    public delegate void MoveableDelegate(Vector3 direction);
+
     /// <summary>
     /// 지정된 방향으로 이동을 수행하는 메서드입니다.
     /// </summary>

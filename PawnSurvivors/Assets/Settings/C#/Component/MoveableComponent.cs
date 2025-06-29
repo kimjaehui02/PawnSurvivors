@@ -9,30 +9,31 @@ public class MoveableComponent : MonoBehaviour, IMoveable
     [SerializeField] private float moveSpeed = 5f; // 인스펙터에서 설정할 이동 속도
     public float MoveSpeed => moveSpeed; // IMoveable 인터페이스 구현
 
-    // 이 메서드는 외부에서 데이터 주입을 받아 초기화하는 용도로도 사용할 수 있습니다.
-    // 예를 들어, PawnSpawner에서 PawnData.MoveSpeed 값을 받아 초기화.
     public void InitializeMovement(float initialMoveSpeed)
     {
         moveSpeed = initialMoveSpeed;
-        Debug.Log($"{gameObject.name}의 MoveableComponent가 Move Speed: {moveSpeed}로 초기화되었습니다.");
+        //Debug.Log($"{gameObject.name}의 MoveableComponent가 Move Speed: {moveSpeed}로 초기화되었습니다.");
     }
 
     /// <summary>
     /// IMoveable 인터페이스의 Move 메서드 구현.
     /// 대상의 Transform을 사용하여 실제로 이동을 처리합니다.
     /// </summary>
-    /// <param name="direction">이동할 방향 벡터</param>
+    /// <param name="direction">이동할 방향 벡터 (이미 정규화된 상태로 가정)</param>
     public void Move(Vector3 direction)
     {
-        // Vector3.normalized는 방향 벡터의 크기를 1로 만듭니다.
-        // 이는 대각선 이동 시 속도 증가를 방지합니다.
-        Vector3 movement = direction.normalized * moveSpeed * Time.deltaTime;
+        // 방향 벡터(direction)는 이미 정규화(normalized)된 상태로 넘어온다고 가정합니다.
+        // 예를 들어, PlayerMoverComponent나 GetPawnMovementDirection 함수에서 정규화를 수행합니다.
+        // 따라서 여기서 direction.normalized를 다시 호출할 필요가 없습니다.
+        // 만약 direction이 정규화되지 않은 상태로 넘어올 수도 있는 경우라면,
+        // Vector3 movement = direction.normalized * moveSpeed * Time.deltaTime; 로 변경하여
+        // 이 메서드 내에서 항상 정규화된 방향을 사용하도록 보장할 수 있습니다.
+        Vector3 movement = direction * moveSpeed * Time.deltaTime;
         transform.position += movement;
 
-        // Debug.Log($"{gameObject.name}이(가) {direction} 방향으로 이동 중입니다.");
+        // 디버그 로그 추가 (선택 사항): 실제 적용되는 movement 값 확인
+        //Debug.Log($"Applied movement: {movement}");
 
         // 여기에서 애니메이션 트리거, 이동 사운드 재생 등 추가 로직을 넣을 수 있습니다.
     }
-
-
 }

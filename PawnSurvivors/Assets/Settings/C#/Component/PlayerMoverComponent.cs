@@ -1,26 +1,47 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-/// <summary>
-/// 플레이어의 입력을 받아 이동 방향을 결정하는 역할만 수행합니다.
-/// 실제 이동 명령은 이 컴포넌트를 사용하는 상위 컨트롤러(예: Player.cs)가 내립니다.
-/// </summary>
 public class PlayerMoverComponent : MonoBehaviour, IPlayerMover
 {
-    // Awake()나 Update()에서 직접 MoveableComponent를 제어하는 로직은 없습니다.
+    private PlayerInputActions playerInputActions;
+    private Vector2 currentMoveInput;
 
-    /// <summary>
-    /// IPlayerControllable 인터페이스 구현.
-    /// 플레이어의 키보드 입력을 받아 이동 방향 벡터를 반환합니다.
-    /// </summary>
-    /// <returns>플레이어의 입력에 따른 이동 방향 벡터</returns>
+    void Awake()
+    {
+        playerInputActions = new PlayerInputActions();
+
+        playerInputActions.Player.Move.performed += ctx =>
+        {
+            currentMoveInput = ctx.ReadValue<Vector2>();
+            // 디버그 로그 추가: performed 될 때 입력 값을 확인
+            //Debug.Log($"Input Performed: X={currentMoveInput.x}, Y={currentMoveInput.y}");
+        };
+        playerInputActions.Player.Move.canceled += ctx =>
+        {
+            currentMoveInput = Vector2.zero;
+            // 디버그 로그 추가: canceled 될 때 입력 값을 확인
+            //Debug.Log($"Input Canceled: X={currentMoveInput.x}, Y={currentMoveInput.y}");
+        };
+    }
+
+    void OnEnable()
+    {
+        playerInputActions.Enable();
+    }
+
+    void OnDisable()
+    {
+        playerInputActions.Disable();
+    }
+
     public Vector3 GetPlayerMovementInput()
     {
-        float horizontalInput = Input.GetAxisRaw("Horizontal"); // A/D 또는 좌/우 화살표
-        float verticalInput = Input.GetAxisRaw("Vertical");   // W/S 또는 상/하 화살표
+        Vector3 moveDirection = new Vector3(currentMoveInput.x, currentMoveInput.y, 0f).normalized;
 
-        // 2D 평면(X-Z)에서의 이동을 위해 Y축은 0으로 설정합니다.
-        // normalized를 통해 대각선 이동 시 속도가 빨라지는 것을 방지합니다.
-        Vector3 moveDirection = new Vector3(horizontalInput, 0f, verticalInput).normalized;
+        // 디버그 로그 추가: 최종 반환되는 이동 방향 벡터 확인
+        // 이 로그는 Update()나 FixedUpdate()마다 계속 출력됩니다.
+        // W나 S를 눌렀을 때 moveDirection.z 값이 변하는지 확인하세요.
+        //Debug.Log($"Movement Input: X={moveDirection.x}, Z={moveDirection.z}");
 
         return moveDirection;
     }
