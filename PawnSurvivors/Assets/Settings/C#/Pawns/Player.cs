@@ -13,11 +13,11 @@ public class Player : MonoBehaviour
     // 3. 조작받기
 
 
-    delegate void PlayerDelegate();
+    //delegate void PlayerDelegate();
 
-    event PlayerDelegate OnMove;
-    event PlayerDelegate OnDamaged;
-    event PlayerDelegate OnControl;
+    //event PlayerDelegate OnMove;
+    //event PlayerDelegate OnDamaged;
+    //event PlayerDelegate OnControl;
 
 
 

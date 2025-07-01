@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEditorInternal.VersionControl.ListControl;
 
 /// <summary>
 /// 이동 로직을 담당하는 컴포넌트입니다. IMoveable 인터페이스를 구현합니다.
@@ -6,9 +7,18 @@ using UnityEngine;
 /// </summary>
 public class MoveableComponent : PawnAbility, IMoveable
 {
+    public override void RegisterAbilities()
+    {
+        //_actionDelegates += Move;
+    }
+
     [SerializeField] private float moveSpeed = 5f; // 인스펙터에서 설정할 이동 속도
     public float MoveSpeed => moveSpeed; // IMoveable 인터페이스 구현
 
+    /// <summary>
+    /// 이속변경이 항상 필요한건 아님
+    /// </summary>
+    /// <param name="initialMoveSpeed"></param>
     public void InitializeMovement(float initialMoveSpeed)
     {
         moveSpeed = initialMoveSpeed;
@@ -36,4 +46,6 @@ public class MoveableComponent : PawnAbility, IMoveable
 
         // 여기에서 애니메이션 트리거, 이동 사운드 재생 등 추가 로직을 넣을 수 있습니다.
     }
+
+
 }
