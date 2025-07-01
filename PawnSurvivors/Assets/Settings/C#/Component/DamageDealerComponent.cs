@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class DamageDealerComponent : MonoBehaviour, IDamageDealer
+public class DamageDealerComponent : PawnAbility, IDamageDealer
 {
     [SerializeField] private float _damageAmount = 10f;
     public float DamageAmount => _damageAmount;

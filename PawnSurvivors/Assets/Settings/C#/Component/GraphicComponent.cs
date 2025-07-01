@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // 2. GraphicComponent (IGraphic 구현)
-public class GraphicComponent : MonoBehaviour, IGraphic
+public class GraphicComponent : PawnAbility, IGraphic
 {
     [SerializeField] private SpriteRenderer spriteRenderer; // 인스펙터에서 연결
     [SerializeField] private Animator animator;             // 인스펙터에서 연결

@@ -3,17 +3,17 @@ using UnityEngine;
 public class PawnMoverComponent : MonoBehaviour, IPawnMover
 {
 
-    // ¹èÈ¸ ±â´ÉÀº ¾øÀ¸¹Ç·Î, Vector3.zero ¹ÝÈ¯
+    // ë°°íšŒ ê¸°ëŠ¥ì€ ì—†ìœ¼ë¯€ë¡œ, Vector3.zero ë°˜í™˜
     public Vector3 GetWanderDirection()
     {
-        return Vector3.zero; // ÀÌ AI´Â ¹èÈ¸ÇÏÁö ¾Ê½À´Ï´Ù.
+        return Vector3.zero; // ì´ AIëŠ” ë°°íšŒí•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.
     }
 
-    // ÇÃ·¹ÀÌ¾î ÃßÀû ±â´É ±¸Çö (GetFaceDirection ¿ªÇÒ)
+    // í”Œë ˆì´ì–´ ì¶”ì  ê¸°ëŠ¥ êµ¬í˜„ (GetFaceDirection ì—­í• )
     public Vector3 GetFaceDirection(Vector3 targetPosition)
     {
 
-        // ÇÃ·¹ÀÌ¾î (È¤Àº ÁÖ¾îÁø targetPosition)¸¦ ÇâÇÏ´Â ¹æÇâ °è»ê
+        // í”Œë ˆì´ì–´ (í˜¹ì€ ì£¼ì–´ì§„ targetPosition)ë¥¼ í–¥í•˜ëŠ” ë°©í–¥ ê³„ì‚°
         Vector3 directionToTarget = targetPosition - transform.position;
         if (directionToTarget.magnitude > 0)
         {

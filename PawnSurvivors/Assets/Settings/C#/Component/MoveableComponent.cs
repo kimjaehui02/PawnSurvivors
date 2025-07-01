@@ -4,7 +4,7 @@ using UnityEngine;
 /// 이동 로직을 담당하는 컴포넌트입니다. IMoveable 인터페이스를 구현합니다.
 /// 이 컴포넌트를 플레이어, 몬스터 등 움직임이 필요한 GameObject에 붙여서 사용합니다.
 /// </summary>
-public class MoveableComponent : MonoBehaviour, IMoveable
+public class MoveableComponent : PawnAbility, IMoveable
 {
     [SerializeField] private float moveSpeed = 5f; // 인스펙터에서 설정할 이동 속도
     public float MoveSpeed => moveSpeed; // IMoveable 인터페이스 구현
