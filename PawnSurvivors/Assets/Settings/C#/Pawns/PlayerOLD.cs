@@ -33,7 +33,7 @@ public class PlayerOLD : Pawn
 
     public override void PawnUpdate()
     {
-        m_Moveable.Move(m_PlayerMover.GetPlayerMovementInput());
+        //m_Moveable.Move(m_PlayerMover.GetPlayerMovementInput());
     }
 
 

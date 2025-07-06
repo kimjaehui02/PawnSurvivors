@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PawnMoverComponent : MonoBehaviour, IPawnMover
+public class PawnMoverComponent : MonoBehaviour//, IPawnMover
 {
 
     // 배회 기능은 없으므로, Vector3.zero 반환

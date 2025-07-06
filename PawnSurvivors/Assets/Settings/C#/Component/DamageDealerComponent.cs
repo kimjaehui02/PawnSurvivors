@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class DamageDealerComponent : PawnAbility, IDamageDealer
+public class DamageDealerComponent : PawnAction//, IDamageDealer
 {
     [SerializeField] private float _damageAmount = 10f;
     public float DamageAmount => _damageAmount;
@@ -18,5 +18,10 @@ public class DamageDealerComponent : PawnAbility, IDamageDealer
 
         target.TakeDamage(actualDamage); // 대상에게 피해를 입히도록 명령
         OnDamageDealt?.Invoke(actualDamage); // 내가 실제로 얼마의 피해를 입혔는지 알림
+    }
+
+    public override void RegisterAbilities()
+    {
+        throw new NotImplementedException();
     }
 }

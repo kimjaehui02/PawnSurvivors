@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // 2. GraphicComponent (IGraphic 구현)
-public class GraphicComponent : PawnAbility, IGraphic
+public class GraphicComponent : PawnAction//, IGraphic
 {
     [SerializeField] private SpriteRenderer spriteRenderer; // 인스펙터에서 연결
     [SerializeField] private Animator animator;             // 인스펙터에서 연결
@@ -62,5 +62,10 @@ public class GraphicComponent : PawnAbility, IGraphic
             PlayAnimation(initialAnimation);
         }
         Debug.Log($"{gameObject.name}의 그래픽이 초기화되었습니다.");
+    }
+
+    public override void RegisterAbilities()
+    {
+        throw new System.NotImplementedException();
     }
 }
