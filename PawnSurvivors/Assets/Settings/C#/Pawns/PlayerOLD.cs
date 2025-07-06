@@ -12,24 +12,24 @@ public class PlayerOLD : Pawn
     private PlayerMoverComponent m_PlayerMover;
 
 
-    public override void PawnAwake() // Pawn 클래스에서 정의된 가상 메서드라고 가정
-    {
-        // 컴포넌트 참조 얻기
-        m_Moveable = GetComponent<MoveableComponent>(); // 다른 컴포넌트도 여기서 초기화
-        m_Damageable = GetComponent<DamageableComponent>();
-        m_Graphic = GetComponent<GraphicComponent>();
-        m_PlayerMover = GetComponent<PlayerMoverComponent>();
+    //public override void PawnAwake() // Pawn 클래스에서 정의된 가상 메서드라고 가정
+    //{
+    //    // 컴포넌트 참조 얻기
+    //    m_Moveable = GetComponent<MoveableComponent>(); // 다른 컴포넌트도 여기서 초기화
+    //    m_Damageable = GetComponent<DamageableComponent>();
+    //    m_Graphic = GetComponent<GraphicComponent>();
+    //    m_PlayerMover = GetComponent<PlayerMoverComponent>();
 
-        // DamageableComponent의 OnHit 이벤트 구독
-        // 메서드 이름만 전달해야 합니다!
-        if (m_Damageable != null) // Null 체크는 항상 좋습니다.
-        {
-            m_Damageable.OnDamaged += OnPlayerHit; // OnHit과 이름 중복 방지를 위해 OnPlayerHit으로 변경
-            m_Damageable.OnDamaged += OnPlayerHit22; // OnHit과 이름 중복 방지를 위해 OnPlayerHit으로 변경
-            //만약 플레이어 사망 시 특정 로직이 있다면, OnDeath도 구독할 수 있습니다.
-            //m_Damageable.OnDeath += OnPlayerDeath;
-        }
-    }
+    //    // DamageableComponent의 OnHit 이벤트 구독
+    //    // 메서드 이름만 전달해야 합니다!
+    //    if (m_Damageable != null) // Null 체크는 항상 좋습니다.
+    //    {
+    //        m_Damageable.OnDamaged += OnPlayerHit; // OnHit과 이름 중복 방지를 위해 OnPlayerHit으로 변경
+    //        m_Damageable.OnDamaged += OnPlayerHit22; // OnHit과 이름 중복 방지를 위해 OnPlayerHit으로 변경
+    //        //만약 플레이어 사망 시 특정 로직이 있다면, OnDeath도 구독할 수 있습니다.
+    //        //m_Damageable.OnDeath += OnPlayerDeath;
+    //    }
+    //}
 
     public override void PawnUpdate()
     {
@@ -70,7 +70,7 @@ public class PlayerOLD : Pawn
 
     private void Start()
     {
-        m_Damageable.TakeDamage(100);
+        //m_Damageable.TakeDamage(100);
 
 
     }

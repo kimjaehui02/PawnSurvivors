@@ -1,27 +1,54 @@
 using System;
 using UnityEngine;
+using Game.Core; // Acts 및 AbilityContext 사용을 위해 추가
 
-public class DamageDealerComponent : PawnAction//, IDamageDealer
+/// <summary>
+/// 특정 대상에게 피해를 입히는 로직을 담당하는 컴포넌트입니다.
+/// 공격 스킬, 투사체 등 피해를 발생시키는 GameObject에 부착하여 사용합니다.
+/// </summary>
+public class DamageDealerComponent : PawnAction // PawnAction을 상속하여 Pawn 시스템과 통합
 {
-    [SerializeField] private float _damageAmount = 10f;
-    public float DamageAmount => _damageAmount;
+    #region Fields & Properties
 
-    public event Action<float> OnDamageDealt;
+    [SerializeField] private float _damageAmount = 10f; // 이 DamageDealer가 입힐 기본 피해량
+    public float DamageAmount => _damageAmount;       // 피해량을 외부에 노출 (읽기 전용)
 
-    public void DealDamage(IDamageable target)
-    {
-        if (target == null || target.CurrentHealth <= 0) return; // 유효하지 않거나 이미 죽은 대상은 스킵
+    #endregion
 
-        // 실제 피해량 계산 (방어력, 치명타 등)
-        float actualDamage = _damageAmount; // 예시: 간단하게 기본 피해량 사용
-        // 실제로는 여기서 target의 방어력 등을 고려하여 finalDamage를 계산
+    #region Ability Registration
 
-        target.TakeDamage(actualDamage); // 대상에게 피해를 입히도록 명령
-        OnDamageDealt?.Invoke(actualDamage); // 내가 실제로 얼마의 피해를 입혔는지 알림
-    }
-
+    /// <summary>
+    /// PawnAction의 RegisterAbilities를 오버라이드하여
+    /// 이 컴포넌트의 능력을 Pawn의 델리게이트 시스템에 등록합니다.
+    /// 현재는 특정 Acts에 직접 연결되지 않고, 다른 컴포넌트에서 직접 호출될 수 있습니다.
+    /// </summary>
     public override void RegisterAbilities()
     {
-        throw new NotImplementedException();
+        // TODO: 만약 이 컴포넌트가 특정 Acts(예: Acts.OnAttack)에 의해 발동되어야 한다면,
+        // 이곳에서 AddAction을 사용하여 해당 Acts에 DealDamage 메서드를 등록할 수 있습니다.
+        // 예: AddAction(Acts.OnAttack, (context) => DealDamageWithContext(context));
+        // 이 경우, 아래에 Context를 받는 DealDamageWithContext 메서드를 별도로 정의해야 합니다.
+
+        // 현재는 RegisterAbilities에서 아무것도 등록하지 않고 있습니다.
+        // throw new NotImplementedException(); // 더 이상 필요 없으면 이 줄은 제거합니다.
     }
+
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// 지정된 IDamageable 대상에게 피해를 입힙니다.
+    /// 이 메서드는 다른 컴포넌트(예: 공격 스킬 컴포넌트)에서 직접 호출될 수 있습니다.
+    /// </summary>
+    /// <param name="target">피해를 입힐 IDamageable 인터페이스를 구현한 대상입니다.</param>
+    public void DealDamage(AbilityContext abilityContext)
+    {
+        if (abilityContext == null) return; // 대상이 null인 경우 처리 중단
+
+    }
+
+
+
+    #endregion
 }

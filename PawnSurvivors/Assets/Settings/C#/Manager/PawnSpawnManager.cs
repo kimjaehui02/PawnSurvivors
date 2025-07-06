@@ -3,17 +3,7 @@ using UnityEngine;
 
 public class PawnSpawnManager : MonoBehaviour
 {
-    // 폰 스폰 매니저
-    // 폰을 소환하는 행위 전반을 담당하고
-    // 일단 생성과정은
 
-    // 1. 폰을 생성한다
-    // 2. 폰에게서 awake와 같은 처리를 하는데
-    //      이 경우 델리게이트 등을 채워준다
-
-    // 3. 폰을 생성완료한다?
-
-    // 잘모르겟음
 
 
     //public List<GameObject> GameObjects;
@@ -21,25 +11,23 @@ public class PawnSpawnManager : MonoBehaviour
     public GameObject PlayerSpawn;
     public GameObject AiPawnSpawn;
 
+    public List<PawnAction> PawnActions;
+
     public void SpawnPawn()
     {
+        //PawnActions = PlayerSpawn.GetComponentsInChildren<PawnAction>();
+        // 씬에 있는 PlayerPawnObject와 그 자식들에서 모든 PawnAction 컴포넌트를 찾습니다.
+        PawnAction[] foundActions = PlayerSpawn.GetComponentsInChildren<PawnAction>(true);
 
+        // 기존 리스트를 비우고, 찾은 배열의 모든 요소를 한 번에 추가합니다.
+        PawnActions.Clear();
+        PawnActions.AddRange(foundActions);
     }
 
-    public void PlayerSpawnPawn()
+    private void Start()
     {
-        GameObject player = Instantiate(PlayerSpawn);
-        Pawn playerpawn = player.GetComponent<Pawn>();
-
-
-
+        SpawnPawn();
     }
-
-    public void AiPawnSpawnPawn()
-    {
-
-    }
-
 
 
 }
