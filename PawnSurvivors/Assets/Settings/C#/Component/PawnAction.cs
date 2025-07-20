@@ -10,6 +10,10 @@ using System;
 public abstract class PawnAction : MonoBehaviour
 {
     #region Fields & Properties
+    // 새롭게 추가할 우선순위 필드
+    // 숫자가 낮을수록(예: 0, 1, 2...) 높은 우선순위를 가지도록 설계하는 것이 일반적입니다.
+    [Tooltip("이 PawnAction의 등록 우선순위입니다. 숫자가 낮을수록 먼저 처리됩니다.")]
+    public Game.Core.PawnActionPriority PawnActionPriority = 0; // 기본값 0
 
     // 이 PawnAction 컴포넌트에 등록된 Acts-Action 델리게이트 맵입니다.
     // Pawn이 이 딕셔너리의 내용을 통합하여 관리합니다.
