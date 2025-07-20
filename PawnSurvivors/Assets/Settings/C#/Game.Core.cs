@@ -69,6 +69,16 @@ namespace Game.Core
         // 필요한 공격 방식을 여기에 추가합니다.
     }
 
+    public enum Components
+    {
+        DamageDealerComponent,
+        DamageableComponent,
+        GraphicComponent,
+        MoveableComponent,
+        PawnMoverComponent,
+        PlayerMoverComponent
+    }
+
     #endregion
 
 
@@ -111,7 +121,9 @@ namespace Game.Core
 
     #endregion
 
+    #region 아이템스탯
 
+    #endregion
 
     #region Interfaces
 
