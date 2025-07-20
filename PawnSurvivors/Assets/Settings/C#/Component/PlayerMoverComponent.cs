@@ -91,7 +91,7 @@ public class PlayerMoverComponent : PawnAction
         Vector3 moveDirection = new Vector3(currentMoveInput.x, currentMoveInput.y, 0f).normalized;
 
         // AbilityContext의 inputDirection 필드를 업데이트합니다.
-        abilityContext.inputDirection = moveDirection;
+        abilityContext.InputDirection = moveDirection;
     }
 
     #endregion

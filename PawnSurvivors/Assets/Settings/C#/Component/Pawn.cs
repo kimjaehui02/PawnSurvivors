@@ -23,7 +23,7 @@ public class Pawn : PawnAction
     public string Id { get; private set; } 
 
     // 행동 실행에 사용될 AbilityContext 인스턴스입니다. 매 프레임 재활용됩니다.
-    public AbilityContext AbilityContext { get; private set; }
+    //public AbilityContext AbilityContext { get; private set; }
 
     #endregion
 
@@ -32,23 +32,14 @@ public class Pawn : PawnAction
     // MonoBehaviour의 Start 메서드입니다. Pawn의 초기화를 시작합니다.
     private void Start()
     {
-        AbilityContext = new AbilityContext(); // AbilityContext 인스턴스 초기화
+        //AbilityContext = new AbilityContext(); // AbilityContext 인스턴스 초기화
         RegisterAbilities();             // Pawn 능력 통합 시작
     }
 
     // MonoBehaviour의 Update 메서드입니다. 매 프레임 업데이트 관련 액션을 요청합니다.
     private void Update()
     {
-        // Acts.OnUpdate 델리게이트에 등록된 모든 함수를 실행합니다.
-        // 예를 들어, PlayerInputHandler가 여기에 연결되어 AbilityContext를 채울 수 있습니다.
-        RequestAction(Acts.OnUpdate, AbilityContext);
-
-        // Acts.OnMove 델리게이트에 등록된 모든 함수를 실행합니다.
-        // 이동 입력이 있을 경우 PlayerInputHandler가 AbilityContext.inputDirection을 채울 것입니다.
-        RequestAction(Acts.OnMove, AbilityContext);
-
-        // 디버그: 현재 Pawn 컴포넌트에 통합된 총 델리게이트의 수를 확인합니다.
-        // Debug.Log($"Pawn '{name}'의 통합 델리게이트 수: {_myDelegates.Count}"); 
+        PawnUpdate();
     }
 
     #endregion
@@ -60,7 +51,22 @@ public class Pawn : PawnAction
     public virtual void PawnStart() { }
 
     // Pawn의 지속 처리(Update) 관련 커스텀 콜백입니다.
-    public virtual void PawnUpdate() { }
+    public virtual void PawnUpdate()
+    {
+        AbilityContext updateAbilityContext = new();
+
+
+        // Acts.OnUpdate 델리게이트에 등록된 모든 함수를 실행합니다.
+        // 예를 들어, PlayerInputHandler가 여기에 연결되어 AbilityContext를 채울 수 있습니다.
+        RequestAction(Acts.OnUpdate, updateAbilityContext);
+
+        // Acts.OnMove 델리게이트에 등록된 모든 함수를 실행합니다.
+        // 이동 입력이 있을 경우 PlayerInputHandler가 AbilityContext.inputDirection을 채울 것입니다.
+        RequestAction(Acts.OnMove, updateAbilityContext);
+
+        // 디버그: 현재 Pawn 컴포넌트에 통합된 총 델리게이트의 수를 확인합니다.
+        // Debug.Log($"Pawn '{name}'의 통합 델리게이트 수: {_myDelegates.Count}"); 
+    }
 
     // Pawn의 비활성화 처리 관련 커스텀 콜백입니다.
     public virtual void PawnDisable() 

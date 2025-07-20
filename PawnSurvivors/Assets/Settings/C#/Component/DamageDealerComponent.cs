@@ -24,13 +24,8 @@ public class DamageDealerComponent : PawnAction // PawnAction을 상속하여 Pa
     /// </summary>
     public override void RegisterAbilities()
     {
-        // TODO: 만약 이 컴포넌트가 특정 Acts(예: Acts.OnAttack)에 의해 발동되어야 한다면,
-        // 이곳에서 AddAction을 사용하여 해당 Acts에 DealDamage 메서드를 등록할 수 있습니다.
-        // 예: AddAction(Acts.OnAttack, (context) => DealDamageWithContext(context));
-        // 이 경우, 아래에 Context를 받는 DealDamageWithContext 메서드를 별도로 정의해야 합니다.
+        AddAction(Acts.OnDamaged, DealDamage);
 
-        // 현재는 RegisterAbilities에서 아무것도 등록하지 않고 있습니다.
-        // throw new NotImplementedException(); // 더 이상 필요 없으면 이 줄은 제거합니다.
     }
 
     #endregion
@@ -44,7 +39,10 @@ public class DamageDealerComponent : PawnAction // PawnAction을 상속하여 Pa
     /// <param name="target">피해를 입힐 IDamageable 인터페이스를 구현한 대상입니다.</param>
     public void DealDamage(AbilityContext abilityContext)
     {
-        if (abilityContext == null) return; // 대상이 null인 경우 처리 중단
+        //abilityContext.DamageAmount = _damageAmount;
+
+
+        abilityContext.DamageAmount = DamageAmount;
 
     }
 

@@ -78,7 +78,7 @@ public class DamageableComponent : PawnAction
     public void TakeDamage(AbilityContext abilityContext)
     {
         // TODO: AbilityContext에 damageAmount 필드가 있다고 가정하고 피해를 적용합니다.
-         CurrentHealth -= abilityContext.damageAmount;
+         CurrentHealth -= abilityContext.DamageAmount ?? 0f;
 
         // 디버그: 전달받은 AbilityContext 값을 로그로 출력합니다.
         Debug.Log($"DamageableComponent: {name}이(가) AbilityContext로부터 피해를 받았습니다. Context: {abilityContext}");

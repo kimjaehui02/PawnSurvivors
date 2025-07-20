@@ -51,7 +51,7 @@ public class MoveableComponent : PawnAction
     public void Move(AbilityContext abilityContext)
     {
         // 컨텍스트에서 받은 방향과 현재 속도, Time.deltaTime을 곱하여 오브젝트를 이동시킵니다.
-        Vector3 movement = moveSpeed * Time.deltaTime * abilityContext.inputDirection;
+        Vector3 movement = moveSpeed * Time.deltaTime * (abilityContext.InputDirection ?? Vector3.zero);
         transform.position += movement;
     }
 

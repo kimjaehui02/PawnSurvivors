@@ -49,17 +49,17 @@ public class PawnMoverComponent : PawnAction // PawnAction을 상속합니다.
     public void GetFaceDirection(AbilityContext abilityContext)
     {
         // 현재 위치에서 목표 위치를 향하는 벡터를 계산합니다.
-        Vector3 directionToTarget = abilityContext.targetPawn.transform.position - transform.position;
+        Vector3 directionToTarget = abilityContext.TargetPawn.transform.position - transform.position;
 
         // 거리가 0보다 크면 (즉, 목표가 현재 위치와 다르면) 방향을 정규화하여 반환합니다.
         if (directionToTarget.magnitude > 0)
         {
-            abilityContext.inputDirection = directionToTarget.normalized;
+            abilityContext.InputDirection = directionToTarget.normalized;
             return;
         }
 
         // 목표가 현재 위치와 같거나 매우 가까워 방향을 계산할 수 없으면 이동하지 않습니다.
-        abilityContext.inputDirection = Vector3.zero;
+        abilityContext.InputDirection = Vector3.zero;
         return;
     }
 

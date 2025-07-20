@@ -10,10 +10,8 @@ using System;
 public abstract class PawnAction : MonoBehaviour
 {
     #region Fields & Properties
-    // 새롭게 추가할 우선순위 필드
-    // 숫자가 낮을수록(예: 0, 1, 2...) 높은 우선순위를 가지도록 설계하는 것이 일반적입니다.
-    [Tooltip("이 PawnAction의 등록 우선순위입니다. 숫자가 낮을수록 먼저 처리됩니다.")]
-    public Game.Core.PawnActionPriority PawnActionPriority = 0; // 기본값 0
+    //[field: SerializeField] // 유니티 인스펙터에서 설정 가능하도록
+    //public PawnActionPriority PawnActionPriority { get; private set; } = PawnActionPriority.Normal; // 👈 이 필드 추가
 
     // 이 PawnAction 컴포넌트에 등록된 Acts-Action 델리게이트 맵입니다.
     // Pawn이 이 딕셔너리의 내용을 통합하여 관리합니다.
@@ -87,6 +85,29 @@ public abstract class PawnAction : MonoBehaviour
             actionDelegate?.Invoke(context); // 델리게이트가 null이 아니면 호출
         }
         // else { Debug.LogWarning($"[{name}] RequestAction: Acts.{act}에 등록된 델리게이트가 없습니다."); }
+    }
+
+    /// <summary>
+    /// 지정된 Acts에 등록된 모든 델리게이트 함수들을 주어진 AbilityContext와 함께 실행합니다.
+    /// </summary>
+    /// <param name="acts">실행할 Acts Enum 값들의 리스트.</param>
+    /// <param name="context">행동에 필요한 정보를 담은 컨텍스트.</param>
+    public void RequestActions(List<Acts> acts, AbilityContext context)
+    {
+        // 입력 리스트의 유효성 검사를 추가하면 더욱 견고해집니다.
+        if (acts == null || acts.Count == 0)
+        {
+            // Debug.LogWarning("RequestActions: 실행할 Acts 리스트가 비어있거나 null입니다.");
+            return;
+        }
+
+        foreach (var item in acts) // 'item' 대신 'act' 또는 'currentAct'로 변수명을 명확히 하면 더 좋습니다.
+        {
+            // 단일 Acts를 처리하는 기존 RequestAction 메서드를 재사용합니다.
+            RequestAction(item, context);
+        }
+        // 주석 처리된 else 문은 RequestAction 메서드 내부에 이미 있으므로 여기에 필요 없습니다.
+        // 이는 각 개별 Acts에 대한 경고를 RequestAction에서 이미 처리하기 때문입니다.
     }
 
     #endregion
