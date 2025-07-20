@@ -6,6 +6,12 @@ namespace Game.Core
 {
     #region Enums
 
+    public enum PawnActionPriority
+    {
+           
+
+    }
+
     /// <summary>
     /// 게임 내에서 발생하는 핵심 행동들을 정의하는 Enum입니다.
     /// Pawn의 델리게이트 시스템에서 키로 사용됩니다.
@@ -20,54 +26,15 @@ namespace Game.Core
         OnHeal,         // 체력을 회복했을 때
 
         // 유니티 생명 주기 메서드에 연결될 액트 (전역 업데이트 요청용)
+        OnStart,
         OnUpdate,       // MonoBehaviour.Update() 시점에 해당 델리게이트 등록 함수들 호출
-        OnFixedUpdate,  // MonoBehaviour.FixedUpdate() 시점 (주로 물리 연산)
-        OnLateUpdate,   // MonoBehaviour.LateUpdate() 시점 (주로 카메라, UI 업데이트)
+        OnDisable,
 
-        // 특정 입력 처리가 완료되었음을 알리는 액트 (InputHandler 등에서 요청)
-        OnInputProcessed,
 
-        // 필요한 다른 핵심 행동들을 여기에 추가합니다.
-        // OnSkillUse,    // 스킬 사용
-        // OnInteract,    // 상호작용
+
     }
 
-    /// <summary>
-    /// 피해의 속성 또는 타입을 정의하는 Enum입니다.
-    /// (예: 물리, 화염, 냉기, 독 등)
-    /// 이 Enum은 피해를 계산하고 적용하는 데 사용됩니다.
-    /// </summary>
-    public enum DamageType
-    {
-        None,           // 정의되지 않은 피해 타입 또는 기본값
-        Physical,       // 물리 피해: 일반적인 타격, 베기, 찌르기 등
-        Fire,           // 화염 피해: 불 속성 공격
-        Ice,            // 냉기 피해: 얼음 속성 공격
-        Poison,         // 독 피해: 독 속성 공격
-        Lightning,      // 번개 피해: 전기 속성 공격
-        Holy,           // 신성 피해: 성스러운 힘을 이용한 공격
-        Dark,           // 암흑 피해: 어둠의 힘을 이용한 공격
-        // 필요한 피해 속성을 여기에 추가합니다.
-    }
 
-    /// <summary>
-    /// 공격의 구체적인 방식을 정의하는 Enum입니다.
-    /// (예: 주먹질, 불 뿜기, 투사체 발사 등)
-    /// 이 Enum은 DamageDealerComponent에서 특정 공격 방식에 따른 피해량 및 타입을 조회할 때 사용됩니다.
-    /// </summary>
-    public enum AttackMethod
-    {
-        None,           // 정의되지 않은 공격 방식 또는 기본값
-        Punch,          // 주먹질 (근접)
-        Bite,           // 물기 (근접)
-        FireBreath,     // 불 뿜기 (원거리, 광역)
-        SpitPoison,     // 독침 뱉기 (투사체)
-        SwordSwing,     // 칼 휘두르기 (근접)
-        Charge,         // 돌진 공격
-        Explosion,      // 폭발 공격 (광역)
-        Projectile,     // 일반 투사체 발사
-        // 필요한 공격 방식을 여기에 추가합니다.
-    }
 
     #endregion
 

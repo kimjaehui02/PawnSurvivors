@@ -139,7 +139,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!212 &419604193
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -222,6 +222,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ba60289dc764314b8bd6c0577a5b887, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
   _maxHealth: 0
   _currentHealth: 0
 --- !u!114 &419604197
@@ -236,6 +237,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8fab197f98dbb4aba7c847ae453e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
   moveSpeed: 5
 --- !u!114 &419604198
 MonoBehaviour:
@@ -249,6 +251,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ca8c132767c8c43ab6d2c20b2d2693, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
 --- !u!114 &419604199
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -261,6 +264,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b66a951f26069c4e8c487dceec112ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -560,6 +564,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8fab197f98dbb4aba7c847ae453e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
   moveSpeed: 5
 --- !u!114 &1275577858
 MonoBehaviour:
@@ -573,6 +578,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43a8ed54115b0034eadf61e1c5b2d3c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
 --- !u!4 &1275577859
 Transform:
   m_ObjectHideFlags: 0
@@ -601,6 +607,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ca8c132767c8c43ab6d2c20b2d2693, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
 --- !u!1 &1331013357
 GameObject:
   m_ObjectHideFlags: 0
@@ -722,6 +729,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ba60289dc764314b8bd6c0577a5b887, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
   _maxHealth: 0
   _currentHealth: 0
 --- !u!114 &2075702660
@@ -736,6 +744,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63ec1046387de19488a6dba8bc9495b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
   _damageAmount: 10
 --- !u!114 &2075702661
 MonoBehaviour:
@@ -749,6 +758,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8fab197f98dbb4aba7c847ae453e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
   moveSpeed: 1
 --- !u!212 &2075702662
 SpriteRenderer:
@@ -832,6 +842,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8c9018292068684285285d6fe2beb6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
 --- !u!114 &2075702665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -844,6 +855,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb31f302a0d71c944875426969862893, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PawnActionPriority: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -52,6 +52,25 @@ public class Pawn : PawnAction
     }
 
     #endregion
+    #region Custom Lifecycle Callbacks
+
+
+
+    // Pawn의 Start 관련 커스텀 콜백입니다.
+    public virtual void PawnStart() { }
+
+    // Pawn의 지속 처리(Update) 관련 커스텀 콜백입니다.
+    public virtual void PawnUpdate() { }
+
+    // Pawn의 비활성화 처리 관련 커스텀 콜백입니다.
+    public virtual void PawnDisable() 
+    {
+        _myDelegates.Clear();
+    }
+
+
+
+    #endregion
 
     #region Ability Management
 
@@ -61,15 +80,18 @@ public class Pawn : PawnAction
     /// </summary>
     public override void RegisterAbilities()
     {
-        // NOTE: PawnAction의 _myDelegates를 통합 딕셔너리로 사용하는 경우,
-        // 이 메서드의 첫 번째 루프 (this.GetActions 순회)는 불필요합니다.
-        // PawnAction의 base.RegisterAbilities()가 Pawn 자신의 델리게이트를 _myDelegates에 등록할 것이고,
-        // 이후 자식 컴포넌트들의 델리게이트를 이 _myDelegates에 추가할 것이기 때문입니다.
-        // 만약 PawnAction의 RegisterAbilities에 아무런 델리게이트 등록 로직이 없다면, 이 부분은 비워두어도 됩니다.
-        
-        // 1. 이 게임 오브젝트와 그 자식 게임 오브젝트에 붙어있는 모든 PawnAction 컴포넌트를 가져옵니다.
-        // 'true' 매개변수는 비활성화된 오브젝트의 컴포넌트도 포함합니다.
+
+        //AddAction(Acts.OnStart, PawnStart);
+
+        #region 델리게이트에 보조기능들의 델리게이트 넣기
+
+        // 하위 기능 컴포넌트들을 가져오기위해 겟컴포넌트로 가져옵니다
         PawnAction[] allPawnActionsInHierarchy = GetComponentsInChildren<PawnAction>(true);
+
+        // --- 여기에 allPawnActionsInHierarchy 리스트를 원하는 순서대로 정렬하는 로직 ---
+        // List로 변환하여 Sort 메서드 사용
+        //List<PawnAction> sortablePawnActions = new List<PawnAction>(allPawnActionsInHierarchy);
+        //sortablePawnActions.Sort((a, b) => a.PawnActionPriority.CompareTo(b.PawnActionPriority));
 
         foreach (PawnAction otherPawnAction in allPawnActionsInHierarchy)
         {
@@ -92,42 +114,14 @@ public class Pawn : PawnAction
             }
         }
         Debug.Log($"Pawn '{name}'의 모든 능력 통합 완료. 현재 등록된 델리게이트 수: {_myDelegates.Count}");
+
+        #endregion
+
     }
 
-    /// <summary>
-    /// 외부에서 특정 행동(Acts)을 요청할 때 사용합니다.
-    /// 해당 Acts에 등록된 모든 델리게이트를 찾아 주어진 AbilityContext와 함께 실행합니다.
-    /// 이 메서드는 PawnAction에 정의되어 있으므로, Pawn은 이를 상속받아 사용합니다.
-    /// </summary>
-    // public void RequestAction(Acts act, AbilityContext context) { ... }
-    // NOTE: RequestAction은 PawnAction에 이미 정의되어 있고 Pawn이 상속받으므로, 여기에 다시 정의할 필요 없습니다.
-    // 만약 _allActions 딕셔너리에만 있는 델리게이트를 호출해야 한다면 RequestAction의 내부 로직을 수정해야 합니다.
-    // 현재 코드에서는 _myDelegates를 통합 딕셔너리로 사용하고 있으므로, PawnAction의 RequestAction이 그대로 작동합니다.
+
+
 
     #endregion
 
-    #region Custom Lifecycle Callbacks
-
-    // Pawn의 초기화 로직을 처리하는 커스텀 콜백입니다.
-    // PawnSpawnManager 등 외부에서 Pawn 생성/로드 후 이 메서드를 호출해야 합니다.
-    // 현재는 MonoBehaviour.Start()에서 통합 로직을 호출하므로, 이 메서드는 사용되지 않을 수 있습니다.
-    public virtual void PawnAwake() { }
-
-    // Pawn의 Start 관련 커스텀 콜백입니다.
-    public virtual void PawnStart() { }
-
-    // Pawn의 지속 처리(Update) 관련 커스텀 콜백입니다.
-    public virtual void PawnUpdate() { }
-
-    // Pawn의 비활성화 처리 관련 커스텀 콜백입니다.
-    public virtual void PawnDisable() { }
-
-    // Pawn의 소멸 처리 관련 커스텀 콜백입니다.
-    public virtual void PawnDespawn() 
-    {
-        // 폰이 소멸될 때 등록된 모든 델리게이트를 클리어하여 메모리 누수를 방지합니다.
-        _myDelegates.Clear(); 
-    }
-
-    #endregion
 }
