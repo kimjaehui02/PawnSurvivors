@@ -1,33 +1,33 @@
-using UnityEngine; // Vector3, GameObject µîÀ» À§ÇØ ÇÊ¿ä
-using System;      // Nullable Å¸ÀÔ (?)À» À§ÇØ ÇÊ¿ä
+using UnityEngine; // Vector3, GameObject ë“±ì„ ìœ„í•´ í•„ìš”
+using System;      // Nullable íƒ€ìž… (?)ì„ ìœ„í•´ í•„ìš”
 
-namespace Game.Core // ÇÁ·ÎÁ§Æ® ±¸Á¶¿¡ ¸Â°Ô ³×ÀÓ½ºÆäÀÌ½º Á¶Á¤
+namespace Game.Core // í”„ë¡œì íŠ¸ êµ¬ì¡°ì— ë§žê²Œ ë„¤ìž„ìŠ¤íŽ˜ì´ìŠ¤ ì¡°ì •
 {
 
 
     /// <summary>
-    /// °ÔÀÓ ³»¿¡¼­ ¹ß»ýÇÏ´Â ´Ù¾çÇÑ Çàµ¿(Ability)ÀÇ ¸Æ¶ô(Context) Á¤º¸¸¦ ´ã´Â Å¬·¡½ºÀÔ´Ï´Ù.
-    /// ¸ðµç µ¨¸®°ÔÀÌÆ® ½Ã±×´ÏÃ³¿¡ Action<AbilityContext>¸¦ À¯ÁöÇÏ¸é¼­,
-    /// ÇÊ¿äÇÑ Á¤º¸¸¸ ¼±ÅÃÀûÀ¸·Î Á¦°øÇÏ¿© Á¤º¸ °ú´Ù¸¦ ÁÙÀÌ°í,
-    /// SourcePawn°ú TargetPawnÀ¸·Î Çàµ¿ÀÇ ÁÖÃ¼¿Í ´ë»óÀ» ¸íÈ®È÷ ÇÕ´Ï´Ù.
+    /// ê²Œìž„ ë‚´ì—ì„œ ë°œìƒí•˜ëŠ” ë‹¤ì–‘í•œ í–‰ë™(Ability)ì˜ ë§¥ë½(Context) ì •ë³´ë¥¼ ë‹´ëŠ” í´ëž˜ìŠ¤ìž…ë‹ˆë‹¤.
+    /// ëª¨ë“  ë¸ë¦¬ê²Œì´íŠ¸ ì‹œê·¸ë‹ˆì²˜ì— Action<AbilityContext>ë¥¼ ìœ ì§€í•˜ë©´ì„œ,
+    /// í•„ìš”í•œ ì •ë³´ë§Œ ì„ íƒì ìœ¼ë¡œ ì œê³µí•˜ì—¬ ì •ë³´ ê³¼ë‹¤ë¥¼ ì¤„ì´ê³ ,
+    /// SourcePawnê³¼ TargetPawnìœ¼ë¡œ í–‰ë™ì˜ ì£¼ì²´ì™€ ëŒ€ìƒì„ ëª…í™•ížˆ í•©ë‹ˆë‹¤.
     /// </summary>
     public class AbilityContext
     {
-        // --- ÇÙ½É Á¤º¸ (´ëºÎºÐÀÇ Acts¿¡¼­ À¯¿ë) ---
-        // ´©°¡ ÀÌ Çàµ¿À» ½ÃÀÛÇß´Â°¡? (ÁÖÃ¼/¹ß½ÅÀÚ)
+        // --- í•µì‹¬ ì •ë³´ (ëŒ€ë¶€ë¶„ì˜ Actsì—ì„œ ìœ ìš©) ---
+        // ëˆ„ê°€ ì´ í–‰ë™ì„ ì‹œìž‘í–ˆëŠ”ê°€? (ì£¼ì²´/ë°œì‹ ìž)
         public Pawn SourcePawn { get; set; }
 
-        // ´©°¡ ÀÌ Çàµ¿ÀÇ ´ë»óÀÎ°¡? (¼ö½ÅÀÚ)
-        // Self-actionÀÇ °æ¿ì SourcePawn°ú µ¿ÀÏÇÏ°Å³ª, ÇØ´ç PawnActionÀÌ ºÎÂøµÈ PawnÀ» ÀÇ¹Ì.
+        // ëˆ„ê°€ ì´ í–‰ë™ì˜ ëŒ€ìƒì¸ê°€? (ìˆ˜ì‹ ìž)
+        // Self-actionì˜ ê²½ìš° SourcePawnê³¼ ë™ì¼í•˜ê±°ë‚˜, í•´ë‹¹ PawnActionì´ ë¶€ì°©ëœ Pawnì„ ì˜ë¯¸.
         public Pawn TargetPawn { get; set; }
 
 
 
-        // ÀÌµ¿ °ü·Ã ÀÔ·Â ¹æÇâ (Acts.OnMove µî¿¡¼­ »ç¿ë, ¾øÀ» ½Ã null)
+        // ì´ë™ ê´€ë ¨ ìž…ë ¥ ë°©í–¥ (Acts.OnMove ë“±ì—ì„œ ì‚¬ìš©, ì—†ì„ ì‹œ null)
         public Vector3? InputDirection { get; set; }
 
-        // --- ´Ü¹ß¼º ÀÌº¥Æ® Á¤º¸ (°¢ Acts¿¡ µû¶ó ¼±ÅÃÀûÀ¸·Î »ç¿ë) ---
-        // Acts.OnHit, OnDamage µî ÇÇÇØ °ü·Ã
+        // --- ë‹¨ë°œì„± ì´ë²¤íŠ¸ ì •ë³´ (ê° Actsì— ë”°ë¼ ì„ íƒì ìœ¼ë¡œ ì‚¬ìš©) ---
+        // Acts.OnHit, OnDamage ë“± í”¼í•´ ê´€ë ¨
         public float? DamageAmount { get; set; }
         //public float? DamageAmount { get; set; }
         //public float? DamageAmount { get; set; }

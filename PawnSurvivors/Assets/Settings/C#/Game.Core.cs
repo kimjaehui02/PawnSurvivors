@@ -6,27 +6,7 @@ namespace Game.Core
 {
     #region Enums
 
-    public enum PawnActionPriority
-    {
-        // 가장 먼저 처리되어야 하는 로직들 (데미지 감소, 조건부 효과 발동 등)
-        VeryEarly, // 예: 방어력, 데미지 감소 계산
-        Early,     // 예: 치명타, 속성별 증폭 계산
-        PreNormal,  // 예: 특정 버프/디버프에 의한 추가 계수 적용
 
-        // 일반적인 로직 (대부분의 기본 처리)
-        Normal,       // 예: 기본 데미지 설정 (DamageDealer), 스킬 시전
-
-        // 일반 로직 이후, 최종 계산 이전에 처리되어야 하는 로직
-        PostNormal,  // 예: 최종 데미지 합산 전 추가 보정
-
-        // 최종 결과에 영향을 미치거나, 부수적인 효과들
-        Late,       // 예: 체력 적용 (Damageable), 사망 판정, UI 업데이트 전 마지막 확인
-        VeryLate,   // 예: 피격 이펙트, 사운드, 몬스터 AI 상태 변화 (최종 결과 후)
-
-        // 디버그나 로깅, 클린업 등 가장 마지막에 실행될 로직
-        Final,      // 예: 모든 계산 및 효과 적용 후 최종 디버그 로그, Cleanup
-
-    }
 
     /// <summary>
     /// 게임 내에서 발생하는 핵심 행동들을 정의하는 Enum입니다.
@@ -46,21 +26,20 @@ namespace Game.Core
         OnUpdate,       // MonoBehaviour.Update() 시점에 해당 델리게이트 등록 함수들 호출
         OnDisable,
 
+        OnCollisionEnter,
+        OnTriggerEnter,
 
 
     }
 
+    public enum UpdateActionTypes
+    {         
 
+        Update,         // MonoBehaviour.Update() 시점
 
-    public enum Components
-    {
-        DamageDealerComponent,
-        DamageableComponent,
-        GraphicComponent,
-        MoveableComponent,
-        PawnMoverComponent,
-        PlayerMoverComponent
     }
+
+
 
     #endregion
 

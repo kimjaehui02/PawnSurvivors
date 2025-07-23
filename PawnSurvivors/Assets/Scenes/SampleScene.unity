@@ -119,6 +119,64 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &279658787
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 279658788}
+  - component: {fileID: 279658790}
+  - component: {fileID: 279658789}
+  m_Layer: 0
+  m_Name: GamaManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &279658788
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 279658787}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &279658789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 279658787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcdc9f7ce63eaf8478d3815429990a0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &279658790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 279658787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a89047d816a55547a727f8dac60295e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CustomLifecycleManager: {fileID: 279658789}
 --- !u!1 &419604192
 GameObject:
   m_ObjectHideFlags: 0
@@ -222,7 +280,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ba60289dc764314b8bd6c0577a5b887, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
   _maxHealth: 0
   _currentHealth: 0
 --- !u!114 &419604197
@@ -237,7 +294,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8fab197f98dbb4aba7c847ae453e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
   moveSpeed: 5
 --- !u!114 &419604198
 MonoBehaviour:
@@ -251,7 +307,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ca8c132767c8c43ab6d2c20b2d2693, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
 --- !u!114 &419604199
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -264,7 +319,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b66a951f26069c4e8c487dceec112ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 3
+  actsToRequest: 
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -564,7 +619,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8fab197f98dbb4aba7c847ae453e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
   moveSpeed: 5
 --- !u!114 &1275577858
 MonoBehaviour:
@@ -578,7 +632,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43a8ed54115b0034eadf61e1c5b2d3c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
+  actsToRequest: 
 --- !u!4 &1275577859
 Transform:
   m_ObjectHideFlags: 0
@@ -607,7 +661,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ca8c132767c8c43ab6d2c20b2d2693, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
 --- !u!1 &1331013357
 GameObject:
   m_ObjectHideFlags: 0
@@ -729,7 +782,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ba60289dc764314b8bd6c0577a5b887, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
   _maxHealth: 0
   _currentHealth: 0
 --- !u!114 &2075702660
@@ -744,7 +796,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63ec1046387de19488a6dba8bc9495b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
   _damageAmount: 10
 --- !u!114 &2075702661
 MonoBehaviour:
@@ -758,7 +809,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8fab197f98dbb4aba7c847ae453e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
   moveSpeed: 1
 --- !u!212 &2075702662
 SpriteRenderer:
@@ -842,7 +892,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8c9018292068684285285d6fe2beb6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
 --- !u!114 &2075702665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -855,7 +904,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb31f302a0d71c944875426969862893, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PawnActionPriority>k__BackingField: 0
+  actsToRequest: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -866,3 +915,4 @@ SceneRoots:
   - {fileID: 2075702663}
   - {fileID: 749874933}
   - {fileID: 1275577859}
+  - {fileID: 279658788}
