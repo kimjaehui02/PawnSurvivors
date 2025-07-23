@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -36,6 +37,7 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
+    public Pawn Player;
     /// <summary>
     /// 스크립트 인스턴스가 로드될 때 호출됩니다.
     /// 싱글톤 인스턴스를 설정하고, 씬 전환 시 파괴되지 않도록 합니다.
@@ -45,6 +47,8 @@ public class GameManager : MonoBehaviour
         SingleAwake();
     }
 
-
-
+    internal void RegisterPlayer(Pawn player)
+    {
+        Player = player;
+    }
 }

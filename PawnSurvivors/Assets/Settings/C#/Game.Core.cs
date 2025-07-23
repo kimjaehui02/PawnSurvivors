@@ -20,6 +20,7 @@ namespace Game.Core
         OnDamaged,      // 피해를 받았을 때
         OnDeath,        // 사망했을 때
         OnHeal,         // 체력을 회복했을 때
+        OnUpdateTarget,   // 타겟을 찾을 때 
 
         // 유니티 생명 주기 메서드에 연결될 액트 (전역 업데이트 요청용)
         OnStart,

@@ -32,10 +32,16 @@ public class Pawn : PawnAction
     #region Unity Lifecycle
 
     // MonoBehaviour의 Start 메서드입니다. Pawn의 초기화를 시작합니다.
-    private void Start()
+    protected virtual void Start()
     {
         //AbilityContext = new AbilityContext(); // AbilityContext 인스턴스 초기화
         RegisterAbilities();             // Pawn 능력 통합 시작
+
+        if (_myDelegates.ContainsKey(Acts.OnUpdateTarget))
+        {
+            actsToRequest.Add(Acts.OnUpdateTarget); 
+
+        }
 
         if (_myDelegates.ContainsKey(Acts.OnUpdate))
         {
@@ -43,11 +49,14 @@ public class Pawn : PawnAction
 
         }
 
+
+
         if (_myDelegates.ContainsKey(Acts.OnMove))
         {
             actsToRequest.Add(Acts.OnMove); // Start 액트 요청 추가
 
         }
+
         RegisterLifecycleCallbacks();
     }
 
@@ -78,7 +87,14 @@ public class Pawn : PawnAction
 
 
     // Pawn의 Start 관련 커스텀 콜백입니다.
-    public virtual void PawnStart() { }
+    public virtual void PawnStart() 
+    {
+        AbilityContext startAbilityContext = new();
+
+
+
+        RequestAction(Acts.OnStart, startAbilityContext);
+    }
 
     // Pawn의 지속 처리(Update) 관련 커스텀 콜백입니다.
     public virtual void PawnUpdate()

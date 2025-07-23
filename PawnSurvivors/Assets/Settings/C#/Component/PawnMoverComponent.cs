@@ -17,28 +17,21 @@ public class PawnMoverComponent : PawnAction // PawnAction을 상속합니다.
     /// </summary>
     public override void RegisterAbilities()
     {
-        // TODO: 만약 특정 Acts에 의해 이동 방향 계산이 자동으로 이뤄져야 한다면,
-        // 예를 들어 Acts.OnAITick 시점에 GetFaceDirection을 호출하도록 등록할 수 있습니다.
-        // AddAction(Acts.OnAITick, (context) => { context.inputDirection = GetFaceDirection(context.targetPosition); });
-        // 위 예시를 사용하려면 AbilityContext에 'targetPosition' 필드가 필요합니다.
 
-        // 현재는 RegisterAbilities에서 아무것도 등록하지 않고 있습니다.
-        // throw new System.NotImplementedException(); // 이 줄이 더 이상 필요 없으면 제거하세요.
+        AddAction(Acts.OnUpdate, GetFaceDirection);
     }
 
     #endregion
 
     #region Public Methods
 
-    /// <summary>
-    /// 배회(Wander) 기능을 제공하지 않으므로 항상 Vector3.zero를 반환합니다.
-    /// 이 AI는 독립적인 배회 행동을 수행하지 않습니다.
-    /// </summary>
-    /// <returns>항상 Vector3.zero (이동 없음)</returns>
-    public Vector3 GetWanderDirection()
-    {
-        return Vector3.zero; // 이 컴포넌트는 배회 기능을 구현하지 않습니다.
-    }
+
+    // 이건 아직 고민중인 로직입니다
+    // 아직은 추적만할거에요
+    //public Vector3 GetWanderDirection()
+    //{
+    //    return Vector3.zero; // 이 컴포넌트는 배회 기능을 구현하지 않습니다.
+    //}
 
     /// <summary>
     /// 지정된 목표 위치를 향하는 방향 벡터를 계산하여 반환합니다.
@@ -48,6 +41,33 @@ public class PawnMoverComponent : PawnAction // PawnAction을 상속합니다.
     /// <returns>목표를 향하는 정규화된 방향 벡터. 목표가 현재 위치와 같으면 Vector3.zero.</returns>
     public void GetFaceDirection(AbilityContext abilityContext)
     {
+        // 1. abilityContext 자체가 null인지 확인
+        if (abilityContext == null)
+        {
+            Debug.LogWarning("GetFaceDirection: abilityContext가 null입니다. 이동 방향을 계산할 수 없습니다.");
+            // null일 경우 기본값으로 Vector3.zero를 설정하거나 아무것도 하지 않을 수 있습니다.
+            // 여기서는 그냥 메서드를 종료하고 InputDirection에 접근하지 않도록 합니다.
+            return;
+        }
+
+        // 2. abilityContext.TargetPawn이 null인지 확인
+        // (TargetPawn이 없다는 것은 이동할 대상이 없다는 의미)
+        if (abilityContext.TargetPawn == null)
+        {
+             Debug.LogWarning("GetFaceDirection: abilityContext.TargetPawn이 null입니다. 이동 방향을 계산할 수 없습니다.");
+            // 대상이 없으므로 이동 방향은 0으로 설정
+            abilityContext.InputDirection = Vector3.zero;
+            return;
+        }
+
+        // 3. TargetPawn.transform이 null일 수도 있음을 고려 (매우 드물지만, 오브젝트가 파괴되었을 때 등)
+        if (abilityContext.TargetPawn.transform == null)
+        {
+            Debug.LogWarning($"GetFaceDirection: TargetPawn '{abilityContext.TargetPawn.name}'의 transform이 null입니다. 이동 방향을 계산할 수 없습니다.");
+            abilityContext.InputDirection = Vector3.zero;
+            return;
+        }
+
         // 현재 위치에서 목표 위치를 향하는 벡터를 계산합니다.
         Vector3 directionToTarget = abilityContext.TargetPawn.transform.position - transform.position;
 
@@ -55,11 +75,15 @@ public class PawnMoverComponent : PawnAction // PawnAction을 상속합니다.
         if (directionToTarget.magnitude > 0)
         {
             abilityContext.InputDirection = directionToTarget.normalized;
+            //Debug.Log("성공");
+
             return;
         }
 
         // 목표가 현재 위치와 같거나 매우 가까워 방향을 계산할 수 없으면 이동하지 않습니다.
         abilityContext.InputDirection = Vector3.zero;
+        //Debug.Log("마지막");
+
         return;
     }
 

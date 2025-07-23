@@ -17,7 +17,12 @@ public class CustomLifecycleManager : MonoBehaviour
     /// </summary>
     private void ProcessStartQueue()
     {
-        //Debug.Log($"_startQueue 처리 시작. 현재 큐 크기: {_startQueue.Count}");
+        if(_startQueue.Count == 0)
+        {
+            //Debug.Log("_startQueue가 비어있습니다. 처리할 액션이 없습니다.");
+            return; // 큐가 비어있으면 아무것도 하지 않습니다.
+        }
+        Debug.Log($"_startQueue 처리 시작. 현재 큐 크기: {_startQueue.Count}");
 
         // 큐가 비어있지 않은 동안 반복합니다.
         while (_startQueue.Count > 0)
@@ -31,7 +36,7 @@ public class CustomLifecycleManager : MonoBehaviour
             //Debug.Log($"액션 실행 완료. 남은 큐 크기: {_startQueue.Count}");
         }
 
-        //Debug.Log("_startQueue 처리 완료. 큐가 비었습니다.");
+        Debug.Log("_startQueue 처리 완료. 큐가 비었습니다.");
     }
 
     /// <summary>
@@ -107,6 +112,8 @@ public class CustomLifecycleManager : MonoBehaviour
             actionDelegate?.Invoke(); // 델리게이트가 null이 아니면 호출
         }
         // else { Debug.LogWarning($"[{name}] RequestAction: Acts.{act}에 등록된 델리게이트가 없습니다."); }
+        count = actionDelegate.GetInvocationList().Length; // 현재 연결된 델리게이트의 개수를 count에 저장합니다.
+
     }
 
     /// <summary>
@@ -141,7 +148,7 @@ public class CustomLifecycleManager : MonoBehaviour
         UpdateActionTypes.Update, 
     };
 
-
+    public int count = 0;
     public bool _stopUpdate = false;
     private void Process_updateActionMap()
     {
@@ -151,7 +158,7 @@ public class CustomLifecycleManager : MonoBehaviour
         }
 
         RequestUpdates(updatecycle);
-
+        //count = _updateActionMap.Count;
     }
 
     #endregion
