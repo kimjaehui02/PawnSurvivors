@@ -39,13 +39,13 @@ public class Pawn : PawnAction
         //AbilityContext = new AbilityContext(); // AbilityContext 인스턴스 초기화
         RegisterAbilities();             // Pawn 능력 통합 시작
 
-        if (_myDelegates.ContainsKey(Acts.OnUpdateTarget))
+        if (GetActions.ContainsKey(Acts.OnUpdateTarget))
         {
             actsToRequest.Add(Acts.OnUpdateTarget); 
 
         }
 
-        if (_myDelegates.ContainsKey(Acts.OnUpdate))
+        if (GetActions.ContainsKey(Acts.OnUpdate))
         {
             actsToRequest.Add(Acts.OnUpdate); // Start 액트 요청 추가
 
@@ -53,7 +53,7 @@ public class Pawn : PawnAction
 
 
 
-        if (_myDelegates.ContainsKey(Acts.OnMove))
+        if (GetActions.ContainsKey(Acts.OnMove))
         {
             actsToRequest.Add(Acts.OnMove); // Start 액트 요청 추가
 
@@ -162,7 +162,7 @@ public class Pawn : PawnAction
                 AddAction(entry.Key, entry.Value); // PawnAction의 AddAction 메서드를 사용하여 안전하게 추가
             }
         }
-        Debug.Log($"Pawn '{name}'의 모든 능력 통합 완료. 현재 등록된 델리게이트 수: {_myDelegates.Count}");
+        Debug.Log($"Pawn '{name}'의 모든 능력 통합 완료. 현재 등록된 델리게이트 수: {GetActions.Count}");
 
         #endregion
 

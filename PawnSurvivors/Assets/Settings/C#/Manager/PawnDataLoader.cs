@@ -10,7 +10,7 @@ public class PawnDataLoader : MonoBehaviour
 
     // 모든 Pawn 타입 데이터를 저장할 딕셔너리
     [SerializeField]
-    private Dictionary<string, PawnTypeData> _pawnTypeDefinitions = new Dictionary<string, PawnTypeData>();
+    private Dictionary<string, PawnTypeData> _pawnTypeDefinitions = new();
 
     // 로드할 JSON 파일의 Resources 경로
     [SerializeField] // Unity 에디터에서 설정 가능하도록 노출
