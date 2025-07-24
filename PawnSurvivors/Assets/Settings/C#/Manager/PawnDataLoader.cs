@@ -1,18 +1,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Reflection; // Reflection을 위해 필요
 
-/// <summary>
-/// JSON에서 Pawn 타입 정의를 로드하고, 해당 정의에 따라 Pawn GameObject를 설정하는 클래스입니다.
-/// MonoBehaviour를 상속받아 Unity 씬에 배치할 수 있으며, Awake()에서 자동으로 데이터를 로드합니다.
-/// 싱글톤 패턴을 사용하여 어디서든 접근 가능하도록 구현했습니다.
-/// </summary>
+
+
 public class PawnDataLoader : MonoBehaviour
 {
-    // 싱2
+
 
     // 모든 Pawn 타입 데이터를 저장할 딕셔너리
+    [SerializeField]
     private Dictionary<string, PawnTypeData> _pawnTypeDefinitions = new Dictionary<string, PawnTypeData>();
 
     // 로드할 JSON 파일의 Resources 경로
@@ -21,6 +18,14 @@ public class PawnDataLoader : MonoBehaviour
 
     // --- Unity 생명 주기 메서드 ---
 
+
+
+    private void Awake()
+    {
+        LoadPawnTypesFromJson();
+        
+
+    }
 
     // --- 데이터 로딩 메서드 ---
 
@@ -35,7 +40,7 @@ public class PawnDataLoader : MonoBehaviour
             Debug.LogError($"PawnDataLoader: JSON 파일 '{_pawnTypesJsonPath}.json'을 Resources에서 찾을 수 없습니다.");
             return;
         }
-
+        Debug.Log(jsonTextAsset);
         try
         {
             // JsonUtility는 최상위 객체만 직접 파싱할 수 있으므로, PawnTypesData 래퍼 클래스를 사용
@@ -83,6 +88,11 @@ public class PawnDataLoader : MonoBehaviour
         if (!_pawnTypeDefinitions.TryGetValue(pawnTypeName, out PawnTypeData pawnData))
         {
             Debug.LogError($"PawnDataLoader: '{pawnTypeName}' 타입의 Pawn 정의를 찾을 수 없습니다.");
+            foreach (string pawnTypeName2 in _pawnTypeDefinitions.Keys)
+            {
+                Debug.Log($"Loaded PawnType Key: {pawnTypeName2}");
+            }
+
             return;
         }
 

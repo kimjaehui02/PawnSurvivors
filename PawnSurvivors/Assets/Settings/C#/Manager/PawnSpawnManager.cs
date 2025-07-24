@@ -10,7 +10,7 @@ public class PawnSpawnManager : MonoBehaviour
 
     public GameObject BasePawn;
 
-    public void SpawnPawn()
+    public void SpawnPawn(string type)
     {
         Debug.Log("PawnSpawnManager: SpawnPawn 메서드 호출됨.");
         if (BasePawn == null)
@@ -19,16 +19,14 @@ public class PawnSpawnManager : MonoBehaviour
         }
 
         GameObject s = Instantiate(BasePawn);
-        s.AddComponent<MoveableComponent>(); // Pawn 컴포넌트 추가
-        s.AddComponent<PawnTargetFinderComponent>(); // Pawn 컴포넌트 추가
-        s.AddComponent<PawnMoverComponent>(); // Pawn 컴포넌트 추가
-        s.AddComponent<DamageableComponent>(); // Pawn 컴포넌트 추가
-        s.AddComponent<DamageDealerComponent>(); // Pawn 컴포넌트 추가
+        GameManager.Instance.PawnDataLoader.ConfigurePawnFromType(s, type);
+
     }
 
     private void Start()
     {
-        SpawnPawn();
+        SpawnPawn("Goblin");
+        SpawnPawn("Golem");
     }
 
 

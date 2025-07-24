@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 279658790}
   - component: {fileID: 279658789}
   - component: {fileID: 279658791}
+  - component: {fileID: 279658792}
   m_Layer: 0
   m_Name: GamaManager
   m_TagString: Untagged
@@ -180,6 +181,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CustomLifecycleManager: {fileID: 279658789}
+  PawnDataLoader: {fileID: 279658792}
   Player: {fileID: 0}
 --- !u!114 &279658791
 MonoBehaviour:
@@ -194,6 +196,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BasePawn: {fileID: 7560980294327710765, guid: 01623c7ad3502584aa8719236558d7e7, type: 3}
+--- !u!114 &279658792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 279658787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a857978028be8d43b9efef3cc7eb1fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _pawnTypesJsonPath: Data/PawnTypes
 --- !u!1 &419604192
 GameObject:
   m_ObjectHideFlags: 0

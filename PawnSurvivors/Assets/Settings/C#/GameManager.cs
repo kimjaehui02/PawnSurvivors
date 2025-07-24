@@ -35,6 +35,8 @@ public class GameManager : MonoBehaviour
 
     public CustomLifecycleManager CustomLifecycleManager;
 
+    public PawnDataLoader PawnDataLoader;
+
     #endregion
 
     public Pawn Player;

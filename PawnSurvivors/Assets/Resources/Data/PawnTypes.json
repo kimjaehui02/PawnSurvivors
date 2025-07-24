@@ -5,30 +5,54 @@
             "description": "표준 근접 고블린입니다.",
             "components": [
                 {
-                    "type": "PawnHealthComponent",
-                    "properties": {
-                        "MaxHealth": 100,
-                        "CurrentHealth": 100
-                    }
+                    "type": "DamageableComponent",
+                    "properties": "{\"MaxHealth\": 20, \"CurrentHealth\": 20}"
+                },
+                {
+                    "type": "MoveableComponent",
+                    "properties": "{\"moveSpeed\": 3}"
+                },
+                {
+                    "type": "PawnTargetFinderComponent",
+                    "properties": "{}"
                 },
                 {
                     "type": "PawnMoverComponent",
-                    "properties": {
-                        "MoveSpeed": 1.5
-                    }
+                    "properties": "{}"
                 },
                 {
-                    "type": "PawnTargetFinderComponent"
-                    // 속성이 없다면 "properties": {} 또는 "properties": null 도 가능하지만,
-                    // 아예 'properties' 키 자체를 생략하는 게 가장 깔끔합니다.
+                    "type": "DamageDealerComponent",
+                    "properties": "{}"
+                }
+            ]
+        },
+        {
+            "name": "Golem",
+            "description": "표준 근접 골렘입니다.",
+            "components": [
+                {
+                    "type": "DamageableComponent",
+                    "properties": "{\"MaxHealth\": 100, \"CurrentHealth\": 100}"
                 },
                 {
-                    "type": "DamageableComponent"
+                    "type": "MoveableComponent",
+                    "properties": "{\"moveSpeed\": 1}"
                 },
                 {
-                    "type": "DamageDealerComponent"
+                    "type": "PawnTargetFinderComponent",
+                    "properties": "{}"
+                },
+                {
+                    "type": "PawnMoverComponent",
+                    "properties": "{}"
+                },
+                {
+                    "type": "DamageDealerComponent",
+                    "properties": "{}"
                 }
             ]
         }
     ]
+
+
 }
