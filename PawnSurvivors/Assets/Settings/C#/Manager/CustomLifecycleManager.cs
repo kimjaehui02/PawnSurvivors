@@ -52,13 +52,16 @@ public class CustomLifecycleManager : MonoBehaviour
         }
     }
 
-    #endregion 
+    #endregion
 
     #region Update
+
+    //public readonly EnumDelegateMap<UpdateActionTypes> _updateDelegateMap = new();
+
     private readonly Dictionary<UpdateActionTypes, Action> _updateActionMap = new();
 
-    #region 딕셔너리 관리 함수들
-
+    #region (구)딕셔너리 관리 함수들
+    
 
     /// <summary>
     /// 지정된 Acts에 대한 Action 델리게이트를 맵에 추가하거나 기존 델리게이트에 연결합니다.
@@ -136,7 +139,7 @@ public class CustomLifecycleManager : MonoBehaviour
         // 주석 처리된 else 문은 RequestAction 메서드 내부에 이미 있으므로 여기에 필요 없습니다.
         // 이는 각 개별 Acts에 대한 경고를 RequestAction에서 이미 처리하기 때문입니다.
     }
-
+    
     #endregion
 
     // 기존 코드:
