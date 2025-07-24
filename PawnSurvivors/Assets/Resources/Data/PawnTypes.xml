@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PawnTypes>
+
+	<PawnType name="Goblin" description="표준 근접 고블린입니다.">
+		<Components>
+			<Component type="PawnHealthComponent">
+				<Property name="MaxHealth" value="100"/>
+				<Property name="CurrentHealth" value="100"/>
+			</Component>
+			<Component type="PawnMoverComponent">
+				<Property name="MoveSpeed" value="3.5"/>
+			</Component>
+		</Components>
+	</PawnType>
+
+
+
+</PawnTypes>

@@ -22,8 +22,10 @@ public class Pawn : PawnAction
     // Pawn의 고유 ID입니다. 내부에서만 변경 가능합니다.
     public string Id { get; private set; } 
 
-    // 행동 실행에 사용될 AbilityContext 인스턴스입니다. 매 프레임 재활용됩니다.
-    //public AbilityContext AbilityContext { get; private set; }
+    public string Name { get; set; } // Pawn의 이름입니다. 외부에서 설정 가능합니다.
+
+    public string Description { get; set; } // Pawn의 설명입니다. 외부에서 설정 가능합니다.
+
 
     public List<Acts> actsToRequest = new ();
 
