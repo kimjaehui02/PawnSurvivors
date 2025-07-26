@@ -1,6 +1,9 @@
+using Game.Core;
 using UnityEngine;
 
-public class ManagerBase
+public abstract class ManagerBase : MonoBehaviour
 {
-    //EnumDelegateMap
+    EnumDelegateMap<GameEventType, IGameEventContext> _delegateMap = new();
+
+
 }

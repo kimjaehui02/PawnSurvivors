@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 게임의 전반적인 관리와 핵심 시스템에 대한 접근을 제공하는 싱글톤 매니저입니다.
 /// </summary>
-public class GameManager : MonoBehaviour
+public class GameManager : ManagerBase
 {
 
     #region 싱글톤
