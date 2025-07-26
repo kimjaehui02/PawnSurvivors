@@ -4,6 +4,7 @@ using Game.Core;
 using System;
 using System.Collections.Generic;
 
+
 public class EnumDelegateMap<TEnum, TContext> where TEnum : Enum
 {
     #region Fields & Properties
@@ -61,6 +62,7 @@ public class EnumDelegateMap<TEnum, TContext> where TEnum : Enum
             if (_myDelegatesMap[act] == null)
             {
                 _myDelegatesMap.Remove(act);
+                
             }
         }
         else
