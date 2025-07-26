@@ -9,7 +9,7 @@ using System;
 /// </summary>
 public abstract class PawnAction : MonoBehaviour
 {
-    private EnumDelegateMap<Acts> _delegateMap = new();
+    private EnumDelegateMap<Acts, AbilityContext> _delegateMap = new();
 
     //private Dictionary<Acts, Action<AbilityContext>> MyDelegates => _delegateMap._myDelegatesMap;
 

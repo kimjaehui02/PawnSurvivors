@@ -4,7 +4,7 @@ using Game.Core;
 using System;
 using System.Collections.Generic;
 
-public class EnumDelegateMap<TEnum> where TEnum : Enum
+public class EnumDelegateMap<TEnum, TContext> where TEnum : Enum
 {
     #region Fields & Properties
     //[field: SerializeField] // 유니티 인스펙터에서 설정 가능하도록
@@ -12,13 +12,13 @@ public class EnumDelegateMap<TEnum> where TEnum : Enum
 
     // 이 PawnAction 컴포넌트에 등록된 TEnum-Action 델리게이트 맵입니다.
     // Pawn이 이 딕셔너리의 내용을 통합하여 관리합니다.
-    private readonly Dictionary<TEnum, Action<AbilityContext>> _myDelegatesMap = new();
+    private readonly Dictionary<TEnum, Action<TContext>> _myDelegatesMap = new();
 
     /// <summary>
     /// 내부 델리게이트 맵(_myDelegatesMap)에 대한 읽기 전용 뷰를 제공합니다.
     /// 외부에서는 이 맵의 내용을 읽을 수만 있고 변경할 수는 없습니다.
     /// </summary>
-    public IReadOnlyDictionary<TEnum, Action<AbilityContext>> GetActions => _myDelegatesMap;
+    public IReadOnlyDictionary<TEnum, Action<TContext>> GetActions => _myDelegatesMap;
 
     #endregion
 
@@ -30,7 +30,7 @@ public class EnumDelegateMap<TEnum> where TEnum : Enum
     /// </summary>
     /// <param name="act">등록할 TEnum Enum 값.</param>
     /// <param name="action">해당 TEnum에 연결할 Action 델리게이트.</param>
-    public void AddAction(TEnum act, Action<AbilityContext> action)
+    public void AddAction(TEnum act, Action<TContext> action)
     {
         if (_myDelegatesMap.ContainsKey(act))
         {
@@ -47,7 +47,7 @@ public class EnumDelegateMap<TEnum> where TEnum : Enum
     /// </summary>
     /// <param name="act">제거할 대상 TEnum Enum 값.</param>
     /// <param name="action">제거할 특정 Action 델리게이트. null이면 해당 TEnum의 모든 델리게이트를 제거합니다.</param>
-    public void RemoveAction(TEnum act, Action<AbilityContext> action = null)
+    public void RemoveAction(TEnum act, Action<TContext> action = null)
     {
         if (!_myDelegatesMap.ContainsKey(act))
         {
@@ -70,14 +70,14 @@ public class EnumDelegateMap<TEnum> where TEnum : Enum
     }
 
     /// <summary>
-    /// 지정된 TEnum에 등록된 모든 델리게이트 함수들을 주어진 AbilityContext와 함께 실행합니다.
+    /// 지정된 TEnum에 등록된 모든 델리게이트 함수들을 주어진 TContext와 함께 실행합니다.
     /// </summary>
     /// <param name="act">실행할 TEnum Enum 값.</param>
     /// <param name="context">행동에 필요한 정보를 담은 컨텍스트.</param>
-    public void RequestAction(TEnum act, AbilityContext context)
+    public void RequestAction(TEnum act, TContext context)
     {
         // 맵에서 해당 TEnum에 연결된 델리게이트를 안전하게 가져옵니다.
-        if (_myDelegatesMap.TryGetValue(act, out Action<AbilityContext> actionDelegate))
+        if (_myDelegatesMap.TryGetValue(act, out Action<TContext> actionDelegate))
         {
             actionDelegate?.Invoke(context); // 델리게이트가 null이 아니면 호출
         }
@@ -85,11 +85,11 @@ public class EnumDelegateMap<TEnum> where TEnum : Enum
     }
 
     /// <summary>
-    /// 지정된 TEnum에 등록된 모든 델리게이트 함수들을 주어진 AbilityContext와 함께 실행합니다.
+    /// 지정된 TEnum에 등록된 모든 델리게이트 함수들을 주어진 TContext와 함께 실행합니다.
     /// </summary>
     /// <param name="TEnum">실행할 TEnum Enum 값들의 리스트.</param>
     /// <param name="context">행동에 필요한 정보를 담은 컨텍스트.</param>
-    public void RequestActions(List<TEnum> TEnum, AbilityContext context)
+    public void RequestActions(List<TEnum> TEnum, TContext context)
     {
         // 입력 리스트의 유효성 검사를 추가하면 더욱 견고해집니다.
         if (TEnum == null || TEnum.Count == 0)
