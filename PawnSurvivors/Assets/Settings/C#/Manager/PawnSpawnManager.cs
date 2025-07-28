@@ -19,7 +19,7 @@ public class PawnSpawnManager : MonoBehaviour
         }
 
         GameObject s = Instantiate(BasePawn);
-        GameManager.Instance.PawnDataLoader.ConfigurePawnFromType(s, type);
+        //GameManager.Instance.PawnDataLoader.ConfigurePawnFromType(s, type);
 
     }
 

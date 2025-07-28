@@ -27,7 +27,8 @@ public class Pawn : PawnAction
     public string Description { get; set; } // Pawn의 설명입니다. 외부에서 설정 가능합니다.
 
 
-    public List<Acts> actsToRequest = new ();
+    public List<Acts> actsToUpdate = new ();
+    public List<Acts> actsToTriggerEnter = new ();
 
     #endregion
 
@@ -41,23 +42,22 @@ public class Pawn : PawnAction
 
         if (GetActions.ContainsKey(Acts.OnUpdateTarget))
         {
-            actsToRequest.Add(Acts.OnUpdateTarget); 
+            actsToUpdate.Add(Acts.OnUpdateTarget); 
 
         }
 
         if (GetActions.ContainsKey(Acts.OnUpdate))
         {
-            actsToRequest.Add(Acts.OnUpdate); // Start 액트 요청 추가
+            actsToUpdate.Add(Acts.OnUpdate); // Start 액트 요청 추가
 
         }
-
-
 
         if (GetActions.ContainsKey(Acts.OnMove))
         {
-            actsToRequest.Add(Acts.OnMove); // Start 액트 요청 추가
+            actsToUpdate.Add(Acts.OnMove); // Start 액트 요청 추가
 
         }
+        actsToTriggerEnter.Add(Acts.OnTriggerEnter); // OnTriggerEnter2D 액트 추가
 
         RegisterLifecycleCallbacks();
     }
@@ -79,7 +79,7 @@ public class Pawn : PawnAction
 
         GameManager.Instance.CustomLifecycleManager.EnqueueStartAction(PawnStart);
 
-        if (actsToRequest != null && actsToRequest.Count > 0)
+        if (actsToUpdate != null && actsToUpdate.Count > 0)
         {
             GameManager.Instance.CustomLifecycleManager.AddUpdate(UpdateActionTypes.Update, PawnUpdate);
         }
@@ -105,7 +105,7 @@ public class Pawn : PawnAction
 
 
 
-        RequestActions(actsToRequest, updateAbilityContext);
+        RequestActions(actsToUpdate, updateAbilityContext);
 
 
     }
@@ -114,9 +114,12 @@ public class Pawn : PawnAction
 
     public void OnTriggerEnter2D(Collider2D collision)
     {
-        AbilityContext TriggerEnter2DAbilityContext = new();
-
-        RequestActions(actsToRequest, TriggerEnter2DAbilityContext);
+        AbilityContext TriggerEnter2DAbilityContext = new()
+        {
+            TargetPawn = collision.GetComponent<Pawn>(),
+            SourcePawn = this // 현재 Pawn을 소스 Pawn으로 설정
+        };
+        RequestActions(actsToTriggerEnter, TriggerEnter2DAbilityContext);
     }
 
     #endregion
@@ -137,10 +140,7 @@ public class Pawn : PawnAction
         // 하위 기능 컴포넌트들을 가져오기위해 겟컴포넌트로 가져옵니다
         PawnAction[] allPawnActionsInHierarchy = GetComponentsInChildren<PawnAction>(true);
 
-        // --- 여기에 allPawnActionsInHierarchy 리스트를 원하는 순서대로 정렬하는 로직 ---
-        // List로 변환하여 Sort 메서드 사용
-        //List<PawnAction> sortablePawnActions = new List<PawnAction>(allPawnActionsInHierarchy);
-        //sortablePawnActions.Sort((a, b) => a.PawnActionPriority.CompareTo(b.PawnActionPriority));
+;
 
         foreach (PawnAction otherPawnAction in allPawnActionsInHierarchy)
         {

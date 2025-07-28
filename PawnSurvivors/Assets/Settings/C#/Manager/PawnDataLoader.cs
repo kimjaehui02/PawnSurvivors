@@ -1,176 +1,80 @@
+using UnityEngine;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using Game.Core; // ManagerBase, 그리고 PawnTypeData와 PawnTypesWrapperData가 있는 네임스페이스
 
-
-
-public class PawnDataLoader : MonoBehaviour
+/// <summary>
+/// PawnType 데이터를 로드하고 관리하며, 다른 시스템에서 조회할 수 있도록 제공하는 클래스입니다.
+/// 실제 JSON 파싱은 JsonLoader에 위임합니다.
+/// </summary>
+public class PawnDataLoader : ManagerBase
 {
-
-
-    // 모든 Pawn 타입 데이터를 저장할 딕셔너리
+    // JsonLoader 인스턴스에 대한 참조입니다. Unity 에디터에서 할당하거나 코드로 찾을 수 있습니다.
     [SerializeField]
+    private JsonLoader _jsonLoader;
+
+    // PawnType 데이터 JSON 파일의 Resources 경로입니다. 에디터에서 설정 가능합니다.
+    [SerializeField]
+    private string _pawnDataJsonPath = "Data/PawnTypes"; // 기본값 제공
+
+    // 로드된 Pawn 타입 데이터를 저장할 딕셔너리입니다.
     private Dictionary<string, PawnTypeData> _pawnTypeDefinitions = new();
 
-    // 로드할 JSON 파일의 Resources 경로
-    [SerializeField] // Unity 에디터에서 설정 가능하도록 노출
-    private string _pawnTypesJsonPath = "Data/PawnTypes"; // 기본값 제공
-
-    // --- Unity 생명 주기 메서드 ---
-
-
-
-    private void Awake()
+    public override void RegisterAbilities()
     {
-        LoadPawnTypesFromJson();
-        
-
+        // GameManager와 같은 초기화 관리자로부터 로딩 시작 이벤트를 받을 수 있습니다.
+        // 예: AddAction(GameEventType.GameInitialization, OnGameInitialization);
     }
 
-    // --- 데이터 로딩 메서드 ---
-
-    /// <summary>
-    /// Resources 폴더에서 PawnType 정의 JSON 파일을 로드하고 파싱합니다.
-    /// </summary>
-    private void LoadPawnTypesFromJson()
+    void Awake()
     {
-        TextAsset jsonTextAsset = Resources.Load<TextAsset>(_pawnTypesJsonPath);
-        if (jsonTextAsset == null)
-        {
-            Debug.LogError($"PawnDataLoader: JSON 파일 '{_pawnTypesJsonPath}.json'을 Resources에서 찾을 수 없습니다.");
-            return;
-        }
-        Debug.Log(jsonTextAsset);
-        try
-        {
-            // JsonUtility는 최상위 객체만 직접 파싱할 수 있으므로, PawnTypesData 래퍼 클래스를 사용
-            PawnTypesWrapperData wrapper = JsonUtility.FromJson<PawnTypesWrapperData>(jsonTextAsset.text);
 
-            if (wrapper != null && wrapper.PawnTypes != null)
-            {
-                foreach (PawnTypeData pawnData in wrapper.PawnTypes)
-                {
-                    if (string.IsNullOrEmpty(pawnData.name))
-                    {
-                        Debug.LogWarning("PawnDataLoader: 이름이 없는 PawnType 정의를 건너뜁니다.");
-                        continue;
-                    }
-                    if (_pawnTypeDefinitions.ContainsKey(pawnData.name))
-                    {
-                        Debug.LogWarning($"PawnDataLoader: 중복된 PawnType 이름 '{pawnData.name}'이(가) 발견되었습니다. 첫 번째 정의를 사용합니다.");
-                        continue;
-                    }
-                    _pawnTypeDefinitions.Add(pawnData.name, pawnData);
-                    Debug.Log($"PawnDataLoader: PawnType '{pawnData.name}' 로드 완료.");
-                }
-                Debug.Log($"PawnDataLoader: 총 {_pawnTypeDefinitions.Count}개의 PawnType 로드 완료.");
-            }
-            else
-            {
-                Debug.LogError("PawnDataLoader: JSON 파일 파싱 실패 또는 PawnTypes 데이터가 유효하지 않습니다.");
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"PawnDataLoader: JSON 파싱 오류 발생: {e.Message}\n{e.StackTrace}");
-        }
+        LoadAllPawnData(); // 게임 시작 시 Pawn 데이터 로딩 시작
     }
 
-    // --- Pawn 설정 메서드 ---
-
     /// <summary>
-    /// 지정된 Pawn 타입에 따라 GameObject에 컴포넌트들을 추가하고 설정합니다.
+    /// JsonLoader를 사용하여 PawnType 정의 JSON 파일을 로드하고 파싱합니다.
+    /// 로드된 데이터는 내부 딕셔너리에 저장됩니다.
     /// </summary>
-    /// <param name="pawnGameObject">컴포넌트들을 추가할 GameObject (기본 Pawn 프리랩 인스턴스).</param>
-    /// <param name="pawnTypeName">생성할 Pawn 타입의 이름 (예: "Goblin").</param>
-    public void ConfigurePawnFromType(GameObject pawnGameObject, string pawnTypeName)
+    private void LoadAllPawnData()
     {
-        if (!_pawnTypeDefinitions.TryGetValue(pawnTypeName, out PawnTypeData pawnData))
+        // JsonLoader의 범용 LoadJson<T> 메서드를 사용하여 PawnTypesWrapperData를 로드합니다.
+        // 여기서 T는 PawnTypesWrapperData이며, 이는 Game.Core 네임스페이스에 정의되어 있습니다.
+        PawnTypesWrapperData wrapper = _jsonLoader.LoadJson<PawnTypesWrapperData>(_pawnDataJsonPath);
+
+        if (wrapper != null && wrapper.PawnTypes != null)
         {
-            Debug.LogError($"PawnDataLoader: '{pawnTypeName}' 타입의 Pawn 정의를 찾을 수 없습니다.");
-            foreach (string pawnTypeName2 in _pawnTypeDefinitions.Keys)
+            foreach (PawnTypeData pawnData in wrapper.PawnTypes)
             {
-                Debug.Log($"Loaded PawnType Key: {pawnTypeName2}");
-            }
-
-            return;
-        }
-
-        Debug.Log($"PawnDataLoader: '{pawnTypeName}' 타입으로 '{pawnGameObject.name}' 설정 시작.");
-
-        foreach (ComponentData compData in pawnData.components)
-        {
-            Type componentType = Type.GetType(compData.type);
-
-            if (componentType == null || !typeof(MonoBehaviour).IsAssignableFrom(componentType))
-            {
-                Debug.LogError($"PawnDataLoader: 알 수 없는 컴포넌트 타입 '{compData.type}' for '{pawnTypeName}'. 어셈블리 이름이 필요한 경우 System.Type.GetType(\"Namespace.ClassName, AssemblyName\") 형식을 사용하거나, 타입이 MonoBehaviour가 아닙니다.");
-                continue;
-            }
-
-            // 이미 해당 컴포넌트가 GameObject에 있는지 확인하고, 없으면 추가
-            MonoBehaviour componentInstance = pawnGameObject.GetComponent(componentType) as MonoBehaviour;
-            if (componentInstance == null)
-            {
-                componentInstance = pawnGameObject.AddComponent(componentType) as MonoBehaviour;
-                if (componentInstance == null)
+                if (string.IsNullOrEmpty(pawnData.name))
                 {
-                    Debug.LogError($"PawnDataLoader: '{compData.type}' 컴포넌트를 '{pawnGameObject.name}'에 추가하지 못했습니다.");
+                    Debug.LogWarning("PawnDataLoader: 이름이 없는 PawnType 정의를 건너뜝니다.");
                     continue;
                 }
-            }
-
-            // properties가 존재하는 경우에만 처리
-            // JsonUtility는 딕셔너리를 직접 지원하지 않으므로, properties 객체를 raw string으로 가져와서
-            // 다시 JsonUtility.FromJsonOverwrite()를 사용하거나, Newtonsoft.Json을 사용하는 것이 가장 좋습니다.
-            // 여기서는 JsonUtility만 사용하는 경우를 가정하여 각 컴포넌트의 properties를 해당 컴포넌트 타입으로 직접 파싱합니다.
-            // 이렇게 하려면 각 컴포넌트의 public/SerializeField 필드가 JSON key와 일치해야 합니다.
-            if (compData.properties != null && compData.properties.Length > 0 && compData.properties != "{}") // 빈 객체 {}도 확인
-            {
-                try
+                if (_pawnTypeDefinitions.ContainsKey(pawnData.name))
                 {
-                    // JSON string을 기존 컴포넌트 인스턴스에 덮어씌웁니다.
-                    // 이 방식은 componentInstance의 public/SerializeField 필드 이름이 JSON의 properties 키와 정확히 일치해야 합니다.
-                    JsonUtility.FromJsonOverwrite(compData.properties, componentInstance);
+                    Debug.LogWarning($"PawnDataLoader: 중복된 PawnType 이름 '{pawnData.name}'이(가) 발견되었습니다. 첫 번째 정의를 사용합니다.");
+                    continue;
                 }
-                catch (Exception e)
-                {
-                    Debug.LogError($"PawnDataLoader: '{pawnTypeName}' - '{compData.type}' 컴포넌트 속성 설정 오류: {e.Message}. Properties JSON: '{compData.properties}'");
-                }
+                _pawnTypeDefinitions.Add(pawnData.name, pawnData);
+                Debug.Log($"PawnDataLoader: PawnType '{pawnData.name}' 로드 완료.");
             }
+            Debug.Log($"PawnDataLoader: 총 {_pawnTypeDefinitions.Count}개의 PawnType 로드 완료.");
         }
-        Debug.Log($"PawnDataLoader: '{pawnTypeName}' 타입 설정 완료.");
+        else
+        {
+            Debug.LogError("PawnDataLoader: JSON 파일 파싱 실패 또는 PawnTypes 데이터가 유효하지 않습니다. JSON 구조를 확인하세요.");
+        }
     }
-}
 
-// --- JSON 데이터를 저장하기 위한 도우미 클래스들 ---
-// 이 클래스들은 [Serializable] 어트리뷰트가 필요하며, public 필드로 선언해야 JsonUtility가 인식합니다.
-// 이 파일 내부에 중첩 클래스로 두거나, 별도의 파일 (예: PawnTypeData.cs)로 분리할 수 있습니다.
-
-// JSON의 최상위 PawnTypes 배열을 담는 래퍼 클래스 (JsonUtility의 요구사항)
-[Serializable]
-public class PawnTypesWrapperData
-{
-    public PawnTypeData[] PawnTypes; // JSON의 "PawnTypes": [] 배열과 매핑
-}
-
-// 각 PawnType 정의
-[Serializable]
-public class PawnTypeData
-{
-    public string name;
-    public string description;
-    public ComponentData[] components; // JSON의 "components": [] 배열과 매핑
-}
-
-// 각 Component 정의
-[Serializable]
-public class ComponentData
-{
-    public string type; // 컴포넌트 클래스 이름 (예: "PawnHealthComponent")
-
-    // properties 객체를 JSON 문자열 그대로 저장합니다.
-    // JsonUtility는 Dictionary<string, object>를 직접 지원하지 않으므로,
-    // 이 문자열을 받은 후 다시 FromJsonOverwrite로 해당 컴포넌트 인스턴스에 적용합니다.
-    public string properties;
+    /// <summary>
+    /// 로드된 PawnType 데이터를 이름으로 조회합니다.
+    /// </summary>
+    /// <param name="pawnTypeName">조회할 PawnType의 이름입니다.</param>
+    /// <returns>해당 PawnTypeData 객체입니다. 이름에 해당하는 PawnType이 없으면 null을 반환합니다.</returns>
+    public PawnTypeData GetPawnTypeData(string pawnTypeName)
+    {
+        _pawnTypeDefinitions.TryGetValue(pawnTypeName, out PawnTypeData pawnData);
+        return pawnData;
+    }
 }

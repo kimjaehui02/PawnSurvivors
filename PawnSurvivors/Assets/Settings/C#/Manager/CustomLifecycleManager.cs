@@ -4,14 +4,24 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class CustomLifecycleManager : MonoBehaviour
+public class CustomLifecycleManager : ManagerBase
 {
     #region
+    private readonly Queue<Action> _startQueue = new();
+    private readonly Dictionary<UpdateActionTypes, Action> _updateActionMap = new();
+    #endregion
+
+    #region ManagerBase
+
+    public override void RegisterAbilities()
+    {
+        AddAction(GameEventType.Update, CustomLifecycle);
+    }
+
     #endregion
 
     #region Start
 
-    private readonly Queue<Action> _startQueue = new();
     /// <summary>
     /// _startQueue에 담긴 모든 액션들을 순차적으로 실행하고 큐에서 제거합니다.
     /// </summary>
@@ -56,12 +66,11 @@ public class CustomLifecycleManager : MonoBehaviour
 
     #region Update
 
-    //public readonly EnumDelegateMap<UpdateActionTypes> _updateDelegateMap = new();
 
-    private readonly Dictionary<UpdateActionTypes, Action> _updateActionMap = new();
+
 
     #region (구)딕셔너리 관리 함수들
-    
+
 
     /// <summary>
     /// 지정된 Acts에 대한 Action 델리게이트를 맵에 추가하거나 기존 델리게이트에 연결합니다.
@@ -115,7 +124,7 @@ public class CustomLifecycleManager : MonoBehaviour
             actionDelegate?.Invoke(); // 델리게이트가 null이 아니면 호출
         }
         // else { Debug.LogWarning($"[{name}] RequestAction: Acts.{act}에 등록된 델리게이트가 없습니다."); }
-        count = actionDelegate.GetInvocationList().Length; // 현재 연결된 델리게이트의 개수를 count에 저장합니다.
+        //count = actionDelegate.GetInvocationList().Length; // 현재 연결된 델리게이트의 개수를 count에 저장합니다.
 
     }
 
@@ -151,14 +160,14 @@ public class CustomLifecycleManager : MonoBehaviour
         UpdateActionTypes.Update, 
     };
 
-    public int count = 0;
-    public bool _stopUpdate = false;
+    //public int count = 0;
+    //public bool _stopUpdate = false;
     private void Process_updateActionMap()
     {
-        if(_stopUpdate)
-        {
-            return;
-        }
+        //if(_stopUpdate)
+        //{
+        //    return;
+        //}
 
         RequestUpdates(updatecycle);
         //count = _updateActionMap.Count;
@@ -168,8 +177,13 @@ public class CustomLifecycleManager : MonoBehaviour
 
 
 
-    private void CustomLifecycle()
+    private void CustomLifecycle(GameEventContext gameEventContext)
     {
+        if(gameEventContext.stopUpdate == true)
+        {
+            return; // 업데이트를 중지합니다.
+        }
+
         // 업데이트 문 전에 예약된 스타트문 전부 돌림
         ProcessStartQueue();
         // 업데이트문을 실행함
@@ -180,10 +194,14 @@ public class CustomLifecycleManager : MonoBehaviour
 
     }
 
-    private void Update()
-    {
-        CustomLifecycle();
-    }
+    //private void Update()
+    //{
+    //    CustomLifecycle();
+    //}
+    // 기존 코드:
+    // private ovrrided void RegisterAbilities()
+
+    // 수정된 코드:
 
 
 }

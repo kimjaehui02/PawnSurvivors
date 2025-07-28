@@ -1,3 +1,4 @@
+using Game.Core;
 using System;
 using UnityEngine;
 
@@ -47,6 +48,53 @@ public class GameManager : ManagerBase
     void Awake()
     {
         SingleAwake();
+        RegisterAbilities();
+    }
+
+    private void Update()
+    {
+        GameEventContext updateAbilityContext = new();
+
+
+
+        RequestAction(GameEventType.Update, updateAbilityContext);
+    }
+
+    public override void RegisterAbilities()
+    {
+
+        //AddAction(Acts.OnStart, PawnStart);
+
+        #region 델리게이트에 보조기능들의 델리게이트 넣기
+
+        // 하위 기능 컴포넌트들을 가져오기위해 겟컴포넌트로 가져옵니다
+        ManagerBase[] allManagerBasesInHierarchy = GetComponentsInChildren<ManagerBase>(true);
+
+
+        foreach (ManagerBase otherManagerBase in allManagerBasesInHierarchy)
+        {
+            // 자기 자신 (Pawn 컴포넌트)은 이미 PawnAction으로서 _myDelegates를 가집니다.
+            // 여기서는 다른 자식 PawnAction 컴포넌트들만 처리합니다.
+            if (otherManagerBase == this)
+            {
+                continue;
+            }
+
+            // 다른 PawnAction 컴포넌트의 RegisterAbilities()를 호출하여,
+            // 그 컴포넌트의 _myDelegates에 델리게이트들이 채워지도록 합니다.
+            otherManagerBase.RegisterAbilities();
+
+            // 다른 PawnAction 컴포넌트의 델리게이트 맵을 순회하고,
+            // Pawn 자신의 _myDelegates (통합 델리게이트 맵)에 추가합니다.
+            foreach (var entry in otherManagerBase.GetActions)
+            {
+                AddAction(entry.Key, entry.Value); // PawnAction의 AddAction 메서드를 사용하여 안전하게 추가
+            }
+        }
+        Debug.Log($"Pawn '{name}'의 모든 능력 통합 완료. 현재 등록된 델리게이트 수: {GetActions.Count}");
+
+        #endregion
+
     }
 
     internal void RegisterPlayer(Pawn player)

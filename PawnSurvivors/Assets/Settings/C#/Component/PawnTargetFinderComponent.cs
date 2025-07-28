@@ -11,6 +11,8 @@ public class PawnTargetFinderComponent : PawnAction
         AddAction(Acts.OnUpdateTarget, UpdateTarget);
     }
 
+
+
     public void GetTarget(AbilityContext abilityContext)
     {
         // 타겟 폰을 찾는 로직을 구현합니다.
