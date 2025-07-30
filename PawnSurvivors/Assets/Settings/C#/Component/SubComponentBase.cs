@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class SubComponentBase<TEnum, TContext> : MonoBehaviour where TEnum : Enum
 {
+
     public BaseConfig baseConfig; // PawnAction이 사용하는 설정을 담는 BaseConfig
     public void SetBaseConfig(BaseConfig config) => baseConfig = config;
 
