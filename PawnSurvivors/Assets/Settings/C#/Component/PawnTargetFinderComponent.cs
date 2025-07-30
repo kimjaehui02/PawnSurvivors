@@ -1,7 +1,7 @@
 using Game.Core;
 using UnityEngine;
 
-public class PawnTargetFinderComponent : PawnAction
+public class PawnTargetFinderComponent : PawnBase
 {
     public Pawn _targetPawn;
 

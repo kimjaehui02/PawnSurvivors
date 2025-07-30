@@ -5,16 +5,16 @@ using UnityEngine;
 
 /// <summary>
 /// 모든 Pawn의 기반이 되는 클래스입니다.
-/// 자체 능력(PawnAction)을 정의하고, 하위 PawnAction 컴포넌트들의 능력을 통합 관리합니다.
+/// 자체 능력(PawnBase)을 정의하고, 하위 PawnBase 컴포넌트들의 능력을 통합 관리합니다.
 /// </summary>
-public class Pawn : PawnAction
+public class Pawn : PawnBase
 {
     // Pawn이 통합된 모든 Acts-Action 델리게이트를 관리하는 딕셔너리입니다.
-    // Pawn 자신과 모든 자식 PawnAction 컴포넌트들의 델리게이트를 여기에 합칩니다.
+    // Pawn 자신과 모든 자식 PawnBase 컴포넌트들의 델리게이트를 여기에 합칩니다.
     // protected로 선언하여 자식 클래스(예: Player)에서도 접근 가능하게 합니다.
-    // NOTE: PawnAction의 _myDelegates와 이 _allActions의 역할이 명확해야 합니다.
+    // NOTE: PawnBase의 _myDelegates와 이 _allActions의 역할이 명확해야 합니다.
     // 현재 코드에서는 _myDelegates에 통합하고 있으므로, _allActions 필드는 불필요합니다.
-    // PawnAction의 _myDelegates가 Pawn의 통합 델리게이트 맵 역할을 합니다.
+    // PawnBase의 _myDelegates가 Pawn의 통합 델리게이트 맵 역할을 합니다.
     // private readonly Dictionary<Acts, Action<AbilityContext>> _allActions = new(); // 현재 코드에서 사용되지 않음
 
     #region Fields & Properties
@@ -42,18 +42,21 @@ public class Pawn : PawnAction
 
         if (GetActions.ContainsKey(Acts.OnUpdateTarget))
         {
+            Debug.Log("OnUpdateTarget 액트 요청 추가");
             actsToUpdate.Add(Acts.OnUpdateTarget); 
 
         }
 
         if (GetActions.ContainsKey(Acts.OnUpdate))
         {
+            Debug.Log("OnUpdate 액트 요청 추가");
             actsToUpdate.Add(Acts.OnUpdate); // Start 액트 요청 추가
 
         }
 
         if (GetActions.ContainsKey(Acts.OnMove))
         {
+            Debug.Log("OnMove 액트 요청 추가");
             actsToUpdate.Add(Acts.OnMove); // Start 액트 요청 추가
 
         }
@@ -76,11 +79,17 @@ public class Pawn : PawnAction
     {
         // MonoBehaviour의 생명주기 메서드에 연결할 액션을 등록합니다.
         //AddAction(Acts.OnStart, PawnStart);
-
+        Debug.Log("qweqweqwe");
         GameManager.Instance.CustomLifecycleManager.EnqueueStartAction(PawnStart);
 
+        Debug.Log(actsToUpdate.Count);
         if (actsToUpdate != null && actsToUpdate.Count > 0)
         {
+            Debug.Log("qweqweqwe");
+            Debug.Log("qweqweqwe");
+            Debug.Log("qweqweqwe");
+            Debug.Log("qweqweqwe");
+
             GameManager.Instance.CustomLifecycleManager.AddUpdate(UpdateActionTypes.Update, PawnUpdate);
         }
 
@@ -127,8 +136,8 @@ public class Pawn : PawnAction
     #region Ability Management
 
     /// <summary>
-    /// 이 Pawn의 모든 능력(PawnAction 컴포넌트) 델리게이트를 통합하여 관리합니다.
-    /// Pawn 자신과 모든 자식 PawnAction 컴포넌트들의 델리게이트를 Pawn의 _myDelegates에 합칩니다.
+    /// 이 Pawn의 모든 능력(PawnBase 컴포넌트) 델리게이트를 통합하여 관리합니다.
+    /// Pawn 자신과 모든 자식 PawnBase 컴포넌트들의 델리게이트를 Pawn의 _myDelegates에 합칩니다.
     /// </summary>
     public override void RegisterAbilities()
     {
@@ -138,28 +147,28 @@ public class Pawn : PawnAction
         #region 델리게이트에 보조기능들의 델리게이트 넣기
 
         // 하위 기능 컴포넌트들을 가져오기위해 겟컴포넌트로 가져옵니다
-        PawnAction[] allPawnActionsInHierarchy = GetComponentsInChildren<PawnAction>(true);
+        PawnBase[] allPawnBasesInHierarchy = GetComponentsInChildren<PawnBase>(true);
 
 ;
 
-        foreach (PawnAction otherPawnAction in allPawnActionsInHierarchy)
+        foreach (PawnBase otherPawnBase in allPawnBasesInHierarchy)
         {
-            // 자기 자신 (Pawn 컴포넌트)은 이미 PawnAction으로서 _myDelegates를 가집니다.
-            // 여기서는 다른 자식 PawnAction 컴포넌트들만 처리합니다.
-            if (otherPawnAction == this)
+            // 자기 자신 (Pawn 컴포넌트)은 이미 PawnBase으로서 _myDelegates를 가집니다.
+            // 여기서는 다른 자식 PawnBase 컴포넌트들만 처리합니다.
+            if (otherPawnBase == this)
             {
                 continue; 
             }
 
-            // 다른 PawnAction 컴포넌트의 RegisterAbilities()를 호출하여,
+            // 다른 PawnBase 컴포넌트의 RegisterAbilities()를 호출하여,
             // 그 컴포넌트의 _myDelegates에 델리게이트들이 채워지도록 합니다.
-            otherPawnAction.RegisterAbilities();
+            otherPawnBase.RegisterAbilities();
             
-            // 다른 PawnAction 컴포넌트의 델리게이트 맵을 순회하고,
+            // 다른 PawnBase 컴포넌트의 델리게이트 맵을 순회하고,
             // Pawn 자신의 _myDelegates (통합 델리게이트 맵)에 추가합니다.
-            foreach (var entry in otherPawnAction.GetActions)
+            foreach (var entry in otherPawnBase.GetActions)
             {
-                AddAction(entry.Key, entry.Value); // PawnAction의 AddAction 메서드를 사용하여 안전하게 추가
+                AddAction(entry.Key, entry.Value); // PawnBase의 AddAction 메서드를 사용하여 안전하게 추가
             }
         }
         Debug.Log($"Pawn '{name}'의 모든 능력 통합 완료. 현재 등록된 델리게이트 수: {GetActions.Count}");

@@ -2,7 +2,7 @@
 using Game.Core;
 using UnityEngine;
 
-public class PawnRegisterToGameManagerComponent : PawnAction
+public class PawnRegisterToGameManagerComponent : PawnBase
 {
     public override void RegisterAbilities()
     {

@@ -8,6 +8,7 @@ public class CustomLifecycleManager : ManagerBase
 {
     #region
     private readonly Queue<Action> _startQueue = new();
+
     private readonly Dictionary<UpdateActionTypes, Action> _updateActionMap = new();
     #endregion
 
@@ -15,6 +16,7 @@ public class CustomLifecycleManager : ManagerBase
 
     public override void RegisterAbilities()
     {
+        Debug.Log("CustomLifecycleManager: RegisterAbilities 호출됨.");
         AddAction(GameEventType.Update, CustomLifecycle);
     }
 
@@ -78,14 +80,19 @@ public class CustomLifecycleManager : ManagerBase
     /// </summary>
     public void AddUpdate(UpdateActionTypes type, Action action)
     {
+        //Debug.Log($"qwe1 AddUpdate 호출됨: {type}, 액션: {action?.Method.Name}");
         if (_updateActionMap.ContainsKey(type))
         {
+            //Debug.Log($"qwe2 기존 Acts에 액션 추가: {type}, 액션: {action?.Method.Name}");
             _updateActionMap[type] += action;
         }
         else
         {
+            //Debug.Log($"qwe3 새 Acts 등록: {type}, 액션: {action?.Method.Name}");
             _updateActionMap.Add(type, action);
+            //Debug.Log($"qwe4 새 Acts가 등록되었습니다: {_updateActionMap[type].GetInvocationList().Length}");
         }
+        //Debug.Log($"qwe 5 현재 {_updateActionMap.Count}개의 Acts가 등록되어 있습니다. Acts: {type}");
     }
 
     /// <summary>
@@ -168,7 +175,7 @@ public class CustomLifecycleManager : ManagerBase
         //{
         //    return;
         //}
-
+        //Debug.Log($"CustomLifecycleManager: Process_updateActionMap 호출됨. 현재 크기: {_updateActionMap.Count}");
         RequestUpdates(updatecycle);
         //count = _updateActionMap.Count;
     }
@@ -179,7 +186,8 @@ public class CustomLifecycleManager : ManagerBase
 
     private void CustomLifecycle(GameEventContext gameEventContext)
     {
-        if(gameEventContext.stopUpdate == true)
+        //Debug.Log($"CustomLifecycleManager: CustomLifecycle 호출됨. 현재 크기: {_updateActionMap.Count}");
+        if (gameEventContext.stopUpdate == true)
         {
             return; // 업데이트를 중지합니다.
         }

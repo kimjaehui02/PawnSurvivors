@@ -5,7 +5,7 @@ using UnityEngine.InputSystem; // Input System 관련 네임스페이스
 /// <summary>
 /// 플레이어 입력에 따라 이동 방향을 결정하고 AbilityContext에 전달하는 컴포넌트입니다.
 /// </summary>
-public class PlayerMoverComponent : PawnAction
+public class PlayerMoverComponent : PawnBase
 {
     #region Fields
 
@@ -88,7 +88,7 @@ public class PlayerMoverComponent : PawnAction
         // 현재 입력 벡터(Vector2)를 3D 벡터(Vector3)로 변환하고 정규화하여 방향만 남깁니다.
         // Y축은 Z축으로 매핑하지 않고, 2D 게임이라면 X, Y만 사용하도록 합니다.
         // 만약 3D 게임이고 위/아래 이동도 필요하다면 Z축을 조정해야 합니다.
-        Vector3 moveDirection = new Vector3(currentMoveInput.x, currentMoveInput.y, 0f).normalized;
+        Vector3 moveDirection = (Vector3)currentMoveInput.normalized;
 
         // AbilityContext의 inputDirection 필드를 업데이트합니다.
         abilityContext.InputDirection = moveDirection;

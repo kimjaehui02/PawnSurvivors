@@ -6,7 +6,7 @@ using Game.Core; // Acts 및 AbilityContext 사용을 위해 추가
 /// 특정 대상에게 피해를 입히는 로직을 담당하는 컴포넌트입니다.
 /// 공격 스킬, 투사체 등 피해를 발생시키는 GameObject에 부착하여 사용합니다.
 /// </summary>
-public class DamageDealerComponent : PawnAction // PawnAction을 상속하여 Pawn 시스템과 통합
+public class DamageDealerComponent : PawnBase // PawnAction을 상속하여 Pawn 시스템과 통합
 {
     #region Fields & Properties
 

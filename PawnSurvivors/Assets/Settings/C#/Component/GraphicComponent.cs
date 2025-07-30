@@ -5,7 +5,7 @@ using Game.Core; // PawnAction과의 연동을 위해 Game.Core 네임스페이�
 /// Pawn의 시각적 표현 (스프라이트, 애니메이션)을 담당하는 컴포넌트입니다.
 /// SpriteRenderer와 Animator를 제어하여 그래픽 업데이트를 처리합니다.
 /// </summary>
-public class GraphicComponent : PawnAction // PawnAction을 상속합니다.
+public class GraphicComponent : PawnBase // PawnAction을 상속합니다.
 {
     #region Fields & Initialization
 

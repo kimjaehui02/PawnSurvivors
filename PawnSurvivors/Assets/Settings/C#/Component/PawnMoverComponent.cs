@@ -5,7 +5,7 @@ using Game.Core; // PawnAction과의 연동을 위해 Game.Core 네임스페이�
 /// 특정 대상의 위치를 기반으로 이동 방향을 제공하는 컴포넌트입니다.
 /// 주로 AI 몬스터의 추적 로직에 사용될 수 있습니다.
 /// </summary>
-public class PawnMoverComponent : PawnAction // PawnAction을 상속합니다.
+public class PawnMoverComponent : PawnBase // PawnAction을 상속합니다.
 {
     #region Ability Registration
 

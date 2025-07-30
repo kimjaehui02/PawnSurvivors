@@ -2,6 +2,7 @@ using Game.Core;
 using System;
 using UnityEngine;
 
+
 /// <summary>
 /// 게임의 전반적인 관리와 핵심 시스템에 대한 접근을 제공하는 싱글톤 매니저입니다.
 /// </summary>
@@ -91,7 +92,7 @@ public class GameManager : ManagerBase
                 AddAction(entry.Key, entry.Value); // PawnAction의 AddAction 메서드를 사용하여 안전하게 추가
             }
         }
-        Debug.Log($"Pawn '{name}'의 모든 능력 통합 완료. 현재 등록된 델리게이트 수: {GetActions.Count}");
+        Debug.Log($"게임매니저 '{name}'의 모든 능력 통합 완료. 현재 등록된 델리게이트 수: {GetActions.Count}");
 
         #endregion
 

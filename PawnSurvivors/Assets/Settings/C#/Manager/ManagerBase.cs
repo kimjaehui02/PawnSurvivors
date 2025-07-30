@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ManagerBase : MonoBehaviour
+public abstract class ManagerBase2 : MonoBehaviour
 {
     private readonly EnumDelegateMap<GameEventType, GameEventContext> _delegateMap = new();
 

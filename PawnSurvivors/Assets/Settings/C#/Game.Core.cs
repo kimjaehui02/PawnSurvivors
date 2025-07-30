@@ -4,6 +4,22 @@ using UnityEngine;
 
 namespace Game.Core
 {
+    #region 직렬화 관련 클래스와
+
+    // Game.Core 네임스페이스 내 (별도의 파일 가능)
+    public abstract class ManagerBase : SubComponentBase<GameEventType, GameEventContext> { }
+    public abstract class PawnBase : SubComponentBase<Acts, AbilityContext> { }
+    [System.Serializable]
+    public class BaseConfig
+    {
+
+    }
+
+
+
+
+    #endregion
+
     #region Enums
 
 
