@@ -20,11 +20,13 @@ public class Pawn : PawnBase
     #region Fields & Properties
 
     // Pawn의 고유 ID입니다. 내부에서만 변경 가능합니다.
-    public string Id { get; private set; } 
-
-    public string Name { get; set; } // Pawn의 이름입니다. 외부에서 설정 가능합니다.
-
-    public string Description { get; set; } // Pawn의 설명입니다. 외부에서 설정 가능합니다.
+    [SerializeField]
+    PawnConfig pawnConfig = new();
+    public PawnConfig PawnConfig
+    {
+        get => pawnConfig;
+        set => pawnConfig = value; // 외부에서 PawnConfig를 설정할 수 있도록 프로퍼티로 노출
+    }
 
 
     public List<Acts> actsToUpdate = new ();

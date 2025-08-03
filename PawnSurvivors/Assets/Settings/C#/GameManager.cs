@@ -1,5 +1,6 @@
 using Game.Core;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -37,7 +38,7 @@ public class GameManager : ManagerBase
 
     public CustomLifecycleManager CustomLifecycleManager;
 
-    public PawnDataLoader PawnDataLoader;
+
 
     #endregion
 
@@ -102,4 +103,26 @@ public class GameManager : ManagerBase
     {
         Player = player;
     }
+
+
+    private void Start()
+    {
+        GameEventContext gameEventContext = new()
+        {
+            JsonPath = JsonPath.pawns
+        };
+
+        List<GameEventType> gameEventTypes = new()
+        {
+            GameEventType.JsonLoading,
+            GameEventType.PawnSpawn,
+
+        };
+
+
+
+
+        RequestActions(gameEventTypes, gameEventContext);
+    }
+
 }

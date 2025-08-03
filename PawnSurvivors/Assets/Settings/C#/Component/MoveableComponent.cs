@@ -10,36 +10,10 @@ public class MoveableComponent : PawnBase
 {
     #region Fields & Properties
 
+    [SerializeField]
+    MoveableConfig moveableConfig = new(); // 이동 설정을 담는 구성 객체
+    public float MoveSpeed => moveableConfig.MoveSpeed;
 
-    private MoveableConfig Config
-    {
-        get
-        {
-            // Debug.Log($"Accessing _config. Current baseConfig type: {baseConfig?.GetType().Name ?? "null"}");
-            return baseConfig as MoveableConfig;
-        }
-        set
-        {
-            // Debug.Log($"Setting _config. New value type: {value?.GetType().Name ?? "null"}");
-            baseConfig = value;
-        }
-    }
-    //public float MoveSpeed => moveSpeed;
-    /// <summary>
-    /// 최대 체력입니다. DamageableConfig에서 값을 가져옵니다.
-    /// </summary>
-    public float MoveSpeed
-    {
-        get
-        {
-            // _config가 null인 경우를 대비하여 방어 코드 추가
-            if (Config == null)
-            {
-                return 5f;
-            }
-            return Config.moveSpeed;
-        }
-    }
 
 
     #endregion
@@ -78,21 +52,3 @@ public class MoveableComponent : PawnBase
     #endregion
 }
 
-
-namespace Game.Core
-{
-    /// <summary>
-    /// 체력 관리에 필요한 설정과 현재 상태를 담는 클래스입니다.
-    /// 이 데이터는 DamageableComponent에서 사용되며 JSON 직렬화/역직렬화의 대상이 됩니다.
-    /// </summary>
-    [Serializable]
-    public class MoveableConfig : BaseConfig // BaseConfig를 상속받습니다.
-    {
-        public float moveSpeed = 1f; // 이동 속도 (유니티 에디터에서 설정 가능)
-
-        /// <summary>
-        /// 현재 이동 속도 값을 외부에 노출합니다.
-        /// </summary>
-        //public float MoveSpeed => moveSpeed;
-    }
-}

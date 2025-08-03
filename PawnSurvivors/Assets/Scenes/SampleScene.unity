@@ -166,8 +166,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcdc9f7ce63eaf8478d3815429990a0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  count: 0
-  _stopUpdate: 0
 --- !u!114 &279658790
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,7 +179,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CustomLifecycleManager: {fileID: 279658789}
-  PawnDataLoader: {fileID: 279658792}
   Player: {fileID: 0}
 --- !u!114 &279658791
 MonoBehaviour:
@@ -208,7 +205,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a857978028be8d43b9efef3cc7eb1fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _pawnTypesJsonPath: Data/PawnTypes
 --- !u!1 &419604192
 GameObject:
   m_ObjectHideFlags: 0
@@ -312,8 +308,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ba60289dc764314b8bd6c0577a5b887, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxHealth: 0
-  _currentHealth: 0
+  damageableConfig:
+    _maxHealth: 100
+    _currentHealth: 100
 --- !u!114 &419604197
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -326,7 +323,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8fab197f98dbb4aba7c847ae453e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  moveableConfig:
+    moveSpeed: 1
 --- !u!114 &419604198
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,7 +349,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b66a951f26069c4e8c487dceec112ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  actsToRequest: 
+  pawnConfig:
+    _id: -1
+    _name: Default Pawn
+    _description: This is a default pawn.
+  actsToUpdate: 
+  actsToTriggerEnter: 
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -584,6 +587,7 @@ GameObject:
   - component: {fileID: 1275577859}
   - component: {fileID: 1275577858}
   - component: {fileID: 1275577857}
+  - component: {fileID: 1275577862}
   - component: {fileID: 1275577860}
   - component: {fileID: 1275577861}
   m_Layer: 0
@@ -605,7 +609,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8fab197f98dbb4aba7c847ae453e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  moveableConfig:
+    moveSpeed: 5
 --- !u!114 &1275577858
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -618,7 +623,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43a8ed54115b0034eadf61e1c5b2d3c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  actsToRequest: 
+  pawnConfig:
+    _id: -1
+    _name: Default Pawn
+    _description: This is a default pawn.
+  actsToUpdate: 
+  actsToTriggerEnter: 
 --- !u!4 &1275577859
 Transform:
   m_ObjectHideFlags: 0
@@ -659,6 +669,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ab14160d622dd47a350bc349942f8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1275577862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1275577855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ba60289dc764314b8bd6c0577a5b887, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damageableConfig:
+    _maxHealth: 100
+    _currentHealth: 100
 --- !u!1 &1331013357
 GameObject:
   m_ObjectHideFlags: 0
@@ -780,8 +805,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ba60289dc764314b8bd6c0577a5b887, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxHealth: 0
-  _currentHealth: 0
+  damageableConfig:
+    _maxHealth: 100
+    _currentHealth: 100
 --- !u!114 &2075702660
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -794,7 +820,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63ec1046387de19488a6dba8bc9495b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _damageAmount: 10
+  damageDealerConfig:
+    _damageAmount: 10
 --- !u!114 &2075702661
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -807,7 +834,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8fab197f98dbb4aba7c847ae453e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1
+  moveableConfig:
+    moveSpeed: 1
 --- !u!212 &2075702662
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -902,7 +930,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb31f302a0d71c944875426969862893, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  actsToRequest: 
+  pawnConfig:
+    _id: -1
+    _name: Default Pawn
+    _description: This is a default pawn.
+  actsToUpdate: 
+  actsToTriggerEnter: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

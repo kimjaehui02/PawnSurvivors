@@ -1,58 +1,16 @@
 {
-    "PawnTypes": [
-        {
-            "name": "Goblin",
-            "description": "표준 근접 고블린입니다.",
-            "components": [
-                {
-                    "type": "DamageableComponent",
-                    "properties": "{\"MaxHealth\": 20, \"CurrentHealth\": 20}"
-                },
-                {
-                    "type": "MoveableComponent",
-                    "properties": "{\"moveSpeed\": 3}"
-                },
-                {
-                    "type": "PawnTargetFinderComponent",
-                    "properties": "{}"
-                },
-                {
-                    "type": "PawnMoverComponent",
-                    "properties": "{}"
-                },
-                {
-                    "type": "DamageDealerComponent",
-                    "properties": "{}"
-                }
-            ]
+    "pawnConfig": {
+        "id": "PlayerPawn_01",
+        "name": "Hero",
+        "health": 100,
+        "damage": 25
+    },
+    "components": {
+        "MoveableConfig": {
+            "moveSpeed": 1.5
         },
-        {
-            "name": "Golem",
-            "description": "표준 근접 골렘입니다.",
-            "components": [
-                {
-                    "type": "DamageableComponent",
-                    "properties": "{\"MaxHealth\": 100, \"CurrentHealth\": 100}"
-                },
-                {
-                    "type": "MoveableComponent",
-                    "properties": "{\"moveSpeed\": 1}"
-                },
-                {
-                    "type": "PawnTargetFinderComponent",
-                    "properties": "{}"
-                },
-                {
-                    "type": "PawnMoverComponent",
-                    "properties": "{}"
-                },
-                {
-                    "type": "DamageDealerComponent",
-                    "properties": "{}"
-                }
-            ]
+        "DamageableConfig": {
+            "maxHealth": 100
         }
-    ]
-
-
+    }
 }

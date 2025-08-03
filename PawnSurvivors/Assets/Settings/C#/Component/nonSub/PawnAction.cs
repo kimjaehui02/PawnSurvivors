@@ -9,8 +9,8 @@ using System;
 /// </summary>
 public abstract class PawnAction : MonoBehaviour
 {
-    public BaseConfig baseConfig; // PawnAction이 사용하는 설정을 담는 BaseConfig
-    public void SetBaseConfig(BaseConfig config) => baseConfig = config;
+    //public BaseConfig baseConfig; // PawnAction이 사용하는 설정을 담는 BaseConfig
+    //public void SetBaseConfig(BaseConfig config) => baseConfig = config;
 
 
     private readonly EnumDelegateMap<Acts, AbilityContext> _delegateMap = new();

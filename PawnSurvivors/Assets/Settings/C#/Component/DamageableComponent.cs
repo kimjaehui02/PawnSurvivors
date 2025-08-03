@@ -12,65 +12,26 @@ public class DamageableComponent : PawnBase
 {
     #region Fields & Properties
 
-    private DamageableConfig Config
-    {
-        get
-        {
-            // Debug.Log($"Accessing _config. Current baseConfig type: {baseConfig?.GetType().Name ?? "null"}");
-            return baseConfig as DamageableConfig;
-        }
-        set
-        {
-            // Debug.Log($"Setting _config. New value type: {value?.GetType().Name ?? "null"}");
-            baseConfig = value;
-        }
-    }
+    [SerializeField]
+    private DamageableConfig damageableConfig = new();
 
     /// <summary>
-    /// 최대 체력입니다. DamageableConfig에서 값을 가져옵니다.
+    /// 최대 체력 프로퍼티. 외부에서 읽기만 가능 (get).
     /// </summary>
     public float MaxHealth
     {
-        get
-        {
-            // _config가 null인 경우를 대비하여 방어 코드 추가
-            if (Config == null)
-            {
-                Debug.LogError($"DamageableComponent({name}): DamageableConfig가 할당되지 않았습니다. MaxHealth 기본값 0을 반환합니다.");
-                return 0f;
-            }
-            return Config.maxHealth;
-        }
+        get { return damageableConfig.MaxHealth; }
+        // set을 private으로 설정하여 내부에서만 수정 가능하게 할 수 있습니다.
+        private set { damageableConfig.MaxHealth = value; }
     }
 
     /// <summary>
-    /// 현재 체력입니다. DamageableConfig에서 값을 가져오고 설정합니다.
-    /// 체력 변경은 TakeDamage 또는 별도의 힐 메서드를 통해서만 이루어집니다.
+    /// 현재 체력 프로퍼티. 외부에서 읽기/쓰기 가능 (get, set).
     /// </summary>
     public float CurrentHealth
     {
-        get
-        {
-            if (Config == null)
-            {
-                Debug.LogError($"DamageableComponent({name}): DamageableConfig가 할당되지 않았습니다. CurrentHealth 기본값 0을 반환합니다.");
-                return 0f;
-            }
-            return Config.currentHealth;
-        }
-        private set
-        {
-            if (Config == null)
-            {
-                Debug.LogError($"DamageableComponent({name}): DamageableConfig가 할당되지 않아 체력 설정 불가.");
-                return;
-            }
-            // 체력을 0과 MaxHealth 사이로 클램프하여 _config.currentHealth에 저장
-            // MaxHealth는 _config.maxHealth에서 가져오므로 일관성이 유지됩니다.
-            Config.currentHealth = Mathf.Clamp(value, 0, MaxHealth);
-            // TODO: 체력이 변경될 때마다 UI 업데이트 등의 이벤트를 발생시킬 수 있습니다.
-            // OnHealthChanged?.Invoke(_config.currentHealth, _config.maxHealth);
-        }
+        get { return damageableConfig.CurrentHealth; }
+        set { damageableConfig.CurrentHealth = value; }
     }
 
     #endregion
@@ -119,21 +80,5 @@ public class DamageableComponent : PawnBase
 
 namespace Game.Core
 {
-    /// <summary>
-    /// 체력 관리에 필요한 설정과 현재 상태를 담는 클래스입니다.
-    /// 이 데이터는 DamageableComponent에서 사용되며 JSON 직렬화/역직렬화의 대상이 됩니다.
-    /// </summary>
-    [Serializable]
-    public class DamageableConfig : BaseConfig // BaseConfig를 상속받습니다.
-    {
-        // === 중요 변경: 필드 이름 컨벤션과 역할 명확화 ===
-        // DefaultMaxHealth -> maxHealth (config의 핵심 설정)
-        // currentHealth 필드를 추가하여 현재 상태를 여기에 저장
-        public float maxHealth = 100f;   // 이 개체의 최대 체력 설정값
-        public float currentHealth = 100f; // 이 개체의 현재 체력 상태값
-
-        // TODO: 필요한 다른 체력 관련 설정이나 상태 필드를 여기에 추가할 수 있습니다.
-        // public float defenseModifier = 0f;
-        // public bool isInvincible = false;
-    }
+    
 }

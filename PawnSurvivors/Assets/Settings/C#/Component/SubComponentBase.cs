@@ -6,8 +6,8 @@ using UnityEngine;
 public class SubComponentBase<TEnum, TContext> : MonoBehaviour where TEnum : Enum
 {
 
-    public BaseConfig baseConfig; // PawnAction이 사용하는 설정을 담는 BaseConfig
-    public void SetBaseConfig(BaseConfig config) => baseConfig = config;
+    //public BaseConfig baseConfig; // PawnAction이 사용하는 설정을 담는 BaseConfig
+    //public void SetBaseConfig(BaseConfig config) => baseConfig = config;
 
 
     private readonly EnumDelegateMap<TEnum, TContext> _delegateMap = new();
@@ -24,4 +24,8 @@ public class SubComponentBase<TEnum, TContext> : MonoBehaviour where TEnum : Enu
     public void RequestActions(List<TEnum> TEnum, TContext context) => _delegateMap.RequestActions(TEnum, context);
 
     public virtual void RegisterAbilities() => _delegateMap.RegisterAbilities();
+    public virtual void Initialize()
+    {
+        
+    }
 }

@@ -9,11 +9,8 @@ namespace Game.Core
     // Game.Core 네임스페이스 내 (별도의 파일 가능)
     public abstract class ManagerBase : SubComponentBase<GameEventType, GameEventContext> { }
     public abstract class PawnBase : SubComponentBase<Acts, AbilityContext> { }
-    [System.Serializable]
-    public class BaseConfig
-    {
 
-    }
+
 
 
 
@@ -141,3 +138,164 @@ namespace Game.Core
 
     #endregion
 }
+
+
+#region Models
+
+namespace Game.Core
+{
+    public enum JsonPath
+    {
+        pawns,
+    }
+
+
+    [System.Serializable]
+    public class PawnSerializationContainer
+    {
+        public PawnConfig pawnConfig;
+        // Dictionary를 직접 사용할 수 있습니다.
+        public Dictionary<string, string> components;
+    }
+
+
+
+    [System.Serializable]
+    public class PawnConfig
+    {
+        [SerializeField] private int _id = -1;
+        [SerializeField] private string _name = "Default Pawn";
+        [SerializeField] private string _description = "This is a default pawn.";
+
+        // 필드의 값을 읽기 전용으로 노출하는 프로퍼티로 통일
+        public int Id => _id;
+        public string Name => _name;
+        public string Description => _description;
+    }
+
+    /// <summary>
+    /// 체력 관리에 필요한 설정과 현재 상태를 담는 클래스입니다.
+    /// 이 데이터는 DamageableComponent에서 사용되며 JSON 직렬화/역직렬화의 대상이 됩니다.
+    /// </summary>
+    [Serializable]
+    public class MoveableConfig
+    {
+        [SerializeField]
+        private float moveSpeed = 1f; // 이동 속도 (유니티 에디터에서 설정 가능)
+
+        /// <summary>
+        /// 현재 이동 속도 값을 외부에 노출합니다.
+        /// </summary>
+        public float MoveSpeed => moveSpeed;
+    }
+
+    /// <summary>
+    /// 체력 관리에 필요한 설정과 현재 상태를 담는 클래스입니다.
+    /// 이 데이터는 DamageableComponent에서 사용되며 JSON 직렬화/역직렬화의 대상이 됩니다.
+    /// </summary>
+    [Serializable]
+    public class DamageableConfig
+    {
+        // private 필드로 선언하여 외부에서 직접적인 수정 방지
+        [SerializeField]
+        private float _maxHealth = 100f;
+        [SerializeField]
+        private float _currentHealth = 100f;
+
+        public float MaxHealth
+        {
+            get { return _maxHealth; }
+            // set을 private으로 설정하여 내부에서만 수정 가능하게 할 수 있습니다.
+            set { _maxHealth = value; }
+        }
+
+        /// <summary>
+        /// 현재 체력 프로퍼티. 외부에서 읽기/쓰기 가능 (get, set).
+        /// </summary>
+        public float CurrentHealth
+        {
+            get { return _currentHealth; }
+            set { _currentHealth = value; }
+        }
+    }
+
+    /// <summary>
+    /// 체력 관리에 필요한 설정과 현재 상태를 담는 클래스입니다.
+    /// 이 데이터는 DamageableComponent에서 사용되며 JSON 직렬화/역직렬화의 대상이 됩니다.
+    /// </summary>
+    [Serializable]
+    public class DamageDealerConfig
+    {
+        [SerializeField]
+        private float _damageAmount = 10f; // 이 DamageDealer가 입힐 기본 피해량
+
+        public float DamageAmount => _damageAmount;       // 피해량을 외부에 노출 (읽기 전용)
+    }
+}
+
+
+#endregion
+
+#region AbilityContext
+
+namespace Game.Core // 프로젝트 구조에 맞게 네임스페이스 조정
+{
+
+    /// <summary>
+    /// 게임 내에서 발생하는 다양한 행동(Ability)의 맥락(Context) 정보를 담는 클래스입니다.
+    /// 모든 델리게이트 시그니처에 Action<AbilityContext>를 유지하면서,
+    /// 필요한 정보만 선택적으로 제공하여 정보 과다를 줄이고,
+    /// SourcePawn과 TargetPawn으로 행동의 주체와 대상을 명확히 합니다.
+    /// </summary>
+    public class AbilityContext
+    {
+        // --- 핵심 정보 (대부분의 Acts에서 유용) ---
+        // 누가 이 행동을 시작했는가? (주체/발신자)
+        public Pawn SourcePawn { get; set; }
+
+        // 누가 이 행동의 대상인가? (수신자)
+        // Self-action의 경우 SourcePawn과 동일하거나, 해당 PawnAction이 부착된 Pawn을 의미.
+        public Pawn TargetPawn { get; set; }
+
+
+
+        // 이동 관련 입력 방향 (Acts.OnMove 등에서 사용, 없을 시 null)
+        public Vector3? InputDirection { get; set; }
+
+        // --- 단발성 이벤트 정보 (각 Acts에 따라 선택적으로 사용) ---
+        // Acts.OnHit, OnDamage 등 피해 관련
+        public float? DamageAmount { get; set; }
+        //public float? DamageAmount { get; set; }
+        //public float? DamageAmount { get; set; }
+
+
+
+    }
+}
+
+#endregion
+
+#region GameEventType
+
+namespace Game.Core
+{
+    public enum GameEventType
+    {
+        XmlLoaded,
+        PawnSpawn,
+        Update,
+        RegisterUpdateAction,
+        JsonLoading,
+        // ...
+    }
+
+    public class GameEventContext
+    {
+        public bool stopUpdate = false;
+        public JsonPath JsonPath { get; set; }
+
+        public PawnSerializationContainer PawnData { get; set; }
+    }
+}
+
+#endregion

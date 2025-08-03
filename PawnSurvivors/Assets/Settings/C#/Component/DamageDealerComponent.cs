@@ -10,8 +10,10 @@ public class DamageDealerComponent : PawnBase // PawnAction을 상속하여 Pawn
 {
     #region Fields & Properties
 
-    [SerializeField] private float _damageAmount = 10f; // 이 DamageDealer가 입힐 기본 피해량
-    public float DamageAmount => _damageAmount;       // 피해량을 외부에 노출 (읽기 전용)
+    [SerializeField]
+    DamageDealerConfig damageDealerConfig;
+
+    public float DamageAmount => damageDealerConfig.DamageAmount;
 
     #endregion
 
@@ -49,4 +51,9 @@ public class DamageDealerComponent : PawnBase // PawnAction을 상속하여 Pawn
 
 
     #endregion
+}
+
+namespace Game.Core
+{
+
 }
