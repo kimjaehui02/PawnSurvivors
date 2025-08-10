@@ -1,5 +1,6 @@
 using Game.Core; // ManagerBase, PawnTypeData, PawnTypesWrapperData 등이 여기에 있다고 가정
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,13 +12,37 @@ using UnityEngine;
 /// </summary>
 public class JsonDataManager : ManagerBase
 {
+    #region
 
-
-    public Dictionary<JsonPath, string> JsonPaths { get; set; } = new Dictionary<JsonPath, string>
+    /// <summary>
+    /// 0. PawnType 데이터의 경로를 저장하는 리스트입니다.
+    /// </summary>
+    private readonly List<string> paths = new()
     {
-        { JsonPath.pawns, "Data/PawnTypes" } // JSON 파일 경로를 여기에 추가
+        "Data/PawnTypes",
     };
 
+    private readonly Dictionary<string, Type> _componentConfigMap = new()
+    {
+        { "MoveableComponent", typeof(MoveableConfig) },
+        { "DamageableComponent", typeof(DamageableConfig) },
+        { "DamageDealerComponent", typeof(DamageDealerConfig) },
+        { "SkillControllerComponent", typeof(EmptyConfig) },
+        { "EffectComponent", typeof(EmptyConfig) }
+    };
+
+    enum JsonDataType
+    {
+        PawnData, // PawnType 데이터
+
+    }
+
+
+
+    private readonly List<PawnData> pawns = new();
+
+
+    #endregion
 
 
     public override void RegisterAbilities()
@@ -25,31 +50,27 @@ public class JsonDataManager : ManagerBase
         // GameManager에서 이 클래스가 초기 로딩을 시작해야 할 시점을 이벤트로 받을 수 있습니다.
         // 예를 들어, 게임 초기화 이벤트에 반응하여 데이터를 로드합니다.
         AddAction(GameEventType.JsonLoading, OnJsonLoading); // 또는 CustomLifecycleManager가 호출할 이벤트
-    }
-
-    // Awake에서 JsonLoader 참조를 확인하고 초기화 로직을 시작할 수 있습니다.
-
-
-    // 게임 초기화 이벤트에 반응하여 Pawn 데이터를 로드하는 메서드
-    private void OnJsonLoading(GameEventContext context)
-    {
-        context.PawnData = LoadJsonFile(context.JsonPath);
+        AddAction(GameEventType.GetPawnData, GetPawnData); // 또는 CustomLifecycleManager가 호출할 이벤트
 
     }
 
-    // 기존 코드에서 기본 매개변수 값으로 인스턴스 필드(_pawnDataJsonPath)를 사용할 수 없으므로
-    // 기본값을 null로 지정하고, 내부에서 null일 경우 _pawnDataJsonPath를 사용하도록 변경합니다.
 
-    // 이 메서드를 수정해야 합니다.
-    public PawnSerializationContainer LoadJsonFile(JsonPath input)
+    private void OnJsonLoading(GameEventContext gameEventContext)
     {
-        if (!JsonPaths.TryGetValue(input, out string filePath))
-        {
-            Debug.LogError($"Enum '{input}'에 대한 경로가 딕셔너리에 없습니다.");
-            return null;
-        }
+        pawns.Add(LoadPawnDataList(paths[0])[0]);
+    }
 
+    private void GetPawnData(GameEventContext gameEventContext)
+    {
+        gameEventContext.PawnData = pawns[0];
+    }
+
+
+
+    public List<PawnData> LoadPawnDataList(string filePath)
+    {
         TextAsset jsonTextAsset = Resources.Load<TextAsset>(filePath);
+
         if (jsonTextAsset == null)
         {
             Debug.LogError($"JSON 파일을 찾을 수 없습니다: {filePath}");
@@ -58,17 +79,113 @@ public class JsonDataManager : ManagerBase
 
         try
         {
-            // JsonUtility 대신 JsonConvert를 사용합니다.
-            PawnSerializationContainer container = JsonConvert.DeserializeObject<PawnSerializationContainer>(jsonTextAsset.text);
+            // 1. JSON을 List<JObject> 형태로 먼저 역직렬화합니다.
+            // 이렇게 하면 IBaseConfig를 직접 인스턴스화하려 하지 않습니다.
+            List<JObject> rawDataList = JsonConvert.DeserializeObject<List<JObject>>(jsonTextAsset.text);
 
-            // JsonConvert는 null을 반환하지 않고 예외를 발생시키므로, 예외 처리로 충분합니다.
-            return container;
+            if (rawDataList == null)
+            {
+                Debug.LogWarning($"JSON 파일 '{filePath}'에 데이터가 없습니다.");
+                return new List<PawnData>();
+            }
+
+            var pawnDataList = new List<PawnData>();
+            foreach (var rawData in rawDataList)
+            {
+                // 2. JObject에서 pawnConfig 부분을 역직렬화합니다.
+                PawnConfig pawnConfig = rawData["pawnConfig"]?.ToObject<PawnConfig>();
+
+                if (pawnConfig == null)
+                {
+                    Debug.LogError("PawnConfig 데이터를 찾을 수 없습니다.");
+                    continue;
+                }
+
+                // 3. components 부분을 수동으로 역직렬화합니다.
+                var processedConfigs = new Dictionary<string, IBaseConfig>();
+                if (rawData.TryGetValue("components", out JToken componentsToken))
+                {
+                    foreach (var componentPair in (JObject)componentsToken)
+                    {
+                        string componentName = componentPair.Key;
+                        if (_componentConfigMap.TryGetValue(componentName, out Type configType))
+                        {
+                            try
+                            {
+                                // 4. 매핑된 타입으로 역직렬화합니다.
+                                IBaseConfig configObject = (IBaseConfig)componentPair.Value.ToObject(configType);
+                                if (configObject != null)
+                                {
+                                    processedConfigs.Add(componentName, configObject);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.LogError($"'{componentName}' Config 변환 중 오류 발생: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+
+                pawnDataList.Add(new PawnData(pawnConfig, processedConfigs));
+            }
+
+            return pawnDataList;
         }
-        catch (System.Exception ex)
+        catch (JsonException ex)
         {
-            Debug.LogError($"JSON 역직렬화 실패 ({filePath}): {ex.Message}");
+            Debug.LogError($"JSON 역직렬화 중 오류 발생: {ex.Message}");
             return null;
         }
+    }
+
+    // ProcessAndCreatePawnData 메서드는 더 이상 필요하지 않습니다.
+    // 모든 로직이 LoadPawnDataList로 통합되었기 때문입니다.
+
+    private PawnData ProcessAndCreatePawnData(PawnSerializationContainer container)
+    {
+        if (container?.pawnConfig == null)
+        {
+            Debug.LogError("PawnSerializationContainer가 유효하지 않습니다.");
+            return null;
+        }
+        var processedConfigs = new Dictionary<string, IBaseConfig>();
+        if (container.components != null)
+        {
+            foreach (var componentEntry in container.components)
+            {
+                string componentName = componentEntry.Key;
+                object rawConfigData = componentEntry.Value;
+                if (_componentConfigMap.TryGetValue(componentName, out Type configType) && configType != null)
+                {
+                    try
+                    {
+                        IBaseConfig configObject = null;
+                        if (rawConfigData != null)
+                        {
+                            JObject jObject = (JObject)rawConfigData;
+                            configObject = (IBaseConfig)jObject.ToObject(configType);
+                        }
+                        else
+                        {
+                            if (configType == typeof(EmptyConfig))
+                            {
+                                configObject = new EmptyConfig();
+                            }
+                        }
+                        if (configObject != null)
+                        {
+                            processedConfigs.Add(componentName, configObject);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"'{componentName}' Config 변환 중 오류 발생: {ex.Message}");
+                    }
+                }
+            }
+        }
+        return new PawnData(container.pawnConfig, processedConfigs);
     }
 
 

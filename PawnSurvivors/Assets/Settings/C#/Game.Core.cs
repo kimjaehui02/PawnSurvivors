@@ -19,7 +19,18 @@ namespace Game.Core
 
     #region Enums
 
-
+    public enum ComponentType
+    {
+        DamageableComponent,
+        DamageDealerComponent,
+        GraphicComponent,
+        MoveableComponent,
+        PawnMoverComponent,
+        PawnRegisterToGameManagerComponent,
+        PawnTargetFinderComponent,
+        PlayerMoverComponent,
+        SubComponentBase,
+    }
 
     /// <summary>
     /// 게임 내에서 발생하는 핵심 행동들을 정의하는 Enum입니다.
@@ -154,11 +165,31 @@ namespace Game.Core
     public class PawnSerializationContainer
     {
         public PawnConfig pawnConfig;
-        // Dictionary를 직접 사용할 수 있습니다.
-        public Dictionary<string, string> components;
+
+        // 컴포넌트 이름(string)을 키로, Config 객체(object)를 값으로 받습니다.
+        // JSON의 null 값과 객체를 모두 처리할 수 있습니다.
+        public Dictionary<string, IBaseConfig> components;
     }
 
+    /// <summary>
+    /// 이 클래스는 Pawn을 생성하기 위한 모든 가공된 데이터를 담고 있습니다.
+    /// Pawn 생성 로직에서 직접적으로 사용되는, 타입 안전한 컨테이너입니다.
+    /// </summary>
+    public class PawnData
+    {
+        public PawnConfig PawnConfig { get; private set; }
+        public Dictionary<string, IBaseConfig> ComponentConfigs { get; private set; }
 
+        public PawnData(PawnConfig pawnConfig, Dictionary<string, IBaseConfig> componentConfigs)
+        {
+            PawnConfig = pawnConfig;
+            ComponentConfigs = componentConfigs;
+        }
+
+        public PawnData()
+        {
+        }
+    }
 
     [System.Serializable]
     public class PawnConfig
@@ -172,13 +203,20 @@ namespace Game.Core
         public string Name => _name;
         public string Description => _description;
     }
+    public interface IBaseConfig
+    { }
+
+    public class EmptyConfig : IBaseConfig
+    { }
+
+
 
     /// <summary>
     /// 체력 관리에 필요한 설정과 현재 상태를 담는 클래스입니다.
     /// 이 데이터는 DamageableComponent에서 사용되며 JSON 직렬화/역직렬화의 대상이 됩니다.
     /// </summary>
     [Serializable]
-    public class MoveableConfig
+    public class MoveableConfig : IBaseConfig
     {
         [SerializeField]
         private float moveSpeed = 1f; // 이동 속도 (유니티 에디터에서 설정 가능)
@@ -194,7 +232,7 @@ namespace Game.Core
     /// 이 데이터는 DamageableComponent에서 사용되며 JSON 직렬화/역직렬화의 대상이 됩니다.
     /// </summary>
     [Serializable]
-    public class DamageableConfig
+    public class DamageableConfig : IBaseConfig
     {
         // private 필드로 선언하여 외부에서 직접적인 수정 방지
         [SerializeField]
@@ -224,7 +262,7 @@ namespace Game.Core
     /// 이 데이터는 DamageableComponent에서 사용되며 JSON 직렬화/역직렬화의 대상이 됩니다.
     /// </summary>
     [Serializable]
-    public class DamageDealerConfig
+    public class DamageDealerConfig : IBaseConfig
     {
         [SerializeField]
         private float _damageAmount = 10f; // 이 DamageDealer가 입힐 기본 피해량
@@ -286,15 +324,32 @@ namespace Game.Core
         Update,
         RegisterUpdateAction,
         JsonLoading,
+        GetPawnData,
         // ...
     }
 
     public class GameEventContext
     {
         public bool stopUpdate = false;
-        public JsonPath JsonPath { get; set; }
+        public PawnData PawnData { get; set; }
 
-        public PawnSerializationContainer PawnData { get; set; }
+        /// <summary>
+        /// GameEventContext의 현재 상태를 디버그 로그로 출력합니다.
+        /// </summary>
+        public void LogCurrentState()
+        {
+            Debug.Log("--- GameEventContext 상태 ---");
+            Debug.Log($"stopUpdate: {stopUpdate}");
+            Debug.Log($"PawnData: {(PawnData != null ? "데이터 있음" : "null")}");
+
+            // PawnData가 null이 아닐 경우, 더 상세한 정보를 출력할 수 있습니다.
+            if (PawnData != null)
+            {
+                Debug.Log($"PawnData.PawnConfig.Name: {PawnData.PawnConfig?.Name ?? "null"}");
+                Debug.Log($"PawnData.ComponentConfigs.Count: {PawnData.ComponentConfigs?.Count ?? 0}");
+            }
+            Debug.Log("-----------------------------");
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 using Game.Core;
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -42,6 +43,9 @@ public class GameManager : ManagerBase
 
     #endregion
 
+    [SerializeField]
+    private List<GameEventType> updateGameEventContext = new ();
+
     public Pawn Player;
     /// <summary>
     /// 스크립트 인스턴스가 로드될 때 호출됩니다.
@@ -53,13 +57,41 @@ public class GameManager : ManagerBase
         RegisterAbilities();
     }
 
+    private void Start()
+    {
+        List<GameEventType> gameEventTypes = new()
+        {
+            GameEventType.JsonLoading,
+            GameEventType.GetPawnData,
+            GameEventType.PawnSpawn,
+
+        };
+
+        GameEventContext gameEventContext = new();
+
+
+
+
+
+
+        RequestActions(gameEventTypes, gameEventContext);
+    }
+
     private void Update()
     {
+
+        updateGameEventContext = new List<GameEventType>
+        {
+            GameEventType.Update,
+
+        };
+
         GameEventContext updateAbilityContext = new();
 
 
 
-        RequestAction(GameEventType.Update, updateAbilityContext);
+
+        RequestActions(updateGameEventContext, updateAbilityContext);
     }
 
     public override void RegisterAbilities()
@@ -105,24 +137,6 @@ public class GameManager : ManagerBase
     }
 
 
-    private void Start()
-    {
-        GameEventContext gameEventContext = new()
-        {
-            JsonPath = JsonPath.pawns
-        };
 
-        List<GameEventType> gameEventTypes = new()
-        {
-            GameEventType.JsonLoading,
-            GameEventType.PawnSpawn,
-
-        };
-
-
-
-
-        RequestActions(gameEventTypes, gameEventContext);
-    }
 
 }
