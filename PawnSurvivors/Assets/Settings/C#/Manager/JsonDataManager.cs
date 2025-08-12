@@ -22,14 +22,7 @@ public class JsonDataManager : ManagerBase
         "Data/PawnTypes",
     };
 
-    private readonly Dictionary<string, Type> _componentConfigMap = new()
-    {
-        { "MoveableComponent", typeof(MoveableConfig) },
-        { "DamageableComponent", typeof(DamageableConfig) },
-        { "DamageDealerComponent", typeof(DamageDealerConfig) },
-        { "SkillControllerComponent", typeof(EmptyConfig) },
-        { "EffectComponent", typeof(EmptyConfig) }
-    };
+
 
     enum JsonDataType
     {
@@ -108,12 +101,12 @@ public class JsonDataManager : ManagerBase
                     foreach (var componentPair in (JObject)componentsToken)
                     {
                         string componentName = componentPair.Key;
-                        if (_componentConfigMap.TryGetValue(componentName, out Type configType))
+                        if (ComponentMapping.ComponentMap.TryGetValue(componentName, out (Type ComponentType, Type ConfigType) mapping))
                         {
                             try
                             {
                                 // 4. 매핑된 타입으로 역직렬화합니다.
-                                IBaseConfig configObject = (IBaseConfig)componentPair.Value.ToObject(configType);
+                                IBaseConfig configObject = (IBaseConfig)componentPair.Value.ToObject(mapping.ConfigType);
                                 if (configObject != null)
                                 {
                                     processedConfigs.Add(componentName, configObject);
@@ -142,51 +135,51 @@ public class JsonDataManager : ManagerBase
     // ProcessAndCreatePawnData 메서드는 더 이상 필요하지 않습니다.
     // 모든 로직이 LoadPawnDataList로 통합되었기 때문입니다.
 
-    private PawnData ProcessAndCreatePawnData(PawnSerializationContainer container)
-    {
-        if (container?.pawnConfig == null)
-        {
-            Debug.LogError("PawnSerializationContainer가 유효하지 않습니다.");
-            return null;
-        }
-        var processedConfigs = new Dictionary<string, IBaseConfig>();
-        if (container.components != null)
-        {
-            foreach (var componentEntry in container.components)
-            {
-                string componentName = componentEntry.Key;
-                object rawConfigData = componentEntry.Value;
-                if (_componentConfigMap.TryGetValue(componentName, out Type configType) && configType != null)
-                {
-                    try
-                    {
-                        IBaseConfig configObject = null;
-                        if (rawConfigData != null)
-                        {
-                            JObject jObject = (JObject)rawConfigData;
-                            configObject = (IBaseConfig)jObject.ToObject(configType);
-                        }
-                        else
-                        {
-                            if (configType == typeof(EmptyConfig))
-                            {
-                                configObject = new EmptyConfig();
-                            }
-                        }
-                        if (configObject != null)
-                        {
-                            processedConfigs.Add(componentName, configObject);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.LogError($"'{componentName}' Config 변환 중 오류 발생: {ex.Message}");
-                    }
-                }
-            }
-        }
-        return new PawnData(container.pawnConfig, processedConfigs);
-    }
+    //private PawnData ProcessAndCreatePawnData(PawnSerializationContainer container)
+    //{
+    //    if (container?.pawnConfig == null)
+    //    {
+    //        Debug.LogError("PawnSerializationContainer가 유효하지 않습니다.");
+    //        return null;
+    //    }
+    //    var processedConfigs = new Dictionary<string, IBaseConfig>();
+    //    if (container.components != null)
+    //    {
+    //        foreach (var componentEntry in container.components)
+    //        {
+    //            string componentName = componentEntry.Key;
+    //            object rawConfigData = componentEntry.Value;
+    //            if (_componentConfigMap.TryGetValue(componentName, out Type configType) && configType != null)
+    //            {
+    //                try
+    //                {
+    //                    IBaseConfig configObject = null;
+    //                    if (rawConfigData != null)
+    //                    {
+    //                        JObject jObject = (JObject)rawConfigData;
+    //                        configObject = (IBaseConfig)jObject.ToObject(configType);
+    //                    }
+    //                    else
+    //                    {
+    //                        if (configType == typeof(EmptyConfig))
+    //                        {
+    //                            configObject = new EmptyConfig();
+    //                        }
+    //                    }
+    //                    if (configObject != null)
+    //                    {
+    //                        processedConfigs.Add(componentName, configObject);
+    //                    }
+    //                }
+    //                catch (Exception ex)
+    //                {
+    //                    Debug.LogError($"'{componentName}' Config 변환 중 오류 발생: {ex.Message}");
+    //                }
+    //            }
+    //        }
+    //    }
+    //    return new PawnData(container.pawnConfig, processedConfigs);
+    ////}
 
 
 }

@@ -10,7 +10,23 @@ namespace Game.Core
     public abstract class ManagerBase : SubComponentBase<GameEventType, GameEventContext> { }
     public abstract class PawnBase : SubComponentBase<Acts, AbilityContext> { }
 
-
+    // 정적(static) 유틸리티 클래스
+    public static class ComponentMapping
+    {
+        // 딕셔너리는 클래스 내부에 정의합니다.
+        // public으로 선언하여 다른 클래스에서 접근 가능하게 합니다.
+        public static readonly Dictionary<string, (Type ComponentType, Type ConfigType)> ComponentMap = new()
+        {
+            { "DamageableComponent", (typeof(DamageableComponent), typeof(DamageableConfig)) },
+            { "DamageDealerComponent", (typeof(DamageDealerComponent), typeof(DamageDealerConfig)) },
+            { "GraphicComponent", (typeof(GraphicComponent), typeof(EmptyConfig)) },
+            { "MoveableComponent", (typeof(MoveableComponent), typeof(MoveableConfig)) },
+            { "PawnMoverComponent", (typeof(PawnMoverComponent), typeof(EmptyConfig)) },
+            { "PawnRegisterToGameManagerComponent", (typeof(PawnRegisterToGameManagerComponent), typeof(EmptyConfig)) },
+            { "PawnTargetFinderComponent", (typeof(PawnTargetFinderComponent), typeof(EmptyConfig)) },
+            { "PlayerMoverComponent", (typeof(PlayerMoverComponent), typeof(EmptyConfig)) },
+        };
+    }
 
 
 

@@ -81,16 +81,16 @@ public class Pawn : PawnBase
     {
         // MonoBehaviour의 생명주기 메서드에 연결할 액션을 등록합니다.
         //AddAction(Acts.OnStart, PawnStart);
-        Debug.Log("qweqweqwe");
+        //Debug.Log("qweqweqwe");
         GameManager.Instance.CustomLifecycleManager.EnqueueStartAction(PawnStart);
 
         Debug.Log(actsToUpdate.Count);
         if (actsToUpdate != null && actsToUpdate.Count > 0)
         {
-            Debug.Log("qweqweqwe");
-            Debug.Log("qweqweqwe");
-            Debug.Log("qweqweqwe");
-            Debug.Log("qweqweqwe");
+            //Debug.Log("qweqweqwe");
+            //Debug.Log("qweqweqwe");
+            //Debug.Log("qweqweqwe");
+            //Debug.Log("qweqweqwe");
 
             GameManager.Instance.CustomLifecycleManager.AddUpdate(UpdateActionTypes.Update, PawnUpdate);
         }

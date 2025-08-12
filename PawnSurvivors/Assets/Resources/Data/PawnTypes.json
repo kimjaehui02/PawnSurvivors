@@ -16,7 +16,31 @@
             },
             "DamageDealerComponent": {
                 "_damageAmount": 25.0
-            }
+            },
+            "PawnTargetFinderComponent": {},
+            "PawnMoverComponent": {}
+        }
+    },
+    {
+        "pawnConfig": {
+            "_id": 1,
+            "_name": "PlayerPawn",
+            "_description": "This is the player's main pawn."
+        },
+        "components": {
+            "MoveableComponent": {
+                "_moveSpeed": 5.0,
+                "_rotationSpeed": 360.0
+            },
+            "DamageableComponent": {
+                "_maxHealth": 150.0,
+                "_currentHealth": 150.0
+            },
+            "DamageDealerComponent": {
+                "_damageAmount": 25.0
+            },
+            "PawnTargetFinderComponent": {},
+            "PawnMoverComponent": {}
         }
     }
 ]
