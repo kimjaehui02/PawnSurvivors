@@ -1,4 +1,7 @@
 using Game.Core;
+using Game.Core.Base;
+using Game.Core.Contexts;
+using Game.Core.Enums;
 using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -6,210 +9,102 @@ using UnityEngine;
 
 public class CustomLifecycleManager : ManagerBase
 {
-    #region
+    #region Fields
     private readonly Queue<Action> _startQueue = new();
-
     private readonly Dictionary<UpdateActionTypes, Action> _updateActionMap = new();
+    private readonly List<UpdateActionTypes> updatecycle = new() { UpdateActionTypes.Update };
     #endregion
 
     #region ManagerBase
-
     public override void RegisterAbilities()
     {
-        Debug.Log("CustomLifecycleManager: RegisterAbilities 호출됨.");
+        Debug.Log("CustomLifecycleManager: Update 이벤트 등록");
         AddAction(GameEventType.Update, CustomLifecycle);
     }
-
     #endregion
 
-    #region Start
-
-    /// <summary>
-    /// _startQueue에 담긴 모든 액션들을 순차적으로 실행하고 큐에서 제거합니다.
-    /// </summary>
+    #region Start Queue
+    /// <summary> _startQueue에 담긴 액션을 순차 실행 </summary>
     private void ProcessStartQueue()
     {
-        if(_startQueue.Count == 0)
-        {
-            //Debug.Log("_startQueue가 비어있습니다. 처리할 액션이 없습니다.");
-            return; // 큐가 비어있으면 아무것도 하지 않습니다.
-        }
-        Debug.Log($"_startQueue 처리 시작. 현재 큐 크기: {_startQueue.Count}");
+        if (_startQueue.Count == 0) return;
 
-        // 큐가 비어있지 않은 동안 반복합니다.
+        Debug.Log($"_startQueue 처리 시작. 큐 크기: {_startQueue.Count}");
         while (_startQueue.Count > 0)
-        {
-            // 1. Dequeue(): 큐의 맨 앞(가장 먼저 들어온) 요소를 꺼내고 큐에서 제거합니다.
-            Action currentAction = _startQueue.Dequeue();
+            _startQueue.Dequeue()?.Invoke();
 
-            // 2. 실행: 꺼낸 Action 델리게이트를 호출합니다. (null 체크는 안전을 위해)
-            currentAction?.Invoke();
-
-            //Debug.Log($"액션 실행 완료. 남은 큐 크기: {_startQueue.Count}");
-        }
-
-        Debug.Log("_startQueue 처리 완료. 큐가 비었습니다.");
+        Debug.Log("_startQueue 처리 완료.");
     }
 
-    /// <summary>
-    /// 외부에서 _startQueue에 액션을 추가할 때 사용하는 메서드.
-    /// </summary>
-    /// <param name="action">큐에 추가할 매개변수 없는 메서드.</param>
+    /// <summary> _startQueue에 액션 추가 </summary>
     public void EnqueueStartAction(Action action)
     {
         if (action != null)
         {
             _startQueue.Enqueue(action);
-            Debug.Log($"새로운 액션이 _startQueue에 추가됨. 현재 큐 크기: {_startQueue.Count}");
+            Debug.Log($"액션 추가됨. 현재 큐 크기: {_startQueue.Count}");
         }
     }
-
     #endregion
 
-    #region Update
-
-
-
-
-    #region (구)딕셔너리 관리 함수들
-
-
-    /// <summary>
-    /// 지정된 Acts에 대한 Action 델리게이트를 맵에 추가하거나 기존 델리게이트에 연결합니다.
-    /// 하나의 Acts에 여러 함수를 연결할 수 있도록 멀티캐스트 델리게이트를 지원합니다.
-    /// </summary>
+    #region Update Actions
+    /// <summary> 지정된 타입에 액션 등록 </summary>
     public void AddUpdate(UpdateActionTypes type, Action action)
     {
-        //Debug.Log($"qwe1 AddUpdate 호출됨: {type}, 액션: {action?.Method.Name}");
         if (_updateActionMap.ContainsKey(type))
-        {
-            //Debug.Log($"qwe2 기존 Acts에 액션 추가: {type}, 액션: {action?.Method.Name}");
             _updateActionMap[type] += action;
-        }
         else
-        {
-            //Debug.Log($"qwe3 새 Acts 등록: {type}, 액션: {action?.Method.Name}");
-            _updateActionMap.Add(type, action);
-            //Debug.Log($"qwe4 새 Acts가 등록되었습니다: {_updateActionMap[type].GetInvocationList().Length}");
-        }
-        //Debug.Log($"qwe 5 현재 {_updateActionMap.Count}개의 Acts가 등록되어 있습니다. Acts: {type}");
+            _updateActionMap[type] = action;
     }
 
-    /// <summary>
-    /// 지정된 Acts에서 특정 Action 델리게이트를 제거하거나, 해당 Acts에 연결된 모든 델리게이트를 제거합니다.
-    /// </summary>
+    /// <summary> 지정된 타입에서 액션 제거 </summary>
     public void RemoveUpdate(UpdateActionTypes type, Action action = null)
     {
-        if (!_updateActionMap.ContainsKey(type))
-        {
-            return; // 맵에 해당 Acts가 없으면 아무것도 하지 않습니다.
-        }
+        if (!_updateActionMap.ContainsKey(type)) return;
 
         if (action != null)
         {
-            _updateActionMap[type] -= action; // 특정 액션 제거
-            // 해당 Acts에 더 이상 연결된 델리게이트가 없으면, 맵에서 Acts를 완전히 제거합니다.
+            _updateActionMap[type] -= action;
             if (_updateActionMap[type] == null)
-            {
                 _updateActionMap.Remove(type);
-            }
         }
         else
         {
-            _updateActionMap.Remove(type); // 해당 Acts와 연결된 모든 델리게이트 제거
+            _updateActionMap.Remove(type);
         }
     }
 
-    /// <summary>
-    /// 지정된 Acts에 등록된 모든 델리게이트 함수들을 주어진 AbilityContext와 함께 실행합니다.
-    /// </summary>
+    /// <summary> 지정된 타입의 액션 실행 </summary>
     public void RequestUpdate(UpdateActionTypes type)
     {
-        // 맵에서 해당 Acts에 연결된 델리게이트를 안전하게 가져옵니다.
         if (_updateActionMap.TryGetValue(type, out Action actionDelegate))
-        {
-            actionDelegate?.Invoke(); // 델리게이트가 null이 아니면 호출
-        }
-        // else { Debug.LogWarning($"[{name}] RequestAction: Acts.{act}에 등록된 델리게이트가 없습니다."); }
-        //count = actionDelegate.GetInvocationList().Length; // 현재 연결된 델리게이트의 개수를 count에 저장합니다.
-
+            actionDelegate?.Invoke();
     }
 
-    /// <summary>
-    /// 지정된 Acts에 등록된 모든 델리게이트 함수들을 주어진 AbilityContext와 함께 실행합니다.
-    /// </summary>
+    /// <summary> 타입 리스트의 액션 일괄 실행 </summary>
     public void RequestUpdates(List<UpdateActionTypes> types)
     {
-        // 입력 리스트의 유효성 검사를 추가하면 더욱 견고해집니다.
-        if (types == null || types.Count == 0)
-        {
-            // Debug.LogWarning("RequestActions: 실행할 Acts 리스트가 비어있거나 null입니다.");
-            return;
-        }
+        if (types == null || types.Count == 0) return;
 
-        foreach (var item in types) // 'item' 대신 'act' 또는 'currentAct'로 변수명을 명확히 하면 더 좋습니다.
-        {
-            // 단일 Acts를 처리하는 기존 RequestAction 메서드를 재사용합니다.
+        foreach (var item in types)
             RequestUpdate(item);
-        }
-        // 주석 처리된 else 문은 RequestAction 메서드 내부에 이미 있으므로 여기에 필요 없습니다.
-        // 이는 각 개별 Acts에 대한 경고를 RequestAction에서 이미 처리하기 때문입니다.
     }
-    
-    #endregion
 
-    // 기존 코드:
-    // const List<UpdateActionType> updatecycle = { UpdateActionType.Update };
-
-    // 수정된 코드:
-    private readonly List<UpdateActionTypes> updatecycle = new()
-    { 
-        UpdateActionTypes.Update, 
-    };
-
-    //public int count = 0;
-    //public bool _stopUpdate = false;
+    /// <summary> updatecycle에 등록된 액션 실행 </summary>
     private void Process_updateActionMap()
     {
-        //if(_stopUpdate)
-        //{
-        //    return;
-        //}
-        //Debug.Log($"CustomLifecycleManager: Process_updateActionMap 호출됨. 현재 크기: {_updateActionMap.Count}");
         RequestUpdates(updatecycle);
-        //count = _updateActionMap.Count;
     }
-
     #endregion
 
-
-
+    #region Lifecycle
+    /// <summary> Update 이벤트에서 호출됨 </summary>
     private void CustomLifecycle(GameEventContext gameEventContext)
     {
-        //Debug.Log($"CustomLifecycleManager: CustomLifecycle 호출됨. 현재 크기: {_updateActionMap.Count}");
-        if (gameEventContext.stopUpdate == true)
-        {
-            return; // 업데이트를 중지합니다.
-        }
+        if (gameEventContext.stopUpdate) return;
 
-        // 업데이트 문 전에 예약된 스타트문 전부 돌림
         ProcessStartQueue();
-        // 업데이트문을 실행함
         Process_updateActionMap();
-
-
-
-
     }
-
-    //private void Update()
-    //{
-    //    CustomLifecycle();
-    //}
-    // 기존 코드:
-    // private ovrrided void RegisterAbilities()
-
-    // 수정된 코드:
-
-
+    #endregion
 }

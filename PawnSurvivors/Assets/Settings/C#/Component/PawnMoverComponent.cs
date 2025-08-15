@@ -1,5 +1,8 @@
 using UnityEngine;
-using Game.Core; // PawnAction과의 연동을 위해 Game.Core 네임스페이스 추가
+using Game.Core;
+using Game.Core.Base;
+using Game.Core.Enums;
+using Game.Core.Contexts; // PawnAction과의 연동을 위해 Game.Core 네임스페이스 추가
 
 /// <summary>
 /// 특정 대상의 위치를 기반으로 이동 방향을 제공하는 컴포넌트입니다.

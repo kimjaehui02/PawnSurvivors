@@ -1,4 +1,7 @@
 using Game.Core;
+using Game.Core.Base;
+using Game.Core.Contexts;
+using Game.Core.Enums;
 using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -62,19 +65,33 @@ public class GameManager : ManagerBase
         List<GameEventType> gameEventTypes = new()
         {
             GameEventType.JsonLoading,
+
+
+        };
+
+        List<GameEventType> gameEventTypes2 = new()
+        {
             GameEventType.GetPawnData,
             GameEventType.PawnSpawn,
 
         };
 
+
         GameEventContext gameEventContext = new();
-
-
-
-
+        GameEventContext gameEventContext2 = new();
 
 
         RequestActions(gameEventTypes, gameEventContext);
+        RequestActions(gameEventTypes2, gameEventContext2);
+        RequestActions(gameEventTypes2, gameEventContext2);
+        RequestActions(gameEventTypes2, gameEventContext2);
+        RequestActions(gameEventTypes2, gameEventContext2);
+        RequestActions(gameEventTypes2, gameEventContext2);
+        RequestActions(gameEventTypes2, gameEventContext2);
+
+
+
+
     }
 
     private void Update()

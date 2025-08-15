@@ -1,4 +1,8 @@
 using Game.Core;
+using Game.Core.Base;
+using Game.Core.Configs;
+using Game.Core.Contexts;
+using Game.Core.Enums;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -84,7 +88,7 @@ public class Pawn : PawnBase
         //Debug.Log("qweqweqwe");
         GameManager.Instance.CustomLifecycleManager.EnqueueStartAction(PawnStart);
 
-        Debug.Log(actsToUpdate.Count);
+        //Debug.Log(actsToUpdate.Count);
         if (actsToUpdate != null && actsToUpdate.Count > 0)
         {
             //Debug.Log("qweqweqwe");

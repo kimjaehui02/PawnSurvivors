@@ -1,4 +1,8 @@
 using Game.Core;
+using Game.Core.Base;
+using Game.Core.Configs;
+using Game.Core.Contexts;
+using Game.Core.Enums;
 using System;
 using UnityEngine;
 
@@ -14,7 +18,21 @@ public class MoveableComponent : PawnBase
     MoveableConfig moveableConfig = new(); // 이동 설정을 담는 구성 객체
     public float MoveSpeed => moveableConfig.MoveSpeed;
 
+    public override void Initialize(IBaseConfig config)
+    {
+        if (config is MoveableConfig dmgConfig)
+        {
+            moveableConfig = dmgConfig;
+            // 초기화 후 MoveSpeed가 설정되었는지 확인
+            //Debug.LogWarning($"MoveableConfig가 설정되었습니다 스피드는{MoveSpeed}");
+            //Debug.LogWarning($"MoveableConfig가 설정되었습니다 입력받은 스피드는{dmgConfig.MoveSpeed}");
 
+        }
+        else
+        {
+            Debug.LogWarning($"{name}: Initialize 호출 시 잘못된 config 타입입니다. 기대한 타입: MoveableConfig");
+        }
+    }
 
     #endregion
 

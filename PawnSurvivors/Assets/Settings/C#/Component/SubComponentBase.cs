@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Core.Base;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,8 +25,6 @@ public class SubComponentBase<TEnum, TContext> : MonoBehaviour where TEnum : Enu
     public void RequestActions(List<TEnum> TEnum, TContext context) => _delegateMap.RequestActions(TEnum, context);
 
     public virtual void RegisterAbilities() => _delegateMap.RegisterAbilities();
-    public virtual void Initialize()
-    {
-        
-    }
+    public virtual void Initialize(IBaseConfig config) { }
+
 }

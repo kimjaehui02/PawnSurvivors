@@ -1,6 +1,10 @@
 using System;
 using UnityEngine;
-using Game.Core; // Acts 및 AbilityContext 사용을 위해 추가
+using Game.Core;
+using Game.Core.Base;
+using Game.Core.Configs;
+using Game.Core.Enums;
+using Game.Core.Contexts; // Acts 및 AbilityContext 사용을 위해 추가
 
 /// <summary>
 /// 특정 대상에게 피해를 입히는 로직을 담당하는 컴포넌트입니다.
@@ -14,6 +18,18 @@ public class DamageDealerComponent : PawnBase // PawnAction을 상속하여 Pawn
     DamageDealerConfig damageDealerConfig;
 
     public float DamageAmount => damageDealerConfig.DamageAmount;
+
+    public override void Initialize(IBaseConfig config)
+    {
+        if (config is DamageDealerConfig dmgConfig)
+        {
+            damageDealerConfig = dmgConfig;
+        }
+        else
+        {
+            Debug.LogWarning($"{name}: Initialize 호출 시 잘못된 config 타입입니다. 기대한 타입: DamageDealerConfig");
+        }
+    }
 
     #endregion
 

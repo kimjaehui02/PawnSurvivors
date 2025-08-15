@@ -1,5 +1,6 @@
 using UnityEngine;
-using Game.Core; // PawnAction과의 연동을 위해 Game.Core 네임스페이스 추가
+using Game.Core;
+using Game.Core.Base; // PawnAction과의 연동을 위해 Game.Core 네임스페이스 추가
 
 /// <summary>
 /// Pawn의 시각적 표현 (스프라이트, 애니메이션)을 담당하는 컴포넌트입니다.

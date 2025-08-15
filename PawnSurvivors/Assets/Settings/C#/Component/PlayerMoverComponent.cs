@@ -1,6 +1,9 @@
 using UnityEngine;
 using Game.Core;
-using UnityEngine.InputSystem; // Input System 관련 네임스페이스
+using UnityEngine.InputSystem;
+using Game.Core.Base;
+using Game.Core.Contexts;
+using Game.Core.Enums; // Input System 관련 네임스페이스
 
 /// <summary>
 /// 플레이어 입력에 따라 이동 방향을 결정하고 AbilityContext에 전달하는 컴포넌트입니다.
@@ -71,7 +74,7 @@ public class PlayerMoverComponent : PawnBase
     {
         // Acts.OnUpdate 델리게이트에 GetPlayerMovementInput 메서드를 연결합니다.
         // 이로써 Pawn의 Update 루프마다 플레이어 입력이 AbilityContext에 반영됩니다.
-        AddAction(Game.Core.Acts.OnUpdate, GetPlayerMovementInput);
+        AddAction(Acts.OnUpdate, GetPlayerMovementInput);
     }
 
     #endregion

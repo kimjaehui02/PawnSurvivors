@@ -1,4 +1,7 @@
 using Game.Core;
+using Game.Core.Base;
+using Game.Core.Contexts;
+using Game.Core.Enums;
 using UnityEngine;
 
 public class PawnTargetFinderComponent : PawnBase
