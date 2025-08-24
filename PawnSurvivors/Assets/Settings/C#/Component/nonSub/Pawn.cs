@@ -8,133 +8,90 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 모든 Pawn의 기반이 되는 클래스입니다.
-/// 자체 능력(PawnBase)을 정의하고, 하위 PawnBase 컴포넌트들의 능력을 통합 관리합니다.
+/// 모든 Pawn의 기반 클래스입니다.
+/// 하위 PawnBase 컴포넌트들의 능력을 통합 관리하며,
+/// AbilityContext 기반의 커스텀 생명주기 처리를 지원합니다.
 /// </summary>
 public class Pawn : PawnBase
 {
-    // Pawn이 통합된 모든 Acts-Action 델리게이트를 관리하는 딕셔너리입니다.
-    // Pawn 자신과 모든 자식 PawnBase 컴포넌트들의 델리게이트를 여기에 합칩니다.
-    // protected로 선언하여 자식 클래스(예: Player)에서도 접근 가능하게 합니다.
-    // NOTE: PawnBase의 _myDelegates와 이 _allActions의 역할이 명확해야 합니다.
-    // 현재 코드에서는 _myDelegates에 통합하고 있으므로, _allActions 필드는 불필요합니다.
-    // PawnBase의 _myDelegates가 Pawn의 통합 델리게이트 맵 역할을 합니다.
-    // private readonly Dictionary<Acts, Action<AbilityContext>> _allActions = new(); // 현재 코드에서 사용되지 않음
-
     #region Fields & Properties
 
-    // Pawn의 고유 ID입니다. 내부에서만 변경 가능합니다.
-    [SerializeField]
-    PawnConfig pawnConfig = new();
+    [SerializeField] private PawnConfig pawnConfig = new();
     public PawnConfig PawnConfig
     {
         get => pawnConfig;
-        set => pawnConfig = value; // 외부에서 PawnConfig를 설정할 수 있도록 프로퍼티로 노출
+        set => pawnConfig = value;
     }
 
-
-    public List<Acts> actsToUpdate = new ();
-    public List<Acts> actsToTriggerEnter = new ();
+    // 지속 업데이트에서 호출할 Acts 목록
+    public List<Acts> actsToUpdate = new();
+    // TriggerEnter 이벤트에서 호출할 Acts 목록
+    public List<Acts> actsToTriggerEnter = new();
 
     #endregion
 
     #region Unity Lifecycle
 
-    // MonoBehaviour의 Start 메서드입니다. Pawn의 초기화를 시작합니다.
     protected virtual void Start()
     {
-        //AbilityContext = new AbilityContext(); // AbilityContext 인스턴스 초기화
-        RegisterAbilities();             // Pawn 능력 통합 시작
+        RegisterAbilities(); // 하위 PawnBase 컴포넌트 능력 통합
 
-        if (GetActions.ContainsKey(Acts.OnUpdateTarget))
-        {
-            Debug.Log("OnUpdateTarget 액트 요청 추가");
-            actsToUpdate.Add(Acts.OnUpdateTarget); 
+        // 필요 액션 등록
+        if (GetActions.ContainsKey(Acts.OnUpdateTarget)) actsToUpdate.Add(Acts.OnUpdateTarget);
+        if (GetActions.ContainsKey(Acts.OnUpdate)) actsToUpdate.Add(Acts.OnUpdate);
+        if (GetActions.ContainsKey(Acts.OnMove)) actsToUpdate.Add(Acts.OnMove);
 
-        }
-
-        if (GetActions.ContainsKey(Acts.OnUpdate))
-        {
-            Debug.Log("OnUpdate 액트 요청 추가");
-            actsToUpdate.Add(Acts.OnUpdate); // Start 액트 요청 추가
-
-        }
-
-        if (GetActions.ContainsKey(Acts.OnMove))
-        {
-            Debug.Log("OnMove 액트 요청 추가");
-            actsToUpdate.Add(Acts.OnMove); // Start 액트 요청 추가
-
-        }
-        actsToTriggerEnter.Add(Acts.OnTriggerEnter); // OnTriggerEnter2D 액트 추가
+        actsToTriggerEnter.Add(Acts.OnTriggerEnter);
 
         RegisterLifecycleCallbacks();
     }
-
-    // MonoBehaviour의 Update 메서드입니다. 매 프레임 업데이트 관련 액션을 요청합니다.
-    //private void Update()
-    //{
-    //    PawnUpdate();
-    //}
 
     #endregion
 
     #region Custom Lifecycle Callbacks
 
+    /// <summary>
+    /// 커스텀 라이프사이클 매니저에 Start 및 Update 액션 등록
+    /// </summary>
     public void RegisterLifecycleCallbacks()
     {
-        // MonoBehaviour의 생명주기 메서드에 연결할 액션을 등록합니다.
-        //AddAction(Acts.OnStart, PawnStart);
-        //Debug.Log("qweqweqwe");
         GameManager.Instance.CustomLifecycleManager.EnqueueStartAction(PawnStart);
 
-        //Debug.Log(actsToUpdate.Count);
         if (actsToUpdate != null && actsToUpdate.Count > 0)
         {
-            //Debug.Log("qweqweqwe");
-            //Debug.Log("qweqweqwe");
-            //Debug.Log("qweqweqwe");
-            //Debug.Log("qweqweqwe");
-
             GameManager.Instance.CustomLifecycleManager.AddUpdate(UpdateActionTypes.Update, PawnUpdate);
         }
-
-
     }
 
-
-    // Pawn의 Start 관련 커스텀 콜백입니다.
-    public virtual void PawnStart() 
+    /// <summary>
+    /// Pawn 시작 시 호출되는 액션
+    /// </summary>
+    public virtual void PawnStart()
     {
-        AbilityContext startAbilityContext = new();
-
-
-
-        RequestAction(Acts.OnStart, startAbilityContext);
+        AbilityContext startContext = new();
+        RequestAction(Acts.OnStart, startContext);
     }
 
-    // Pawn의 지속 처리(Update) 관련 커스텀 콜백입니다.
+    /// <summary>
+    /// Pawn 지속 처리 액션
+    /// </summary>
     public virtual void PawnUpdate()
     {
-        AbilityContext updateAbilityContext = new();
-
-
-
-        RequestActions(actsToUpdate, updateAbilityContext);
-
-
+        AbilityContext updateContext = new();
+        RequestActions(actsToUpdate, updateContext);
     }
 
-
-
+    /// <summary>
+    /// TriggerEnter2D 이벤트 처리
+    /// </summary>
     public void OnTriggerEnter2D(Collider2D collision)
     {
-        AbilityContext TriggerEnter2DAbilityContext = new()
+        AbilityContext triggerContext = new()
         {
             TargetPawn = collision.GetComponent<Pawn>(),
-            SourcePawn = this // 현재 Pawn을 소스 Pawn으로 설정
+            SourcePawn = this
         };
-        RequestActions(actsToTriggerEnter, TriggerEnter2DAbilityContext);
+        RequestActions(actsToTriggerEnter, triggerContext);
     }
 
     #endregion
@@ -142,50 +99,28 @@ public class Pawn : PawnBase
     #region Ability Management
 
     /// <summary>
-    /// 이 Pawn의 모든 능력(PawnBase 컴포넌트) 델리게이트를 통합하여 관리합니다.
-    /// Pawn 자신과 모든 자식 PawnBase 컴포넌트들의 델리게이트를 Pawn의 _myDelegates에 합칩니다.
+    /// 하위 PawnBase 컴포넌트의 델리게이트를 Pawn의 _myDelegates에 통합
     /// </summary>
     public override void RegisterAbilities()
     {
+        PawnBase[] allPawnBases = GetComponentsInChildren<PawnBase>(true);
 
-        //AddAction(Acts.OnStart, PawnStart);
-
-        #region 델리게이트에 보조기능들의 델리게이트 넣기
-
-        // 하위 기능 컴포넌트들을 가져오기위해 겟컴포넌트로 가져옵니다
-        PawnBase[] allPawnBasesInHierarchy = GetComponentsInChildren<PawnBase>(true);
-
-;
-
-        foreach (PawnBase otherPawnBase in allPawnBasesInHierarchy)
+        foreach (PawnBase childBase in allPawnBases)
         {
-            // 자기 자신 (Pawn 컴포넌트)은 이미 PawnBase으로서 _myDelegates를 가집니다.
-            // 여기서는 다른 자식 PawnBase 컴포넌트들만 처리합니다.
-            if (otherPawnBase == this)
-            {
-                continue; 
-            }
+            if (childBase == this) continue;
 
-            // 다른 PawnBase 컴포넌트의 RegisterAbilities()를 호출하여,
-            // 그 컴포넌트의 _myDelegates에 델리게이트들이 채워지도록 합니다.
-            otherPawnBase.RegisterAbilities();
-            
-            // 다른 PawnBase 컴포넌트의 델리게이트 맵을 순회하고,
-            // Pawn 자신의 _myDelegates (통합 델리게이트 맵)에 추가합니다.
-            foreach (var entry in otherPawnBase.GetActions)
+            // 하위 PawnBase의 델리게이트 등록
+            childBase.RegisterAbilities();
+
+            // 하위 델리게이트를 통합
+            foreach (var entry in childBase.GetActions)
             {
-                AddAction(entry.Key, entry.Value); // PawnBase의 AddAction 메서드를 사용하여 안전하게 추가
+                AddAction(entry.Key, entry.Value);
             }
         }
-        Debug.Log($"Pawn '{name}'의 모든 능력 통합 완료. 현재 등록된 델리게이트 수: {GetActions.Count}");
 
-        #endregion
-
+        Debug.Log($"Pawn '{name}' 능력 통합 완료. 총 델리게이트 수: {GetActions.Count}");
     }
 
-
-
-
     #endregion
-
 }

@@ -27,6 +27,6 @@ namespace Game.Core.Models
             );
         }
 
-        public PawnData Clone() => new PawnData(this);
+        public PawnData Clone() => new(this);
     }
 }
