@@ -83,11 +83,11 @@ public class GameManager : ManagerBase
 
         RequestActions(gameEventTypes, gameEventContext);
         RequestActions(gameEventTypes2, gameEventContext2);
-        RequestActions(gameEventTypes2, gameEventContext2);
-        RequestActions(gameEventTypes2, gameEventContext2);
-        RequestActions(gameEventTypes2, gameEventContext2);
-        RequestActions(gameEventTypes2, gameEventContext2);
-        RequestActions(gameEventTypes2, gameEventContext2);
+        //RequestActions(gameEventTypes2, gameEventContext2);
+        //RequestActions(gameEventTypes2, gameEventContext2);
+        //RequestActions(gameEventTypes2, gameEventContext2);
+        //RequestActions(gameEventTypes2, gameEventContext2);
+        //RequestActions(gameEventTypes2, gameEventContext2);
 
 
 

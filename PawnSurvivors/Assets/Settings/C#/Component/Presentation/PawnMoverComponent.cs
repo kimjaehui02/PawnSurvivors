@@ -57,7 +57,7 @@ public class PawnMoverComponent : PawnBase // PawnAction을 상속합니다.
         // (TargetPawn이 없다는 것은 이동할 대상이 없다는 의미)
         if (abilityContext.TargetPawn == null)
         {
-             Debug.LogWarning("GetFaceDirection: abilityContext.TargetPawn이 null입니다. 이동 방향을 계산할 수 없습니다.");
+             //Debug.LogWarning("GetFaceDirection: abilityContext.TargetPawn이 null입니다. 이동 방향을 계산할 수 없습니다.");
             // 대상이 없으므로 이동 방향은 0으로 설정
             abilityContext.InputDirection = Vector3.zero;
             return;
