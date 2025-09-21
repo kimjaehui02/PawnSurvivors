@@ -51,13 +51,5 @@ public class PawnSub : MonoBehaviour
 
     }
 
-    public void Start()
-    {
-        
-    }
 
-    public void Update()
-    {
-
-    }
 }

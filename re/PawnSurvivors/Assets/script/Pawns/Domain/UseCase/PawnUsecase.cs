@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PawnUseCase
 {
+    private InputActions _inputActions;
+
     /// 목표를 향하는 방향을 계산합니다.
     public static void GetFaceDirection(DataContext dataContext)
     {
