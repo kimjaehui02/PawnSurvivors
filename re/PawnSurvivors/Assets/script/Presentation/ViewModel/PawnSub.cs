@@ -15,10 +15,10 @@ public class PawnSub : MonoBehaviour
         if (!addedToMain.ContainsKey(pawn))
             addedToMain[pawn] = new List<(Actions, Action<DataContext>)>();
 
-        foreach (var kv in myMap.GetAll())
+        foreach (KeyValuePair<Actions, List<Action<DataContext>>> kv in myMap.GetAll())
         {
-            var key = kv.Key;
-            foreach (var action in kv.Value)
+            Actions key = kv.Key;
+            foreach (Action<DataContext> action in kv.Value)
             {
                 pawn.myMap.Add(key, action);
                 addedToMain[pawn].Add((key, action));
@@ -29,10 +29,10 @@ public class PawnSub : MonoBehaviour
     // 제거 시, 자신이 추가한 것만 제거
     private void OnDestroy()
     {
-        foreach (var pair in addedToMain)
+        foreach (KeyValuePair<Pawn, List<(Actions, Action<DataContext>)>> pair in addedToMain)
         {
             Pawn pawn = pair.Key;
-            foreach (var (key, action) in pair.Value)
+            foreach ((Actions key, Action<DataContext> action) in pair.Value)
             {
                 pawn.myMap.Remove(key, action);
             }
