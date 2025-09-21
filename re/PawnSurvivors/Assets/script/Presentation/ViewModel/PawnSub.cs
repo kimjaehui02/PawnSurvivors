@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class PawnSub : MonoBehaviour
 {
+    // 1. 델리게이트 맵을 가지고 있다
+    // 2. 
+
     public EnumDelegateMap<Actions, DataContext> myMap = new();
 
     // Pawn별로 내가 추가한 액션 기록
@@ -43,6 +47,16 @@ public class PawnSub : MonoBehaviour
 
     // 등록 메서드
     public virtual void RegisterTestActions()
+    {
+
+    }
+
+    public void Start()
+    {
+        
+    }
+
+    public void Update()
     {
 
     }
