@@ -4,24 +4,24 @@ using UnityEngine;
 
 public class PawnSub : MonoBehaviour
 {
-    public EnumDelegateMap<MyEnum, int> myMap = new();
+    public EnumDelegateMap<Actions, DataContext> myMap = new();
 
-    // C별로 내가 추가한 액션 기록
-    private Dictionary<C, List<(MyEnum key, Action<int> action)>> addedToC = new();
+    // Pawn별로 내가 추가한 액션 기록
+    private Dictionary<Pawn, List<(Actions key, Action<DataContext> action)>> addedToMain = new();
 
-    // B -> C 병합
-    public void MergeToC(C c)
+    // PawnSub -> Pawn 병합
+    public void MergeToMain(Pawn pawn)
     {
-        if (!addedToC.ContainsKey(c))
-            addedToC[c] = new List<(MyEnum, Action<int>)>();
+        if (!addedToMain.ContainsKey(pawn))
+            addedToMain[pawn] = new List<(Actions, Action<DataContext>)>();
 
         foreach (var kv in myMap.GetAll())
         {
             var key = kv.Key;
             foreach (var action in kv.Value)
             {
-                c.myMap.Add(key, action);
-                addedToC[c].Add((key, action));
+                pawn.myMap.Add(key, action);
+                addedToMain[pawn].Add((key, action));
             }
         }
     }
@@ -29,12 +29,12 @@ public class PawnSub : MonoBehaviour
     // 제거 시, 자신이 추가한 것만 제거
     private void OnDestroy()
     {
-        foreach (var pair in addedToC)
+        foreach (var pair in addedToMain)
         {
-            C c = pair.Key;
+            Pawn pawn = pair.Key;
             foreach (var (key, action) in pair.Value)
             {
-                c.myMap.Remove(key, action);
+                pawn.myMap.Remove(key, action);
             }
         }
     }
@@ -42,7 +42,7 @@ public class PawnSub : MonoBehaviour
 
 
     // 등록 메서드
-    public void RegisterTestActions()
+    public virtual void RegisterTestActions()
     {
 
     }
