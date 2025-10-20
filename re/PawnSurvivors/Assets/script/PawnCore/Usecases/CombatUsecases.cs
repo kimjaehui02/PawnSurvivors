@@ -14,11 +14,6 @@ public static class CombatUsecases
 
     public static void FireProjectile(GameObject projectilePrefab, Vector3 position, Quaternion rotation)
     {
-        if (projectilePrefab == null)
-        {
-            Debug.LogError("Attempted to fire a null projectile prefab.");
-            return;
-        }
-        GameObject.Instantiate(projectilePrefab, position, rotation);
+        GameManager.Instance.CreationManager.CreatePawn(projectilePrefab, position, rotation);
     }
 }

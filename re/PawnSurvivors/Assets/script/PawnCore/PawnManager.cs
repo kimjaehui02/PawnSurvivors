@@ -6,12 +6,31 @@ public class PawnManager : MonoBehaviour
     // Using a list for dynamic addition and removal of sub-managers.
     public List<PawnSubManager> pawnSubManagers = new();
 
+    public static readonly List<PawnManager> AllPawnManagers = new();
+
+    private void OnEnable()
+    {
+        if (!AllPawnManagers.Contains(this))
+        {
+            AllPawnManagers.Add(this);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (AllPawnManagers.Contains(this))
+        {
+            AllPawnManagers.Remove(this);
+        }
+    }
+
     public void RegisterSubManager(PawnSubManager subManager)
     {
         if (!pawnSubManagers.Contains(subManager))
         {
             pawnSubManagers.Add(subManager);
-            subManager.SubStart();
+            // Enqueue the SubStart action instead of calling it directly.
+            GameManager.Instance.LifecycleManager.EnqueueAction(subManager.SubStart);
         }
     }
 
