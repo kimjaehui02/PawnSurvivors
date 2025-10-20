@@ -7,15 +7,7 @@ public class LifecycleManager : MonoBehaviour
 
     private void Awake()
     {
-        pawnManagers.AddRange(FindObjectsOfType<PawnManager>());
-    }
-
-    void Start()
-    {
-        foreach (var manager in pawnManagers)
-        {
-            manager.ManagedStart();
-        }
+        pawnManagers.AddRange(FindObjectsByType<PawnManager>(FindObjectsSortMode.None));
     }
 
     void Update()

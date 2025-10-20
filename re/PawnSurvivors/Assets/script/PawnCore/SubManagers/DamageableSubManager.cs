@@ -17,6 +17,6 @@ public class DamageableSubManager : PawnSubManager
 
     public void TakeDamage(float amount)
     {
-        Usecase.ApplyDamage(this, amount);
+        CombatUsecases.ApplyDamage(this, amount);
     }
 }

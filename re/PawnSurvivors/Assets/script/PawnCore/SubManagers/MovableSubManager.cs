@@ -11,6 +11,6 @@ public class MovableSubManager : PawnSubManager
 
     public override void SubUpdate()
     {
-        Usecase.Move(gameObject, moveSpeed);
+        MovementUsecases.Move(gameObject, moveSpeed);
     }
 }
