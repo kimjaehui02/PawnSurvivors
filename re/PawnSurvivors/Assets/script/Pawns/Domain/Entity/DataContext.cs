@@ -34,3 +34,5 @@ public enum BoolKeys
     IsAttacking,
     IsAlive
 }
+
+// This is a test comment added by Gemini.

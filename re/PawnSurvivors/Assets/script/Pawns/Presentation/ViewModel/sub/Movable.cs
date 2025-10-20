@@ -7,4 +7,23 @@ public class Movable : PawnSub
 {
 
 
+    public PawnUseCase pawnUseCase;
+    public float MoveSpeed;
+
+
+    public void Start()
+    {
+
+
+        // 이동 관련 액션을 델리게이트 맵에 추가
+
+        myMap.Add(EnumActions.Move, context =>
+        {
+            // Movable 변수 적용
+            context.MoveSpeed = this.MoveSpeed;
+        });
+    }
+
+
 }
+

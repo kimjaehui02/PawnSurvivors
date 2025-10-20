@@ -5,5 +5,33 @@ using UnityEngine.Events;
 
 public class Pawn : MonoBehaviour
 {
-    public EnumDelegateMap<Actions, DataContext> myMap = new();
+    public EnumDelegateMap<EnumActions, DataContext> myMap = new();
+
+    public EnumValueMap<LifeCycle, ActionCollection> lifeCycleActions = new();
+
+    //private void Start()
+    //{
+        
+    //}
+
+    private void Update()
+    {
+        DataContext context = new() { };
+        myMap.Invoke(EnumActions.GetPlayerMovementInput, context);
+        myMap.Invoke(EnumActions.Move, context);
+    }
+
+}
+
+
+public enum LifeCycle
+{
+    Awake,
+    Start,
+    Update,
+    FixedUpdate,
+    LateUpdate,
+    OnEnable,
+    OnDisable,
+    OnDestroy
 }

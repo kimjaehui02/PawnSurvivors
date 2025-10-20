@@ -1,7 +1,7 @@
-public enum Actions
+public enum EnumActions
 {
     Move,
-    InputDirection
+    GetPlayerMovementInput
 }
 
 
