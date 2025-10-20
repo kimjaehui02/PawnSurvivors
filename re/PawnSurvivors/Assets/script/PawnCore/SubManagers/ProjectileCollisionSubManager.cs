@@ -14,8 +14,11 @@ public class ProjectileCollisionSubManager : PawnSubManager
         // No specific update logic needed
     }
 
-    private void OnTriggerEnter(Collider other)
+
+
+    private void OnTriggerEnter2D(Collider2D other)
     {
+        // Debug.Log(other.name);
         // Avoid hitting other projectiles
         if (other.GetComponent<ProjectileCollisionSubManager>() != null)
         {
