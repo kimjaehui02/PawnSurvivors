@@ -31,4 +31,13 @@ public static class CombatUsecases
             Object.Destroy(self); // Destroy on impact
         }
     }
+
+    public static void HandleProjectileAttack(ref float nextFireTime, float fireRate, GameObject projectilePrefab, Transform firePoint)
+    {
+        if (Time.time >= nextFireTime)
+        {
+            nextFireTime = Time.time + 1f / fireRate;
+            FireProjectile(projectilePrefab, firePoint.position, firePoint.rotation);
+        }
+    }
 }

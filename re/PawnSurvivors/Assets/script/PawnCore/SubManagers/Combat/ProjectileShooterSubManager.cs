@@ -31,10 +31,6 @@ public class ProjectileShooterSubManager : PawnSubManager, IAttackable
 
     public void Attack()
     {
-        if (Time.time >= _nextFireTime)
-        {
-            _nextFireTime = Time.time + 1f / fireRate;
-            CombatUsecases.FireProjectile(projectilePrefab, firePoint.position, firePoint.rotation);
-        }
+        CombatUsecases.HandleProjectileAttack(ref _nextFireTime, fireRate, projectilePrefab, firePoint);
     }
 }

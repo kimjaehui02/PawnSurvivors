@@ -2,7 +2,7 @@ using UnityEngine;
 
 public abstract class PawnSubManager : MonoBehaviour
 {
-    private PawnManager _pawnManager;
+    protected PawnManager _pawnManager;
 
     private void Awake()
     {

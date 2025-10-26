@@ -11,10 +11,10 @@ GameObject:
   - component: {fileID: 997080314285087392}
   - component: {fileID: 8432422883811302565}
   - component: {fileID: 2747666943579801785}
-  - component: {fileID: 6856749608940480900}
   - component: {fileID: 8745113896051146963}
   - component: {fileID: 2398789111784134232}
   - component: {fileID: 8945110030468615650}
+  - component: {fileID: 1546180299925899141}
   m_Layer: 8
   m_Name: Circle
   m_TagString: Untagged
@@ -105,20 +105,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pawnSubManagers: []
---- !u!114 &6856749608940480900
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1744753550078976648}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a5039c75165bd147a581bbd7d23fd85, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  speed: 20
-  lifetime: 5
 --- !u!114 &8745113896051146963
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,3 +181,23 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.49999997
+--- !u!114 &1546180299925899141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1744753550078976648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef994bbe49e3dfe47abd337bb8f83f3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _currentStrategy:
+    rid: -2
+  initialStrategyType: 2
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
