@@ -16,4 +16,19 @@ public static class CombatUsecases
     {
         GameManager.Instance.CreationManager.CreatePawn(projectilePrefab, position, rotation);
     }
+
+    public static void HandleCollisionDamage(GameObject self, Collider2D other, float damage)
+    {
+        // Avoid hitting other objects with the same component
+        if (other.GetComponent<CollisionDamageSubManager>() != null)
+        {
+            return;
+        }
+
+        if (other.TryGetComponent<DamageableSubManager>(out var damageable))
+        {
+            damageable.TakeDamage(damage);
+            Object.Destroy(self); // Destroy on impact
+        }
+    }
 }
