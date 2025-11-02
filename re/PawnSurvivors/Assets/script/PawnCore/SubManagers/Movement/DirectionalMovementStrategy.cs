@@ -1,28 +1,23 @@
 using UnityEngine;
 
-public class DirectionalMovementStrategy : IMovementStrategy
+public class DirectionalMovementStrategy : MovementStrategyBase
 {
     public float speed = 20f;
     public float lifetime = 5f;
     public Vector3 moveDirection;
-    private float _age = 0f; // Age is now managed by the strategy itself
+    private float _age = 0f;
 
-    /// <summary>
-    /// Executes directional movement logic for the Pawn.
-    /// </summary>
-    /// <param name="pawnManager">The PawnManager instance controlling the Pawn.</param>
-    /// <param name="deltaTime">The time elapsed since the last frame.</param>
-    public void Move(PawnManager pawnManager, float deltaTime)
+    public override void Move()
     {
-        if (pawnManager == null || pawnManager.gameObject == null) return;
+        if (_pawnManager == null) return;
 
         // Initialize moveDirection if not set
         if (moveDirection == Vector3.zero)
         {
-            moveDirection = pawnManager.transform.up;
+            moveDirection = _pawnManager.transform.up;
         }
 
-        MovementUsecases.MoveInDirection(pawnManager.transform, moveDirection, speed);
-        MovementUsecases.HandleLifetime(pawnManager.gameObject, lifetime, ref _age, deltaTime);
+        MovementUsecases.MoveInDirection(_pawnManager.transform, moveDirection, speed);
+        MovementUsecases.HandleLifetime(_pawnManager.gameObject, lifetime, ref _age, Time.deltaTime);
     }
 }

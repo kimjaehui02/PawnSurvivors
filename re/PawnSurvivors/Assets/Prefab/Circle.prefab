@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2398789111784134232}
   - component: {fileID: 8945110030468615650}
   - component: {fileID: 1546180299925899141}
+  - component: {fileID: -23428856948318185}
   m_Layer: 8
   m_Name: Circle
   m_TagString: Untagged
@@ -193,11 +194,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef994bbe49e3dfe47abd337bb8f83f3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentStrategy:
-    rid: -2
-  initialStrategyType: 2
-  references:
-    version: 2
-    RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
+--- !u!114 &-23428856948318185
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1744753550078976648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 245a401197c204c4b9be9d800c2917ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 20
+  lifetime: 5
+  moveDirection: {x: 0, y: 1, z: 0}

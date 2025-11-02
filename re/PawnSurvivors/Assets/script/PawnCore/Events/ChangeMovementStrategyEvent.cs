@@ -1,11 +1,17 @@
+using System;
 using UnityEngine;
 
 public class ChangeMovementStrategyEvent
 {
-    public IMovementStrategy NewStrategy { get; }
+    public Type StrategyType { get; }
 
-    public ChangeMovementStrategyEvent(IMovementStrategy newStrategy)
+    public ChangeMovementStrategyEvent(Type strategyType)
     {
-        NewStrategy = newStrategy;
+        if (!typeof(MovementStrategyBase).IsAssignableFrom(strategyType))
+        {
+            Debug.LogError($"Type {strategyType.Name} is not a valid movement strategy.");
+            return;
+        }
+        StrategyType = strategyType;
     }
 }

@@ -1,70 +1,80 @@
+using System;
+using System.Linq;
 using UnityEngine;
-using PawnSurvivors.PawnCore.Movement; // Added for MovementStrategyType
 
 public class MovableSubManager : PawnSubManager
 {
-    // The currently active movement strategy.
-    // This will be set via the Inspector or dynamically through events.
-    [SerializeReference] // Allows serializing interfaces/abstract classes in Unity Inspector
-    private IMovementStrategy _currentStrategy;
-
-    // Use an enum to select the initial movement strategy in the Inspector.
-    public MovementStrategyType initialStrategyType = MovementStrategyType.None;
+    private MovementStrategyBase _currentStrategy;
 
     public override void SubStart()
     {
-        // If no strategy is explicitly set, instantiate based on the enum selection.
-        if (_currentStrategy == null)
+        // Find the strategy that is initially enabled in the Inspector
+        var allStrategies = GetComponents<MovementStrategyBase>();
+        _currentStrategy = allStrategies.FirstOrDefault(s => s.enabled);
+
+        if (_currentStrategy == null && allStrategies.Length > 0)
         {
-            switch (initialStrategyType)
+            // If none are enabled, default to the first one and enable it.
+            _currentStrategy = allStrategies[0];
+            _currentStrategy.enabled = true;
+            Debug.LogWarning($"MovableSubManager: No movement strategy was enabled by default. Defaulting to and enabling ''{_currentStrategy.GetType().Name}'.", this);
+        }
+        
+        // Ensure only the current strategy is active
+        foreach (var strategy in allStrategies)
+        {
+            if (strategy != _currentStrategy)
             {
-                case MovementStrategyType.Keyboard:
-                    _currentStrategy = new KeyboardMovementStrategy();
-                    break;
-                case MovementStrategyType.Directional:
-                    _currentStrategy = new DirectionalMovementStrategy();
-                    break;
-                case MovementStrategyType.Target:
-                    _currentStrategy = new TargetMovementStrategy();
-                    break;
-                case MovementStrategyType.None:
-                default:
-                    Debug.LogWarning("MovableSubManager: No specific movement strategy selected or assigned. Pawn will not move.", this);
-                    // Optionally, assign a 'NoMovementStrategy' here if you have one.
-                    break;
+                strategy.enabled = false;
             }
         }
 
-        if (_currentStrategy == null)
+        // Subscribe to the event to handle runtime strategy changes
+        _pawnManager.Subscribe<ChangeMovementStrategyEvent>(HandleChangeStrategyEvent);
+    }
+
+    private void OnDestroy()
+    {
+        if (_pawnManager != null)
         {
-            Debug.LogWarning("MovableSubManager: No movement strategy assigned after SubStart. Pawn will not move.", this);
+            _pawnManager.Unsubscribe<ChangeMovementStrategyEvent>(HandleChangeStrategyEvent);
         }
     }
 
     public override void SubUpdate()
     {
-        // Delegate the movement logic to the current strategy.
         if (_currentStrategy != null)
         {
-            // Pass the PawnManager (_pawnManager) and deltaTime to the strategy.
-            // The strategy will then access the Transform and other necessary components from pawnManager.
-            _currentStrategy.Move(_pawnManager, Time.deltaTime);
+            _currentStrategy.Move();
         }
     }
 
-    /// <summary>
-    /// Sets the active movement strategy.
-    /// This method could be called directly or in response to an event.
-    /// </summary>
-    /// <param name="newStrategy">The new movement strategy to use.</param>
-    public void SetStrategy(IMovementStrategy newStrategy)
+    private void HandleChangeStrategyEvent(ChangeMovementStrategyEvent evt)
     {
-        if (newStrategy == null)
+        if (evt?.StrategyType == null) return;
+        if (_currentStrategy != null && _currentStrategy.GetType() == evt.StrategyType) return; // Already the active strategy
+
+        // Get the current list of components at the moment the event is handled.
+        // This makes the system robust to components being added/removed at runtime.
+        var allStrategies = GetComponents<MovementStrategyBase>();
+        var nextStrategy = allStrategies.FirstOrDefault(s => s.GetType() == evt.StrategyType);
+
+        if (nextStrategy != null)
         {
-            Debug.LogWarning("MovableSubManager: Attempted to set a null movement strategy.", this);
-            return;
+            // Disable the current strategy
+            if (_currentStrategy != null)
+            {
+                _currentStrategy.enabled = false;
+            }
+
+            // Enable the new strategy
+            nextStrategy.enabled = true;
+            _currentStrategy = nextStrategy;
+            Debug.Log($"MovableSubManager: Movement strategy changed to ''{_currentStrategy.GetType().Name}'.");
         }
-        _currentStrategy = newStrategy;
-        Debug.Log($"MovableSubManager: Movement strategy changed to {_currentStrategy.GetType().Name}");
+        else
+        {
+            Debug.LogWarning($"MovableSubManager: A request was made to switch to strategy ''{evt.StrategyType.Name}', but no such component is attached to this GameObject.", this);
+        }
     }
 }

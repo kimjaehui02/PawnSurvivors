@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ProjectileShooterSubManager : PawnSubManager, IAttackable
+public class ProjectileShooterSubManager : PawnSubManager
 {
     [Header("Projectile Settings")]
     public GameObject projectilePrefab;
@@ -16,11 +16,24 @@ public class ProjectileShooterSubManager : PawnSubManager, IAttackable
         {
             Debug.LogError("Projectile Prefab is not assigned.", this);
             this.enabled = false;
+            return; // Stop initialization if prefab is missing
         }
         if (firePoint == null)
         {
             Debug.LogWarning("Fire Point is not assigned. Using this GameObject's transform as default.", this);
             firePoint = this.transform;
+        }
+        
+        // Subscribe to the attack input event
+        _pawnManager.Subscribe<AttackInputEvent>(HandleAttackInput);
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe to prevent memory leaks
+        if (_pawnManager != null)
+        {
+            _pawnManager.Unsubscribe<AttackInputEvent>(HandleAttackInput);
         }
     }
 
@@ -29,8 +42,18 @@ public class ProjectileShooterSubManager : PawnSubManager, IAttackable
         // Not used for this attack type
     }
 
-    public void Attack()
+    private void HandleAttackInput(AttackInputEvent evt)
+    {
+        // Check if the event was triggered by this pawn
+        if (evt.Attacker == this.gameObject)
+        {
+            PerformAttack();
+        }
+    }
+
+    private void PerformAttack()
     {
         CombatUsecases.HandleProjectileAttack(ref _nextFireTime, fireRate, projectilePrefab, firePoint);
     }
 }
+

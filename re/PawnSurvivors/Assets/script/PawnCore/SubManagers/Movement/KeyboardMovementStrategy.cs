@@ -1,18 +1,13 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Needed for Keyboard input
+using UnityEngine.InputSystem;
 
-public class KeyboardMovementStrategy : IMovementStrategy
+public class KeyboardMovementStrategy : MovementStrategyBase
 {
     public float moveSpeed = 5f;
 
-    /// <summary>
-    /// Executes keyboard-based movement logic for the Pawn.
-    /// </summary>
-    /// <param name="pawnManager">The PawnManager instance controlling the Pawn.</param>
-    /// <param name="deltaTime">The time elapsed since the last frame.</param>
-    public void Move(PawnManager pawnManager, float deltaTime)
+    public override void Move()
     {
-        if (pawnManager == null || pawnManager.gameObject == null) return;
+        if (_pawnManager == null) return;
 
         Vector2 inputDirection = Vector2.zero;
         if (Keyboard.current != null)
@@ -24,7 +19,7 @@ public class KeyboardMovementStrategy : IMovementStrategy
         }
 
         inputDirection = inputDirection.normalized;
-        Vector3 movement = moveSpeed * deltaTime * (Vector3)inputDirection;
-        pawnManager.transform.position += movement;
+        Vector3 movement = moveSpeed * Time.deltaTime * (Vector3)inputDirection;
+        _pawnManager.transform.position += movement;
     }
 }

@@ -3,26 +3,17 @@ using UnityEngine.InputSystem;
 
 public class PlayerAttackInputSubManager : PawnSubManager
 {
-    private IAttackable _attackHandler;
-
     public override void SubStart()
     {
-        // Find the attack implementation on the same GameObject.
-        _attackHandler = GetComponent<IAttackable>();
-        if (_attackHandler == null)
-        {
-            Debug.LogWarning("PlayerAttackInputSubManager requires a component that implements IAttackable on the same GameObject.", this);
-            // Disable self if no attack handler is found.
-            this.enabled = false;
-        }
+        // No specific initialization needed for this sub-manager.
     }
 
     public override void SubUpdate()
     {
-        // Trigger attack on left mouse button click.
+        // On left mouse button click, publish an attack input event.
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            _attackHandler.Attack();
+            _pawnManager.Publish(new AttackInputEvent(this.gameObject));
         }
     }
 }
