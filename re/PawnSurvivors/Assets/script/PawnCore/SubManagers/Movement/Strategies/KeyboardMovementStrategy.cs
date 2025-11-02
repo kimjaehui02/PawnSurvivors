@@ -18,8 +18,7 @@ public class KeyboardMovementStrategy : MovementStrategyBase
             if (Keyboard.current.dKey.isPressed) inputDirection.x += 1;
         }
 
-        inputDirection = inputDirection.normalized;
-        Vector3 movement = moveSpeed * Time.deltaTime * (Vector3)inputDirection;
-        _pawnManager.transform.position += movement;
+        // Delegate the movement logic to the use case, passing the input data.
+        MovementUsecases.MoveWithInput(_pawnManager.transform, inputDirection, moveSpeed);
     }
 }
