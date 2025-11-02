@@ -254,7 +254,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentStrategy:
     rid: -2
-  initialStrategyType: 0
+  initialStrategyType: 1
   references:
     version: 2
     RefIds:
