@@ -7,7 +7,8 @@
     },
     {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
-      "visualPrefabName": "Prefabs/Circle 1"
+      "visualSpriteName": "Sprites/Circle1Sprite",
+      "visualColor": {"r": 1, "g": 0, "b": 0, "a": 1} 
     },
     {
       "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",

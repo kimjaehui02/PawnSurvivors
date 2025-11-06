@@ -14,7 +14,8 @@ namespace PawnCore.Domain
         public float currentHealth = 100f;
 
         // Visual
-        public string visualPrefabName;
+        public string visualSpriteName; // Changed from visualPrefabName
+        public Color visualColor = Color.white; // Optional: add color for sprite
 
         // CollisionDamage
         public float damage = 10f;

@@ -27,7 +27,8 @@
     },
     {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
-      "visualPrefabName": "Prefabs/Circle"
+      "visualSpriteName": "Sprites/mini",
+      "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1} 
     },
     {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",

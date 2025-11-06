@@ -6,40 +6,48 @@ namespace PawnCore.Presentation.SubManagers.Visual
     public class VisualSubManager : PawnSubManager
     {
         private PawnData _pawnData;
+        private SpriteRenderer _spriteRenderer; // Add SpriteRenderer reference
 
         public override void SubStart()
         {
             _pawnData = _pawnManager.PawnData;
 
-            if (string.IsNullOrEmpty(_pawnData.visualPrefabName))
+            // Add or get SpriteRenderer component
+            _spriteRenderer = _pawnManager.gameObject.GetComponent<SpriteRenderer>();
+            if (_spriteRenderer == null)
             {
-                Debug.LogWarning("Visual prefab name is not assigned in PawnData. No visual will be instantiated.", this);
-                return;
+                _spriteRenderer = _pawnManager.gameObject.AddComponent<SpriteRenderer>();
             }
 
-            GameObject visualPrefab = Resources.Load<GameObject>(_pawnData.visualPrefabName);
-            if (visualPrefab != null)
+            Sprite visualSprite = null;
+            // Try to load the specified sprite
+            if (!string.IsNullOrEmpty(_pawnData.visualSpriteName))
             {
-                Instantiate(visualPrefab, this.transform);
+                visualSprite = Resources.Load<Sprite>(_pawnData.visualSpriteName);
+                // if (visualSprite == null)
+                // {
+                //     Debug.LogWarning($"VisualSubManager: Sprite '{_pawnData.visualSpriteName}' not found. Using default circle sprite.", this);
+                // }
             }
-            else
+
+            // Fallback to default circle sprite if not found or not specified
+            if (visualSprite == null)
             {
-                // Debug.LogWarning($"Visual prefab not found at path: '{_pawnData.visualPrefabName}'. Attempting to load default Circle prefab.", this);
-                GameObject defaultVisualPrefab = Resources.Load<GameObject>("Prefabs/Circle");
-                if (defaultVisualPrefab != null)
+                visualSprite = Resources.Load<Sprite>("Temporary/Circle");
+                if (visualSprite == null)
                 {
-                    Instantiate(defaultVisualPrefab, this.transform);
-                }
-                else
-                {
-                    // Debug.LogError("Default Circle prefab not found at path: 'Prefabs/Circle'. No visual will be instantiated.", this);
+                    Debug.LogError("VisualSubManager: Default circle sprite not found at 'Resources/Temporary/Circle'. No visual will be instantiated.", this);
+                    return; // No sprite to render
                 }
             }
+
+            _spriteRenderer.sprite = visualSprite;
+            _spriteRenderer.color = _pawnData.visualColor; // Apply color
         }
 
         public override void SubUpdate()
         {
-            // Visuals do not need per-frame update by default.
+            // Visual updates, if any, go here. For simple sprites, often nothing is needed.
         }
     }
 }

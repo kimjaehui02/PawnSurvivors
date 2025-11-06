@@ -135,11 +135,13 @@ namespace PawnCore.Recipes.Json
     [Serializable]
     public class VisualSubManagerSetupData : SubManagerSetupData
     {
-        public string visualPrefabName;
+        public string visualSpriteName; // Changed from visualPrefabName
+        public Color visualColor = Color.white; // Optional: for sprite customization
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            pawnData.visualPrefabName = visualPrefabName;
+            pawnData.visualSpriteName = visualSpriteName;
+            pawnData.visualColor = visualColor;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
