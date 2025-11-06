@@ -1,0 +1,42 @@
+
+{
+  "pawnName": "Player",
+  "visualPrefab": "Prefabs/Circle",
+  "subManagerSetups": [
+    {
+      "$type": "PawnCore.Recipes.Json.DamageableSubManagerSetupData, Assembly-CSharp",
+      "maxHealth": 100
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.KeyboardStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "moveSpeed": 5
+        }
+      ]
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PlayerAttackInputSubManagerSetupData, Assembly-CSharp"
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
+      "projectileRecipeName": "Bullet",
+      "fireRate": 2
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualPrefabName": "Prefabs/Circle"
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": true,
+      "rigidbodyType": "Kinematic",
+      "gravityScale": 0,
+      "physicsLayerName": "Player",
+      "physicsTag": "Player"
+    }
+  ]
+}

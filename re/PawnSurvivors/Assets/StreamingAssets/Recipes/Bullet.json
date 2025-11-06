@@ -1,0 +1,39 @@
+
+{
+  "pawnName": "Bullet",
+  "subManagerSetups": [
+    {
+      "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
+      "damage": 10
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.DirectionalStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "speed": 20,
+          "lifetime": 5,
+          "moveDirection": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          }
+        }
+      ]
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualPrefabName": "Prefabs/Circle"
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": true,
+      "rigidbodyType": "Kinematic",
+      "gravityScale": 0,
+      "physicsLayerName": "Bullet",
+      "physicsTag": "Bullet"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using PawnCore.Domain;
 
 /// <summary>
 /// 게임 내 개체(Pawn)의 핵심 허브 역할을 하는 중앙 관리자 클래스입니다.
@@ -11,6 +12,8 @@ using UnityEngine;
 public class PawnManager : MonoBehaviour
 {
     #region 필드 (Fields)
+
+    public PawnData PawnData { get; set; }
 
     /// <summary>
     /// 다양한 이벤트 타입에 대한 핸들러를 저장하는 딕셔너리입니다.
@@ -67,8 +70,6 @@ public class PawnManager : MonoBehaviour
         if (!pawnSubManagers.Contains(subManager))
         {
             pawnSubManagers.Add(subManager);
-            // SubManager의 초기화 로직(SubStart)을 GameManager의 생명주기 관리자에게 위임하여 실행 순서를 보장합니다.
-            GameManager.Instance.LifecycleManager.EnqueueAction(subManager.SubStart);
         }
     }
 
@@ -85,6 +86,14 @@ public class PawnManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Requests the controlled destruction of this pawn via the LifecycleManager.
+    /// </summary>
+    public void DestroyPawn()
+    {
+        GameManager.Instance.LifecycleManager.RequestDestruction(this.gameObject);
+    }
+
+    /// <summary>
     /// 등록된 모든 하위 관리자들의 Update 로직을 실행합니다.
     /// GameManager에 의해 관리되는 커스텀 Update 루프입니다.
     /// </summary>
@@ -94,6 +103,18 @@ public class PawnManager : MonoBehaviour
         for (int i = pawnSubManagers.Count - 1; i >= 0; i--)
         {
             pawnSubManagers[i].SubUpdate();
+        }
+    }
+
+    /// <summary>
+    /// 등록된 모든 하위 관리자들의 SubStart 로직을 실행합니다.
+    /// PawnData가 완전히 초기화된 후 호출되어야 합니다.
+    /// </summary>
+    public void InitializeSubManagers()
+    {
+        foreach (var subManager in pawnSubManagers)
+        {
+            subManager.SubStart();
         }
     }
 

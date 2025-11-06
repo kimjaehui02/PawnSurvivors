@@ -1,0 +1,33 @@
+using UnityEngine;
+using System.Linq;
+using PawnCore.Domain;
+
+public class HomingMovementStrategy : MovementStrategyBase
+{
+    private PawnData _pawnData;
+    private Transform _currentTarget;
+    private float _nextRetargetTime;
+
+    public override void Init(PawnManager pawnManager)
+    {
+        base.Init(pawnManager);
+        _pawnData = pawnManager.PawnData;
+    }
+
+    public override void Move()
+    {
+        if (_pawnManager == null) return;
+
+        if (Time.time >= _nextRetargetTime)
+        {
+            _nextRetargetTime = Time.time + _pawnData.movableData.homingMovement.retargetFrequency;
+            _currentTarget = TargetingUsecases.FindNearestTargetWithTag(_pawnManager.transform.position, _pawnData.movableData.homingMovement.targetTag, _pawnData.movableData.homingMovement.detectionRange);
+        }
+
+        if (_currentTarget != null)
+        {
+            Vector3 direction = (_currentTarget.position - _pawnManager.transform.position);
+            MovementUsecases.MoveInDirection(_pawnManager.transform, direction, _pawnData);
+        }
+    }
+}

@@ -8,38 +8,51 @@ public class LifecycleManager : MonoBehaviour
     public bool IsPaused { get; private set; } = false;
 
     private readonly Queue<Action> _oneTimeActions = new();
+    private readonly Queue<GameObject> _destructionQueue = new();
 
     public void EnqueueAction(Action action)
     {
         _oneTimeActions.Enqueue(action);
     }
 
+    public void RequestDestruction(GameObject obj)
+    {
+        if (obj != null)
+        {
+            _destructionQueue.Enqueue(obj);
+        }
+    }
+
     void Update()
     {
-        // Debug input to toggle pause
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             IsPaused = !IsPaused;
             Debug.Log(IsPaused ? "LifecycleManager Paused" : "LifecycleManager Resumed");
         }
 
-        if (IsPaused) return; // Do not process anything if paused
+        if (IsPaused) return;
 
-        // 1. Process all one-time actions (like SubStart)
         while (_oneTimeActions.Count > 0)
         {
             _oneTimeActions.Dequeue().Invoke();
         }
 
-        // 2. Process all recurring actions (SubUpdate)
-        // Iterate backwards as the list can change if a pawn is destroyed.
         for (int i = PawnManager.AllPawnManagers.Count - 1; i >= 0; i--)
         {
-            // Ensure the manager at this index still exists before calling update
-            if(PawnManager.AllPawnManagers[i] != null)
+            if (i < PawnManager.AllPawnManagers.Count)
             {
-                PawnManager.AllPawnManagers[i].ManagedUpdate();
+                PawnManager manager = PawnManager.AllPawnManagers[i];
+                if (manager != null)
+                {
+                    manager.ManagedUpdate();
+                }
             }
+        }
+
+        while (_destructionQueue.Count > 0)
+        {
+            Destroy(_destructionQueue.Dequeue());
         }
     }
 }

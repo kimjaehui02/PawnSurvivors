@@ -143,7 +143,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &204344480
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -226,9 +226,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 508176f55aadb0243b9ce9a6d618b2dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projectilePrefab: {fileID: 1744753550078976648, guid: c3766ee92b1c5f74a886c0af425edbbb, type: 3}
+  _pawnManager: {fileID: 0}
   firePoint: {fileID: 204344481}
-  fireRate: 2
 --- !u!114 &204344483
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -241,6 +240,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec80c15a791ed4a4180e25ddbdd3d7a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _pawnManager: {fileID: 0}
 --- !u!114 &204344484
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -253,6 +253,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef994bbe49e3dfe47abd337bb8f83f3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _pawnManager: {fileID: 0}
 --- !u!114 &204344485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -278,8 +279,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39c9db927f2e8fa4caa11c2cd227ea4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 20
+  _pawnManager: {fileID: 0}
 --- !u!60 &204344487
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -369,7 +369,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46608f767530d83439963135688fcfdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -742,8 +741,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39c9db927f2e8fa4caa11c2cd227ea4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 10
+  _pawnManager: {fileID: 0}
 --- !u!114 &2111833681
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -796,6 +794,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef994bbe49e3dfe47abd337bb8f83f3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _pawnManager: {fileID: 0}
 --- !u!114 &2111833684
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -809,7 +808,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 204344481}
-  speed: 1
 --- !u!1001 &200590023879422087
 PrefabInstance:
   m_ObjectHideFlags: 0
