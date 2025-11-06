@@ -17,8 +17,7 @@ public class TargetMovementStrategy : MovementStrategyBase
     {
         if (_pawnManager == null || target == null) return;
 
-        Transform currentTransform = _pawnManager.transform;
-        Vector3 direction = (target.position - currentTransform.position);
-        MovementUsecases.MoveInDirection(currentTransform, direction, _pawnData);
+        Vector3 direction = (target.position - _pawnManager.transform.position).normalized;
+        MovementUsecases.MoveInDirection(_pawnManager.transform, direction, _pawnData.movableData.targetMovement.speed, _pawnData);
     }
 }

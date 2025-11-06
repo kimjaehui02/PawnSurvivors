@@ -1,4 +1,6 @@
 using UnityEngine;
+using PawnSurvivors.Managers;
+using System.IO;
 
 public class GameManager : MonoBehaviour
 {
@@ -6,6 +8,8 @@ public class GameManager : MonoBehaviour
 
     public LifecycleManager LifecycleManager { get; private set; }
     public CreationManager CreationManager { get; private set; }
+    public StageManager StageManager { get; private set; }
+    private StageLoader _stageLoader;
 
     private void Awake()
     {
@@ -19,6 +23,11 @@ public class GameManager : MonoBehaviour
         // Get components on the same GameObject
         LifecycleManager = GetComponent<LifecycleManager>();
         CreationManager = GetComponent<CreationManager>();
+        StageManager = GetComponent<StageManager>();
+
+        _stageLoader = new StageLoader();
+        string stagesPath = Path.Combine(Application.streamingAssetsPath, "Stages");
+        _stageLoader.LoadStages(stagesPath);
 
         if (LifecycleManager == null)
         {
@@ -27,6 +36,10 @@ public class GameManager : MonoBehaviour
         if (CreationManager == null)
         {
             Debug.LogError("GameManager: CreationManager component not found on the same GameObject.");
+        }
+        if (StageManager == null)
+        {
+            Debug.LogError("GameManager: StageManager component not found on the same GameObject.");
         }
     }
 
@@ -43,15 +56,16 @@ public class GameManager : MonoBehaviour
             Debug.LogError("Player recipe not found! Cannot create player pawn.");
         }
 
-        // Create an enemy pawn for testing collision
-        PawnCore.Recipes.Json.PawnRecipeData enemyRecipe = CreationManager.GetRecipe("Enemy");
-        if (enemyRecipe != null)
+        // Initialize StageManager and start the stage
+        StageData currentStage = _stageLoader.GetStage("Stage1"); // Assuming a default stage name "Stage1"
+        if (currentStage != null)
         {
-            CreationManager.CreatePawn(enemyRecipe, new Vector3(2, 2, 0), Quaternion.identity); // Spawn enemy at a different position
+            StageManager.Initialize(CreationManager, currentStage);
+            StageManager.StartStage();
         }
         else
         {
-            Debug.LogError("Enemy recipe not found! Cannot create enemy pawn.");
+            Debug.LogError("StageData for Stage1 not found! Cannot start stage.");
         }
     }
 }

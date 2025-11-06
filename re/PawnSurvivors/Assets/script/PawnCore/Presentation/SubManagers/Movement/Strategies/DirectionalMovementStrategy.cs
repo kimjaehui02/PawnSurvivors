@@ -4,7 +4,7 @@ using PawnCore.Domain;
 public class DirectionalMovementStrategy : MovementStrategyBase
 {
     private PawnData _pawnData;
-    private float _age = 0f;
+    private float _currentAge = 0f;
 
     public override void Init(PawnManager pawnManager)
     {
@@ -22,7 +22,10 @@ public class DirectionalMovementStrategy : MovementStrategyBase
             _pawnData.movableData.directionalMovement.moveDirection = _pawnManager.transform.up;
         }
 
-        MovementUsecases.MoveInDirection(_pawnManager.transform, _pawnData.movableData.directionalMovement.moveDirection, _pawnData);
-        MovementUsecases.HandleLifetime(_pawnManager.gameObject, _pawnData, ref _age, Time.deltaTime);
+        Vector3 direction = _pawnData.movableData.directionalMovement.moveDirection.normalized;
+        MovementUsecases.MoveInDirection(_pawnManager.transform, direction, _pawnData.movableData.directionalMovement.speed, _pawnData);
+
+        _currentAge += Time.deltaTime;
+        MovementUsecases.HandleLifetime(_pawnManager.gameObject, _pawnData, ref _currentAge, Time.deltaTime);
     }
 }

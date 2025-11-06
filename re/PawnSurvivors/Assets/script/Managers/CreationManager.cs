@@ -30,7 +30,7 @@ public class CreationManager : MonoBehaviour
         return CreatePawn(recipeData, position, rotation);
     }
 
-    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation)
+    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null)
     {
         if (recipeData == null)
         {
@@ -46,6 +46,12 @@ public class CreationManager : MonoBehaviour
         // 3. Add the mandatory PawnManager and initialize PawnData
         PawnManager pawnManager = pawnObject.AddComponent<PawnManager>();
         pawnManager.PawnData = recipeData.ToPawnData();
+
+        // If a direction is provided, override the PawnData's directionalMovement.moveDirection
+        if (direction.HasValue && pawnManager.PawnData.movableData.directionalMovement != null)
+        {
+            pawnManager.PawnData.movableData.directionalMovement.moveDirection = direction.Value;
+        }
 
         // 4. Add and configure all sub-managers from the recipe
         if (recipeData.subManagerSetups != null)

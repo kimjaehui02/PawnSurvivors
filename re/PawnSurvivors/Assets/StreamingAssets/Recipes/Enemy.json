@@ -9,7 +9,19 @@
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
       "visualPrefabName": "Prefabs/Circle 1"
     },
-
+    {
+      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.HomingStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "speed": 2,
+          "targetTag": "Player",
+          "detectionRange": 100,
+          "retargetFrequency": 0.5
+        }
+      ]
+    },
     {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
       "colliderType": "Circle2D",

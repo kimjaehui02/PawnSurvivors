@@ -11,12 +11,10 @@ public static class MovementUsecases
         transform.position += movement;
     }
 
-    public static void MoveInDirection(Transform transform, Vector3 direction, PawnData pawnData)
+    public static void MoveInDirection(Transform transform, Vector3 direction, float speed, PawnData pawnData)
     {
         if (transform == null) return;
-        // Use the speed from the appropriate movement data within PawnData
-        // For directional movement, we assume it's coming from directionalMovement data
-        transform.Translate(direction.normalized * pawnData.movableData.directionalMovement.speed * Time.deltaTime, Space.World);
+        transform.Translate(direction.normalized * speed * Time.deltaTime, Space.World);
     }
 
     public static void HandleLifetime(GameObject self, PawnData pawnData, ref float currentAge, float deltaTime)

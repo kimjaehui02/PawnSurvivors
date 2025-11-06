@@ -38,6 +38,12 @@ public class LifecycleManager : MonoBehaviour
             _oneTimeActions.Dequeue().Invoke();
         }
 
+        // Update StageManager every frame
+        if (GameManager.Instance.StageManager != null)
+        {
+            GameManager.Instance.StageManager.UpdateStage();
+        }
+
         for (int i = PawnManager.AllPawnManagers.Count - 1; i >= 0; i--)
         {
             if (i < PawnManager.AllPawnManagers.Count)

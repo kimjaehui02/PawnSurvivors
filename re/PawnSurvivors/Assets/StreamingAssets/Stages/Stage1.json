@@ -1,0 +1,6 @@
+{
+  "stageName": "Stage1",
+  "spawnInterval": 2.5,
+  "spawnRadius": 10.0,
+  "spawnDistanceFromCamera": 2.0
+}
