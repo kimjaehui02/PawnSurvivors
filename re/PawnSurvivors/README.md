@@ -1,3 +1,27 @@
+# 프로젝트 진행 상황 요약 (2025년 11월 9일)
+
+이 문서는 2025년 11월 9일에 진행된 주요 작업 내용과 변경 사항을 요약합니다.
+
+## 1. 시각 시스템 리팩토링 및 사망 로직 구현
+
+### 1.1. VisualSubManager 구조 개선
+-   **파일:** `Assets/script/PawnCore/Presentation/SubManagers/Visual/VisualSubManager.cs`
+-   **변경 내용:**
+    -   `VisualSubManager`가 Pawn의 루트 `GameObject`에 직접 `SpriteRenderer`를 추가하는 대신, "Visuals"라는 이름의 자식 `GameObject`를 생성하고 여기에 `SpriteRenderer`를 추가하도록 변경했습니다.
+-   **목적:**
+    -   Pawn의 로직/물리적 Transform과 시각적 Transform을 분리하여 관심사를 명확히 합니다.
+    -   향후 애니메이션(예: 이동 시 콩콩 뛰는 효과) 구현 시 물리적 충돌에 영향을 주지 않고 시각적 요소만 독립적으로 제어할 수 있는 유연한 구조를 확보합니다.
+
+### 1.2. Pawn 사망 로직 구현
+-   **파일:** `Assets/script/PawnCore/Domain/Usecases/CombatUsecases.cs`, `Assets/script/PawnCore/Presentation/SubManagers/Combat/DamageableSubManager.cs`
+-   **변경 내용:**
+    -   `CombatUsecases.ApplyDamage` 메서드가 `PawnData` 대신 `PawnManager` 인스턴스를 받도록 수정했습니다.
+    -   `DamageableSubManager`는 `TakeDamage` 호출 시 자신의 `PawnManager`를 `ApplyDamage`로 전달합니다.
+    -   `ApplyDamage` 내에서 체력을 감소시킨 후, `currentHealth`가 0 이하일 경우 `pawnManager.DestroyPawn()`을 호출하여 해당 Pawn의 제어된 파괴를 요청하는 로직을 추가했습니다.
+-   **목적:** Pawn의 체력이 0이 되었을 때 `LifecycleManager`를 통해 안전하게 게임 세계에서 제거되는 핵심 게임플레이 루프를 구현합니다.
+
+---
+
 # 프로젝트 진행 상황 요약 (2025년 11월 6일)
 
 이 문서는 현재까지 진행된 주요 작업 내용과 변경 사항을 요약합니다. 이전에 작성된 내용에 더해 최근 변경사항들을 포함합니다.

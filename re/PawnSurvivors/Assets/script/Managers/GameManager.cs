@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
 
-        // Get components on the same GameObject
+        // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();
         CreationManager = GetComponent<CreationManager>();
         StageManager = GetComponent<StageManager>();
@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Create the player pawn using the "Player" recipe
+        // "Player" 레시피를 사용하여 플레이어 폰 생성
         PawnCore.Recipes.Json.PawnRecipeData playerRecipe = CreationManager.GetRecipe("Player");
         if (playerRecipe != null)
         {
@@ -56,8 +56,8 @@ public class GameManager : MonoBehaviour
             Debug.LogError("Player recipe not found! Cannot create player pawn.");
         }
 
-        // Initialize StageManager and start the stage
-        StageData currentStage = _stageLoader.GetStage("Stage1"); // Assuming a default stage name "Stage1"
+        // StageManager를 초기화하고 스테이지 시작
+        StageData currentStage = _stageLoader.GetStage("Stage1"); // 기본 스테이지 이름 "Stage1"으로 가정
         if (currentStage != null)
         {
             StageManager.Initialize(CreationManager, currentStage);

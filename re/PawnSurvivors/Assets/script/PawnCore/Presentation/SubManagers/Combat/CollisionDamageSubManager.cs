@@ -12,7 +12,7 @@ public class CollisionDamageSubManager : PawnSubManager
 
     public override void SubUpdate()
     {
-        // No specific update logic needed
+        // 특정 업데이트 로직이 필요하지 않음
     }
 
     private void OnTriggerEnter2D(Collider2D other)

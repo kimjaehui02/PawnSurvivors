@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class NewMonoBehaviourScript12 : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // MonoBehaviour가 생성된 후 Update의 첫 실행 전에 한 번 호출됩니다.
     void Start()
     {
         GameObject go = new GameObject("TestObject");
@@ -16,7 +16,7 @@ public class NewMonoBehaviourScript12 : MonoBehaviour
         Debug.Log("Component enabled set");
     }
 
-    // Update is called once per frame
+    // 프레임당 한 번 호출됩니다.
     void Update()
     {
         

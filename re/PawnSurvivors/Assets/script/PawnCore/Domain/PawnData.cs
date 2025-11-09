@@ -9,25 +9,25 @@ namespace PawnCore.Domain
     [Serializable]
     public class PawnData
     {
-        // Damageable
+        // 피해 가능
         public float maxHealth = 100f;
         public float currentHealth = 100f;
 
-        // Visual
-        public string visualSpriteName; // Changed from visualPrefabName
-        public Color visualColor = Color.white; // Optional: add color for sprite
+        // 시각적
+        public string visualSpriteName; // visualPrefabName에서 변경됨
+        public Color visualColor = Color.white; // 선택 사항: 스프라이트 색상 추가
 
-        // CollisionDamage
+        // 충돌 피해
         public float damage = 10f;
 
-        // ProjectileShooter
+        // 발사체 발사기
         public string projectileRecipeName;
         public float fireRate = 2f;
 
-        // Movable
+        // 이동 가능
         public MovableData movableData = new MovableData();
 
-        // Physics
+        // 물리
         public PhysicsData physicsData = new PhysicsData();
     }
 

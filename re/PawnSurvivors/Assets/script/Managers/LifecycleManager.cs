@@ -38,7 +38,7 @@ public class LifecycleManager : MonoBehaviour
             _oneTimeActions.Dequeue().Invoke();
         }
 
-        // Update StageManager every frame
+        // 매 프레임 StageManager 업데이트
         if (GameManager.Instance.StageManager != null)
         {
             GameManager.Instance.StageManager.UpdateStage();

@@ -8,7 +8,7 @@
 예를 들어, 복잡한 데미지 계산 공식, 특정 경로 계산 알고리즘 등이 여기에 해당될 수 있습니다.
 
 ## 주요 클래스
-- **CombatUsecases:** 데미지 적용, 발사체 발사, 충돌 처리 등 전투와 관련된 로직을 담당합니다. (`ApplyDamage`, `HandleCollisionDamage`, `HandleProjectileAttack`)
+- **CombatUsecases:** 데미지 적용, 발사체 발사, 충돌 처리 등 전투와 관련된 로직을 담당합니다. `ApplyDamage` 메서드는 데미지를 적용한 후 체력이 0 이하인지 확인하여 Pawn의 파괴를 요청하는 기능도 포함합니다. (`ApplyDamage`, `HandleCollisionDamage`, `HandleProjectileAttack`)
 - **MovementUsecases:** 특정 방향으로 이동, 입력에 따른 이동 등 이동과 관련된 순수 계산 로직을 담당합니다. (`MoveWithInput`, `MoveInDirection`, `HandleLifetime`)
 - **TargetingUsecases:** 특정 범위 내에서 조건에 맞는 대상을 찾는 로직을 담당합니다.
 

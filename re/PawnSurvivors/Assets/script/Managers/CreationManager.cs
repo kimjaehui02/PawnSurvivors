@@ -38,22 +38,22 @@ public class CreationManager : MonoBehaviour
             return null;
         }
 
-        // 1. Create the base GameObject
+        // 1. 기본 GameObject 생성
         GameObject pawnObject = new GameObject(recipeData.pawnName);
         pawnObject.transform.position = position;
         pawnObject.transform.rotation = rotation;
 
-        // 3. Add the mandatory PawnManager and initialize PawnData
+        // 3. 필수 PawnManager를 추가하고 PawnData를 초기화합니다.
         PawnManager pawnManager = pawnObject.AddComponent<PawnManager>();
         pawnManager.PawnData = recipeData.ToPawnData();
 
-        // If a direction is provided, override the PawnData's directionalMovement.moveDirection
+        // 방향이 제공되면 PawnData의 directionalMovement.moveDirection을 재정의합니다.
         if (direction.HasValue && pawnManager.PawnData.movableData.directionalMovement != null)
         {
             pawnManager.PawnData.movableData.directionalMovement.moveDirection = direction.Value;
         }
 
-        // 4. Add and configure all sub-managers from the recipe
+        // 4. 레시피에서 모든 하위 관리자를 추가하고 구성합니다.
         if (recipeData.subManagerSetups != null)
         {
             foreach (var setup in recipeData.subManagerSetups)
@@ -69,10 +69,10 @@ public class CreationManager : MonoBehaviour
             }
         }
 
-        // Initialize all registered SubManagers after PawnData is fully set up.
+        // PawnData가 완전히 설정된 후 등록된 모든 SubManager를 초기화합니다.
         pawnManager.InitializeSubManagers();
 
-        // Debug.Log($"Successfully created pawn '{recipeData.pawnName}' from JSON recipe.");
+        // Debug.Log($"JSON 레시피에서 '{recipeData.pawnName}' 폰을 성공적으로 생성했습니다.");
         return pawnObject;
     }
 }

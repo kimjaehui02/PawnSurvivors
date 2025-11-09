@@ -16,12 +16,12 @@ public class StageManager : MonoBehaviour
         _creationManager = creationManager;
         _currentStageData = stageData;
 
-        // Use stageData to initialize variables
+        // stageData를 사용하여 변수 초기화
         _spawnInterval = _currentStageData.spawnInterval;
         _spawnRadius = _currentStageData.spawnRadius;
         _spawnDistanceFromCamera = _currentStageData.spawnDistanceFromCamera;
 
-        // Set initial spawn timer based on interval
+        // 간격에 따라 초기 스폰 타이머 설정
         _spawnTimer = _spawnInterval; 
     }
 

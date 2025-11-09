@@ -16,7 +16,7 @@ public class DirectionalMovementStrategy : MovementStrategyBase
     {
         if (_pawnManager == null) return;
 
-        // Initialize moveDirection if not set
+        // 설정되지 않은 경우 moveDirection 초기화
         if (_pawnData.movableData.directionalMovement.moveDirection == Vector3.zero)
         {
             _pawnData.movableData.directionalMovement.moveDirection = _pawnManager.transform.up;

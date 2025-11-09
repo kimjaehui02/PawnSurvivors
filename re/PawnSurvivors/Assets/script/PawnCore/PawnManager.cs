@@ -86,7 +86,7 @@ public class PawnManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Requests the controlled destruction of this pawn via the LifecycleManager.
+    /// LifecycleManager를 통해 이 폰의 제어된 파괴를 요청합니다.
     /// </summary>
     public void DestroyPawn()
     {

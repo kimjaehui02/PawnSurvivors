@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// An abstract MonoBehaviour base class for all pawn movement strategies.
-/// Each concrete strategy should be a component attached to the pawn.
+/// 모든 폰 이동 전략에 대한 추상 MonoBehaviour 기본 클래스입니다.
+/// 각 구체적인 전략은 폰에 연결된 구성 요소여야 합니다.
 /// </summary>
 public abstract class MovementStrategyBase : MonoBehaviour
 {
@@ -26,14 +26,14 @@ public abstract class MovementStrategyBase : MonoBehaviour
     }
 
     /// <summary>
-    /// Executes the movement logic for the Pawn.
+    /// 폰의 이동 로직을 실행합니다.
     /// </summary>
     public abstract void Move();
 
     /// <summary>
-    /// Sets the initial enabled state of the strategy based on the recipe setup.
+    /// 레시피 설정에 따라 전략의 초기 활성화 상태를 설정합니다.
     /// </summary>
-    /// <param name="enabledState">Whether the strategy should be enabled by default.</param>
+    /// <param name="enabledState">전략을 기본적으로 활성화해야 하는지 여부입니다.</param>
     public void SetInitialEnabledState(bool enabledState)
     {
         this.enabled = enabledState;

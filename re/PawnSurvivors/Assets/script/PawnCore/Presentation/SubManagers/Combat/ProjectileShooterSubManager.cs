@@ -38,7 +38,7 @@ public class ProjectileShooterSubManager : PawnSubManager
 
     public override void SubUpdate()
     {
-        // Not used for this attack type
+        // 이 공격 유형에는 사용되지 않음
     }
 
     private void HandleAttackInput(AttackInputEvent evt)

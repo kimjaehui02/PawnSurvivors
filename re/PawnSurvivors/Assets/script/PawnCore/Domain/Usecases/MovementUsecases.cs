@@ -19,7 +19,7 @@ public static class MovementUsecases
 
     public static void HandleLifetime(GameObject self, PawnData pawnData, ref float currentAge, float deltaTime)
     {
-        if (pawnData.movableData.directionalMovement.lifetime <= 0) return; // Do nothing if lifetime is not set
+        if (pawnData.movableData.directionalMovement.lifetime <= 0) return; // lifetime이 설정되지 않은 경우 아무것도 하지 않음
 
         currentAge += deltaTime;
         if (currentAge >= pawnData.movableData.directionalMovement.lifetime)
@@ -30,7 +30,7 @@ public static class MovementUsecases
             }
             else
             {
-                Object.Destroy(self); // Fallback for objects without a PawnManager
+                Object.Destroy(self); // PawnManager가 없는 개체에 대한 대체
             }
         }
     }

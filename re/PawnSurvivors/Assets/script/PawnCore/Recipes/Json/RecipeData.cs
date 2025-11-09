@@ -93,7 +93,7 @@ namespace PawnCore.Recipes.Json
     {
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            // No data to apply for PlayerAttackInput
+            // PlayerAttackInput에 적용할 데이터 없음
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -118,7 +118,7 @@ namespace PawnCore.Recipes.Json
         {
             ProjectileShooterSubManager subManager = pawnObject.AddComponent<ProjectileShooterSubManager>();
             
-            // Create FirePoint if it doesn't exist
+            // FirePoint가 없으면 생성
             Transform firePointTransform = pawnObject.transform.Find("FirePoint");
             if (firePointTransform == null)
             {
@@ -135,8 +135,8 @@ namespace PawnCore.Recipes.Json
     [Serializable]
     public class VisualSubManagerSetupData : SubManagerSetupData
     {
-        public string visualSpriteName; // Changed from visualPrefabName
-        public Color visualColor = Color.white; // Optional: for sprite customization
+        public string visualSpriteName; // visualPrefabName에서 변경됨
+        public Color visualColor = Color.white; // 선택 사항: 스프라이트 사용자 지정용
 
         public override void ApplyToPawnData(PawnData pawnData)
         {

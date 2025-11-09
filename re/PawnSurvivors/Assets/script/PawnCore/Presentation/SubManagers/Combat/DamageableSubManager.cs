@@ -13,11 +13,11 @@ public class DamageableSubManager : PawnSubManager
 
     public override void SubUpdate()
     {
-        // Health doesn't need a per-frame update by default.
+        // 체력은 기본적으로 프레임별 업데이트가 필요하지 않습니다.
     }
 
     public void TakeDamage(float amount)
     {
-        CombatUsecases.ApplyDamage(_pawnData, amount);
+        CombatUsecases.ApplyDamage(_pawnManager, amount);
     }
 }

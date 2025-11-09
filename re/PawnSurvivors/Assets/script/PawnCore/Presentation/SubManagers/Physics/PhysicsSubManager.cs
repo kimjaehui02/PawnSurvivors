@@ -10,7 +10,7 @@ namespace PawnCore.Presentation.SubManagers.Physics
         {
             _physicsData = _pawnManager.PawnData.physicsData;
 
-            // Add Collider2D
+            // Collider2D 추가
             Collider2D collider = null;
             switch (_physicsData.colliderType)
             {
@@ -23,14 +23,14 @@ namespace PawnCore.Presentation.SubManagers.Physics
                 case PawnCore.Domain.ColliderType.Capsule2D:
                     collider = gameObject.AddComponent<CapsuleCollider2D>();
                     break;
-                // No default case needed for None, collider remains null
+                // None의 경우 기본 사례가 필요 없으며 충돌체는 null로 유지됩니다.
             }
             if (collider != null)
             {
                 collider.isTrigger = _physicsData.isTrigger;
             }
 
-            // Add Rigidbody2D
+            // Rigidbody2D 추가
             Rigidbody2D rigidbody = null;
             switch (_physicsData.rigidbodyType)
             {
@@ -45,20 +45,20 @@ namespace PawnCore.Presentation.SubManagers.Physics
                     rigidbody = gameObject.AddComponent<Rigidbody2D>();
                     rigidbody.bodyType = RigidbodyType2D.Static;
                     break;
-                // No default case needed for None, rigidbody remains null
+                // None의 경우 기본 사례가 필요 없으며 리지드바디는 null로 유지됩니다.
             }
             if (rigidbody != null)
             {
                 rigidbody.gravityScale = _physicsData.gravityScale;
             }
 
-            // Set Layer
+            // 레이어 설정
             if (!string.IsNullOrEmpty(_physicsData.physicsLayerName) && _physicsData.physicsLayerName != "Default")
             {
                 gameObject.layer = LayerMask.NameToLayer(_physicsData.physicsLayerName);
             }
 
-            // Set Tag
+            // 태그 설정
             if (!string.IsNullOrEmpty(_physicsData.physicsTag) && _physicsData.physicsTag != "Untagged")
             {
                 gameObject.tag = _physicsData.physicsTag;
@@ -67,7 +67,7 @@ namespace PawnCore.Presentation.SubManagers.Physics
 
         public override void SubUpdate()
         {
-            // Physics updates are handled by Unity's physics system, no custom update needed here.
+            // 물리 업데이트는 Unity의 물리 시스템에서 처리되므로 여기서는 사용자 지정 업데이트가 필요하지 않습니다.
         }
     }
 }

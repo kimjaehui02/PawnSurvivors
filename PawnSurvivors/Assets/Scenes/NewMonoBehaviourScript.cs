@@ -9,19 +9,19 @@ public class NewMonoBehaviourScript : MonoBehaviour
         Debug.Log("NewMonoBehaviourScript has awoken.");
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // MonoBehaviour가 생성된 후 Update의 첫 실행 전에 한 번 호출됩니다.
     void Start()
     {
         Debug.Log("NewMonoBehaviourScript has started.");
     }
 
-    // Update is called once per frame
+    // 프레임당 한 번 호출됩니다.
     void Update()
     {
         if (isActive)
         {
             Debug.Log("NewMonoBehaviourScript is updating.");
-            isActive = false; // Just to demonstrate a change in state
+            isActive = false; // 상태 변경을 보여주기 위함
         }
     }
 }
