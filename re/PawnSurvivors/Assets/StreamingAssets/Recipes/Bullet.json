@@ -12,7 +12,7 @@
         {
           "$type": "PawnCore.Recipes.Json.DirectionalStrategySetupData, Assembly-CSharp",
           "isEnabledByDefault": true,
-          "speed": 20,
+          "speed": 10,
           "lifetime": 5,
           "moveDirection": {
             "x": 0,

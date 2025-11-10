@@ -23,7 +23,7 @@
     {
       "$type": "PawnCore.Recipes.Json.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
       "projectileRecipeName": "Bullet",
-      "fireRate": 2
+      "fireRate": 0.5
     },
     {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",

@@ -4,6 +4,8 @@
 
 ## 1. 제네릭 이벤트 버스 시스템 전면 적용
 
+### 브랜치: feature/event-bus-integration
+
 ### 1.1. 새로운 이벤트 타입 정의
 -   **파일:** `Assets/script/PawnCore/Domain/Events/`
 -   **추가된 이벤트:**
@@ -70,6 +72,96 @@
 -   **높은 확장성:** 새로운 이벤트와 핸들러를 쉽게 추가 가능
 -   **메모리 안전성:** 모든 SubManager가 `OnDisable()`에서 이벤트 구독 해지
 -   **명확한 책임 분리:** 각 SubManager가 자신의 역할에만 집중
+
+## 2. LifecycleManager 개선
+
+### 2.1. EarlyUpdate/LateUpdate 큐 시스템
+-   **파일:** `Assets/script/Managers/LifecycleManager.cs`
+-   **변경 내용:**
+    -   Update를 3단계로 분리: EarlyUpdate → MainUpdate → LateUpdate
+    -   `EnqueueEarlyUpdate()`: Update 시작 시 실행할 액션 큐
+    -   `EnqueueLateUpdate()`: Update 끝에 실행할 액션 큐
+    -   `RequestDestruction()`: LateUpdate 큐를 활용한 안전한 파괴
+    -   각 단계별 메서드 분리로 가독성 향상
+-   **목적:** Unity의 Update/LateUpdate 개념을 확장하여 실행 순서 명확화
+
+### 2.2. 일시정지 시스템
+-   **변경 내용:**
+    -   `IsPaused` bool 플래그로 일시정지 제어 (Time.timeScale 사용 안 함)
+    -   ESC 키로 일시정지 토글
+-   **이유:** Time.timeScale은 물리/애니메이션도 멈춰서 의도하지 않은 부작용 발생
+
+## 3. UI 시스템 기초 작업
+
+### 3.1. 단순화된 UI 화면 스크립트
+-   **파일:** `Assets/script/UI/Screens/`
+-   **생성된 화면:**
+    -   `TitleScreen.cs`: 타이틀 화면 (Start, Quit 버튼)
+    -   `MainMenuScreen.cs`: 메인 메뉴 (스테이지 선택, Back 버튼)
+    -   `GameplayHUD.cs`: 게임플레이 HUD (체력, 점수, 시간 표시)
+    -   `PauseMenuScreen.cs`: 일시정지 메뉴 (ESC 키 토글)
+    -   `GameOverScreen.cs`: 게임 오버 화면
+    -   `StageClearScreen.cs`: 스테이지 클리어 화면
+-   **설계 원칙:**
+    -   각 화면이 완전히 독립적으로 작동
+    -   씬에 Canvas 배치만 하면 자동 작동
+    -   복잡한 State Machine 제거 (과도한 설계 방지)
+    -   GameManager.Instance로 필요한 기능 접근
+-   **목적:** 간단하고 직관적인 UI 시스템
+
+### 3.2. GameManager 통합
+-   **파일:** `Assets/script/Managers/GameManager.cs`
+-   **변경 내용:**
+    -   `DontDestroyOnLoad(gameObject)` 추가
+    -   `StartStage(stageName)` 메서드 추가: UI에서 호출 가능한 스테이지 시작 함수
+    -   자동 실행 로직 제거 (UI 버튼으로만 게임 시작)
+-   **목적:** UI와의 연동 지원
+
+### 3.3. 문서 작업
+-   **파일:** `Assets/script/UI/`
+    -   `README.md`: UI 시스템 개요
+    -   `SETUP_GUIDE.md`: Unity 에디터 설정 가이드
+-   **파일:** `Assets/script/Managers/README.md`
+    -   매니저 간 연계 구조 설명 추가
+
+## 4. 전투 시스템 개선
+
+### 4.1. ProjectileShooter 자동 발사로 변경
+-   **파일:** `Assets/script/PawnCore/Presentation/SubManagers/Combat/ProjectileShooterSubManager.cs`
+-   **변경 내용:**
+    -   클릭 발사 이벤트 구독 주석 처리 (임시 비활성화)
+    -   `SubUpdate()`에서 매 프레임 가장 가까운 적 탐지
+    -   적이 있으면 자동 발사
+-   **목적:** 클릭 없이 자동으로 적 공격 (게임플레이 개선)
+
+## 5. 코드 정리
+
+### 5.1. 불필요한 파일 제거
+-   **제거된 폴더:** `Assets/script/PawnCore/Recipes/Setups/`
+-   **이유:** ScriptableObject 방식 사용 안 함, JSON 방식으로 대체됨
+
+---
+
+## 📝 향후 계획
+
+### UI 시스템
+-   [ ] 체력 UI 시스템 구현
+    -   플레이어: 고정 위치 UI
+    -   적: 머리 위 체력바 (선택적)
+    -   다수 아군 관리 고려 (최적화 중요)
+-   [ ] 씬 전환 시스템 구현
+    -   타이틀 → 메인 메뉴 → 게임플레이
+-   [ ] 일시정지 메뉴와 LifecycleManager 연동
+-   [ ] 게임 오버/스테이지 클리어 조건 구현
+
+### 게임플레이 시스템
+-   [ ] 아군 집결 시스템 구획 (기획 중)
+    -   중앙 집결 좌표 조종
+    -   아군이 집결 좌표를 따라옴
+    -   다수 유닛 관리 최적화
+-   [ ] 점수 시스템
+-   [ ] 스테이지 클리어 조건
+-   [ ] 적 AI 개선
 
 ---
 

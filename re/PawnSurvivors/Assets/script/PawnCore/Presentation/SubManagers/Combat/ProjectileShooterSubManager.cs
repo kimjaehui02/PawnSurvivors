@@ -1,6 +1,7 @@
 using UnityEngine;
 using PawnCore.Domain;
 using PawnCore.Domain.Events;
+using PawnCore.Domain.Usecases;
 using PawnCore.Recipes.Json;
 
 /// <summary>
@@ -30,20 +31,27 @@ public class ProjectileShooterSubManager : PawnSubManager
             firePoint = this.transform;
         }
         
-        _pawnManager.Subscribe<AttackInputEvent>(HandleAttackInput);
+        // 클릭 발사 임시 비활성화
+        // _pawnManager.Subscribe<AttackInputEvent>(HandleAttackInput);
     }
 
     private void OnDisable()
     {
-        if (_pawnManager != null)
-        {
-            _pawnManager.Unsubscribe<AttackInputEvent>(HandleAttackInput);
-        }
+        // 클릭 발사 임시 비활성화
+        // if (_pawnManager != null)
+        // {
+        //     _pawnManager.Unsubscribe<AttackInputEvent>(HandleAttackInput);
+        // }
     }
 
     public override void SubUpdate()
     {
-        // 이 공격 유형에는 사용되지 않음
+        // 적이 범위 내에 있으면 자동 발사
+        Transform closestEnemy = TargetingUsecases.FindClosestTargetByTag(firePoint.position, "Enemy", 0);
+        if (closestEnemy != null)
+        {
+            PerformAttack();
+        }
     }
 
     private void HandleAttackInput(AttackInputEvent evt)
