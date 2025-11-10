@@ -1,17 +1,26 @@
 using System;
 using UnityEngine;
 
-public class ChangeMovementStrategyEvent
+namespace PawnCore.Domain.Events
 {
-    public Type StrategyType { get; }
-
-    public ChangeMovementStrategyEvent(Type strategyType)
+    /// <summary>
+    /// 이동 전략을 변경해야 할 때 발행되는 이벤트입니다.
+    /// </summary>
+    public class ChangeMovementStrategyEvent
     {
-        if (!typeof(MovementStrategyBase).IsAssignableFrom(strategyType))
+        /// <summary>
+        /// 변경할 이동 전략의 타입입니다.
+        /// </summary>
+        public Type StrategyType { get; }
+
+        public ChangeMovementStrategyEvent(Type strategyType)
         {
-            Debug.LogError($"Type {strategyType.Name} is not a valid movement strategy.");
-            return;
+            if (!typeof(MovementStrategyBase).IsAssignableFrom(strategyType))
+            {
+                Debug.LogError($"Type {strategyType.Name} is not a valid movement strategy.");
+                return;
+            }
+            StrategyType = strategyType;
         }
-        StrategyType = strategyType;
     }
 }

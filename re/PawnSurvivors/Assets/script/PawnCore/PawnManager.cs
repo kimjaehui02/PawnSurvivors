@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using PawnCore.Domain;
+using PawnCore.Domain.Events;
 
 /// <summary>
 /// 게임 내 개체(Pawn)의 핵심 허브 역할을 하는 중앙 관리자 클래스입니다.
@@ -43,6 +44,9 @@ public class PawnManager : MonoBehaviour
         {
             AllPawnManagers.Add(this);
         }
+
+        // PawnDeathEvent 구독 (자신의 사망 처리)
+        Subscribe<PawnDeathEvent>(HandlePawnDeath);
     }
 
     private void OnDisable()
@@ -55,6 +59,18 @@ public class PawnManager : MonoBehaviour
         
         // 메모리 누수를 방지하기 위해 모든 이벤트 구독을 해제합니다.
         _eventHandlers.Clear();
+    }
+
+    /// <summary>
+    /// Pawn 사망 이벤트를 처리합니다.
+    /// </summary>
+    private void HandlePawnDeath(PawnDeathEvent evt)
+    {
+        // 자신의 사망인지 확인
+        if (evt.DeadPawn == this)
+        {
+            DestroyPawn();
+        }
     }
 
     #endregion

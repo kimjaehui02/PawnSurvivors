@@ -1,7 +1,12 @@
 using UnityEngine;
 using PawnCore.Domain;
+using PawnCore.Domain.Events;
 using PawnCore.Recipes.Json;
 
+/// <summary>
+/// 발사체를 발사하는 SubManager입니다.
+/// AttackInputEvent를 구독하여 공격을 처리합니다.
+/// </summary>
 public class ProjectileShooterSubManager : PawnSubManager
 {
     private PawnData _pawnData;

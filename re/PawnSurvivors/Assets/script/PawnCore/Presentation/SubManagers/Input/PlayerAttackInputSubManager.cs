@@ -1,6 +1,10 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using PawnCore.Domain.Events;
 
+/// <summary>
+/// 플레이어의 공격 입력을 감지하고 AttackInputEvent를 발행하는 SubManager입니다.
+/// </summary>
 public class PlayerAttackInputSubManager : PawnSubManager
 {
     public override void SubStart()

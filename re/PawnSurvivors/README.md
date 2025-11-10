@@ -1,3 +1,78 @@
+# 프로젝트 진행 상황 요약 (2025년 11월 10일)
+
+이 문서는 2025년 11월 10일에 진행된 주요 작업 내용과 변경 사항을 요약합니다.
+
+## 1. 제네릭 이벤트 버스 시스템 전면 적용
+
+### 1.1. 새로운 이벤트 타입 정의
+-   **파일:** `Assets/script/PawnCore/Domain/Events/`
+-   **추가된 이벤트:**
+    -   `DamageEvent.cs`: Pawn이 데미지를 받았을 때 발행되는 이벤트
+    -   `PawnDeathEvent.cs`: Pawn이 사망했을 때 발행되는 이벤트
+    -   `CollisionDamageEvent.cs`: 충돌로 인한 데미지를 처리해야 할 때 발행되는 이벤트
+-   **변경 내용:**
+    -   기존 이벤트들(`AttackInputEvent`, `ChangeMovementStrategyEvent`)에 `PawnCore.Domain.Events` namespace 추가
+    -   모든 이벤트에 상세한 주석 추가
+
+### 1.2. DamageableSubManager 이벤트 기반으로 전환
+-   **파일:** `Assets/script/PawnCore/Presentation/SubManagers/Combat/DamageableSubManager.cs`
+-   **변경 내용:**
+    -   `DamageEvent`를 구독하여 데미지를 처리하도록 변경
+    -   체력이 0 이하가 되면 `PawnDeathEvent`를 발행
+    -   `TakeDamage()` 메서드는 내부적으로 `DamageEvent`를 발행하도록 수정 (하위 호환성 유지)
+    -   `OnDisable()`에서 이벤트 구독 해지 추가
+-   **목적:** 직접 호출 방식에서 이벤트 기반 방식으로 전환하여 결합도 감소
+
+### 1.3. CollisionDamageSubManager 이벤트 기반으로 전환
+-   **파일:** `Assets/script/PawnCore/Presentation/SubManagers/Combat/CollisionDamageSubManager.cs`
+-   **변경 내용:**
+    -   충돌 시 상대방 `PawnManager`에 직접 `DamageEvent`를 발행
+    -   `CombatUsecases.HandleCollisionDamage()` 호출 제거
+    -   충돌 후 자신을 파괴하는 로직을 직접 처리
+-   **목적:** SubManager가 이벤트 버스를 직접 활용하여 독립적으로 작동
+
+### 1.4. PawnManager에 사망 이벤트 처리 추가
+-   **파일:** `Assets/script/PawnCore/PawnManager.cs`
+-   **변경 내용:**
+    -   `OnEnable()`에서 `PawnDeathEvent` 구독
+    -   `HandlePawnDeath()` 메서드 추가: 자신의 사망 이벤트를 받으면 `DestroyPawn()` 호출
+    -   `PawnCore.Domain.Events` namespace import 추가
+-   **목적:** Pawn의 생명주기를 이벤트 기반으로 관리
+
+### 1.5. CombatUsecases 단순화
+-   **파일:** `Assets/script/PawnCore/Domain/Usecases/CombatUsecases.cs`
+-   **변경 내용:**
+    -   `ApplyDamage()` 메서드 제거 (이제 `DamageableSubManager`가 이벤트로 처리)
+    -   `HandleCollisionDamage()` 메서드 제거 (이제 `CollisionDamageSubManager`가 직접 처리)
+    -   발사체 관련 로직만 유지
+-   **목적:** Usecase를 단순화하고, 각 SubManager가 자율적으로 동작하도록 변경
+
+### 1.6. 모든 SubManager에 namespace import 추가
+-   **파일:** 
+    -   `PlayerAttackInputSubManager.cs`
+    -   `ProjectileShooterSubManager.cs`
+    -   `MovableSubManager.cs`
+-   **변경 내용:**
+    -   `using PawnCore.Domain.Events;` 추가
+    -   각 클래스에 상세한 주석 추가
+-   **목적:** 이벤트 타입을 일관되게 사용하고, 코드 가독성 향상
+
+### 1.7. 문서화 업데이트
+-   **파일:** `Assets/script/PawnCore/Domain/Events/README.md`
+-   **변경 내용:**
+    -   새로 추가된 이벤트들 문서화
+    -   이벤트 흐름 예시 추가 (데미지 처리 흐름, 공격 입력 흐름)
+    -   각 이벤트의 속성 상세 설명 추가
+
+## 주요 개선 사항
+-   **완전한 이벤트 기반 아키텍처:** 모든 SubManager가 제네릭 이벤트 버스를 통해 통신
+-   **낮은 결합도:** SubManager들이 서로를 직접 참조하지 않음
+-   **높은 확장성:** 새로운 이벤트와 핸들러를 쉽게 추가 가능
+-   **메모리 안전성:** 모든 SubManager가 `OnDisable()`에서 이벤트 구독 해지
+-   **명확한 책임 분리:** 각 SubManager가 자신의 역할에만 집중
+
+---
+
 # 프로젝트 진행 상황 요약 (2025년 11월 9일)
 
 이 문서는 2025년 11월 9일에 진행된 주요 작업 내용과 변경 사항을 요약합니다.

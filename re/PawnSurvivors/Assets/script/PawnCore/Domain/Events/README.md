@@ -9,7 +9,44 @@
 
 - **이벤트 발행:** `pawnManager.Publish(new MyEvent());`
 - **이벤트 구독:** `pawnManager.Subscribe<MyEvent>(HandleMyEvent);`
+- **구독 해지:** `pawnManager.Unsubscribe<MyEvent>(HandleMyEvent);`
 
 ## 주요 이벤트
-- **AttackInputEvent:** 공격 입력이 발생했음을 알립니다. (발생자: `Attacker` GameObject)
-- **ChangeMovementStrategyEvent:** 이동 전략을 변경해야 함을 알립니다. (새로운 `IMovementStrategy` 타입 정보 포함)
+
+### 입력 이벤트
+- **AttackInputEvent:** 공격 입력이 발생했음을 알립니다.
+  - `Attacker`: 공격을 시작한 GameObject
+
+### 전투 이벤트
+- **DamageEvent:** Pawn이 데미지를 받았을 때 발행됩니다.
+  - `Target`: 데미지를 받은 PawnManager
+  - `Amount`: 받은 데미지 양
+  - `Attacker`: 데미지를 가한 주체 (선택적)
+
+- **PawnDeathEvent:** Pawn이 사망했을 때 발행됩니다.
+  - `DeadPawn`: 사망한 PawnManager
+  - `Killer`: 사망 원인을 제공한 주체 (선택적)
+
+- **CollisionDamageEvent:** 충돌로 인한 데미지를 처리해야 할 때 발행됩니다.
+  - `Self`: 충돌한 자기 자신의 GameObject
+  - `Other`: 충돌한 상대방의 Collider2D
+  - `Damage`: 가할 데미지 양
+
+### 이동 이벤트
+- **ChangeMovementStrategyEvent:** 이동 전략을 변경해야 함을 알립니다.
+  - `StrategyType`: 변경할 이동 전략의 타입
+
+## 이벤트 흐름 예시
+
+### 데미지 처리 흐름
+1. `CollisionDamageSubManager`가 충돌 감지
+2. 상대방 `PawnManager`에 `DamageEvent` 발행
+3. `DamageableSubManager`가 `DamageEvent` 수신 및 체력 감소
+4. 체력이 0 이하가 되면 `PawnDeathEvent` 발행
+5. `PawnManager`가 `PawnDeathEvent` 수신 및 파괴 처리
+
+### 공격 입력 흐름
+1. `PlayerAttackInputSubManager`가 마우스 입력 감지
+2. `AttackInputEvent` 발행
+3. `ProjectileShooterSubManager`가 `AttackInputEvent` 수신
+4. 발사체 생성 및 발사

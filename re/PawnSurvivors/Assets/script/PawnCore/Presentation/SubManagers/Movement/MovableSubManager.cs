@@ -1,7 +1,12 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using PawnCore.Domain.Events;
 
+/// <summary>
+/// Pawn의 이동을 관리하는 SubManager입니다.
+/// 여러 이동 전략을 관리하고, ChangeMovementStrategyEvent를 구독하여 전략을 변경합니다.
+/// </summary>
 public class MovableSubManager : PawnSubManager
 {
     private MovementStrategyBase _currentStrategy;
