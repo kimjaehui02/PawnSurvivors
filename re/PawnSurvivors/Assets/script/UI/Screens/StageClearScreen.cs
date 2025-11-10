@@ -5,9 +5,9 @@ using TMPro;
 namespace PawnSurvivors.UI
 {
     /// <summary>
-    /// 스테이지 클리어 화면입니다.
+    /// 스테이지 클리어 화면입니다. 씬에 배치하면 자동으로 작동합니다.
     /// </summary>
-    public class StageClearScreen : UIScreen
+    public class StageClearScreen : MonoBehaviour
     {
         [Header("UI Elements")]
         [SerializeField] private TMP_Text clearText;
@@ -16,41 +16,26 @@ namespace PawnSurvivors.UI
         [SerializeField] private Button nextStageButton;
         [SerializeField] private Button mainMenuButton;
 
-        protected override void Awake()
+        private void Start()
         {
-            base.Awake();
-
             if (nextStageButton != null)
                 nextStageButton.onClick.AddListener(OnNextStageButtonClicked);
             
             if (mainMenuButton != null)
                 mainMenuButton.onClick.AddListener(OnMainMenuButtonClicked);
+
+            // 기본적으로 숨김
+            gameObject.SetActive(false);
         }
 
-        protected override void OnShow()
+        public void Show(int score = 0, float time = 0f)
         {
-            base.OnShow();
-            
+            gameObject.SetActive(true);
+            Time.timeScale = 0f;
+
             if (clearText != null)
                 clearText.text = "STAGE CLEAR!";
-        }
-
-        private void OnNextStageButtonClicked()
-        {
-            // TODO: 다음 스테이지 로드
-            UIManager.Instance?.StartStage();
-        }
-
-        private void OnMainMenuButtonClicked()
-        {
-            UIManager.Instance?.ReturnToMainMenu();
-        }
-
-        /// <summary>
-        /// 클리어 정보를 설정합니다.
-        /// </summary>
-        public void SetClearInfo(int score, float time)
-        {
+            
             if (scoreText != null)
                 scoreText.text = $"Score: {score}";
             
@@ -61,6 +46,19 @@ namespace PawnSurvivors.UI
                 timeText.text = $"Time: {minutes:00}:{seconds:00}";
             }
         }
+
+        private void OnNextStageButtonClicked()
+        {
+            Time.timeScale = 1f;
+            // TODO: 다음 스테이지 시작
+            Debug.Log("Next Stage Button Clicked");
+        }
+
+        private void OnMainMenuButtonClicked()
+        {
+            Time.timeScale = 1f;
+            // TODO: 메인 메뉴로 이동
+            Debug.Log("Main Menu Button Clicked");
+        }
     }
 }
-

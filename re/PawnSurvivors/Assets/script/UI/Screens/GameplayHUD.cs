@@ -5,10 +5,9 @@ using TMPro;
 namespace PawnSurvivors.UI
 {
     /// <summary>
-    /// 게임 플레이 중 표시되는 HUD입니다.
-    /// 체력, 점수, 시간 등의 정보를 표시합니다.
+    /// 게임 플레이 중 표시되는 HUD입니다. 씬에 배치하면 자동으로 작동합니다.
     /// </summary>
-    public class GameplayHUD : UIScreen
+    public class GameplayHUD : MonoBehaviour
     {
         [Header("UI Elements")]
         [SerializeField] private TMP_Text healthText;
@@ -19,24 +18,14 @@ namespace PawnSurvivors.UI
         private PawnManager _playerPawn;
         private float _gameTime;
 
-        protected override void OnShow()
+        private void Start()
         {
-            base.OnShow();
             _gameTime = 0f;
             FindPlayerPawn();
         }
 
         private void Update()
         {
-            if (UIManager.Instance?.CurrentState != GameState.Playing) return;
-
-            // ESC 키로 일시정지
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                UIManager.Instance?.PauseGame();
-                return;
-            }
-
             UpdateGameTime();
             UpdatePlayerHealth();
         }
@@ -46,7 +35,6 @@ namespace PawnSurvivors.UI
         /// </summary>
         private void FindPlayerPawn()
         {
-            // Player 태그를 가진 Pawn 찾기
             foreach (var pawn in PawnManager.AllPawnManagers)
             {
                 if (pawn.gameObject.CompareTag("Player"))
@@ -108,4 +96,3 @@ namespace PawnSurvivors.UI
         }
     }
 }
-

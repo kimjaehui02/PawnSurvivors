@@ -5,9 +5,9 @@ using TMPro;
 namespace PawnSurvivors.UI
 {
     /// <summary>
-    /// 게임 오버 화면입니다.
+    /// 게임 오버 화면입니다. 씬에 배치하면 자동으로 작동합니다.
     /// </summary>
-    public class GameOverScreen : UIScreen
+    public class GameOverScreen : MonoBehaviour
     {
         [Header("UI Elements")]
         [SerializeField] private TMP_Text gameOverText;
@@ -15,47 +15,42 @@ namespace PawnSurvivors.UI
         [SerializeField] private Button retryButton;
         [SerializeField] private Button mainMenuButton;
 
-        protected override void Awake()
+        private void Start()
         {
-            base.Awake();
-
             if (retryButton != null)
                 retryButton.onClick.AddListener(OnRetryButtonClicked);
             
             if (mainMenuButton != null)
                 mainMenuButton.onClick.AddListener(OnMainMenuButtonClicked);
+
+            // 기본적으로 숨김
+            gameObject.SetActive(false);
         }
 
-        protected override void OnShow()
+        public void Show(int score = 0)
         {
-            base.OnShow();
-            
+            gameObject.SetActive(true);
+            Time.timeScale = 0f;
+
             if (gameOverText != null)
                 gameOverText.text = "GAME OVER";
             
-            // TODO: 최종 점수 표시
             if (finalScoreText != null)
-                finalScoreText.text = "Final Score: 0";
+                finalScoreText.text = $"Final Score: {score}";
         }
 
         private void OnRetryButtonClicked()
         {
-            UIManager.Instance?.StartStage();
+            Time.timeScale = 1f;
+            // TODO: 게임 재시작
+            Debug.Log("Retry Button Clicked");
         }
 
         private void OnMainMenuButtonClicked()
         {
-            UIManager.Instance?.ReturnToMainMenu();
-        }
-
-        /// <summary>
-        /// 최종 점수를 설정합니다.
-        /// </summary>
-        public void SetFinalScore(int score)
-        {
-            if (finalScoreText != null)
-                finalScoreText.text = $"Final Score: {score}";
+            Time.timeScale = 1f;
+            // TODO: 메인 메뉴로 이동
+            Debug.Log("Main Menu Button Clicked");
         }
     }
 }
-

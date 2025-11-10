@@ -5,31 +5,25 @@ using TMPro;
 namespace PawnSurvivors.UI
 {
     /// <summary>
-    /// 메인 메뉴 화면입니다. 스테이지 선택 등의 기능을 제공합니다.
+    /// 메인 메뉴 화면입니다. 씬에 배치하면 자동으로 작동합니다.
     /// </summary>
-    public class MainMenuScreen : UIScreen
+    public class MainMenuScreen : MonoBehaviour
     {
         [Header("UI Elements")]
         [SerializeField] private Button startStageButton;
         [SerializeField] private Button backButton;
         [SerializeField] private TMP_Text stageNameText;
 
-        private string _selectedStage = "Stage1"; // 기본 스테이지
+        private string _selectedStage = "Stage1";
 
-        protected override void Awake()
+        private void Start()
         {
-            base.Awake();
-
             if (startStageButton != null)
                 startStageButton.onClick.AddListener(OnStartStageButtonClicked);
             
             if (backButton != null)
                 backButton.onClick.AddListener(OnBackButtonClicked);
-        }
 
-        protected override void OnShow()
-        {
-            base.OnShow();
             UpdateStageInfo();
         }
 
@@ -43,18 +37,18 @@ namespace PawnSurvivors.UI
 
         private void OnStartStageButtonClicked()
         {
-            // TODO: 선택된 스테이지 정보를 GameManager에 전달
-            UIManager.Instance?.StartStage();
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.StartStage(_selectedStage);
+            }
         }
 
         private void OnBackButtonClicked()
         {
-            UIManager.Instance?.ReturnToTitle();
+            // TODO: 타이틀 씬으로 이동
+            Debug.Log("Back Button Clicked");
         }
 
-        /// <summary>
-        /// 스테이지를 선택합니다.
-        /// </summary>
         public void SelectStage(string stageName)
         {
             _selectedStage = stageName;
@@ -62,4 +56,3 @@ namespace PawnSurvivors.UI
         }
     }
 }
-
