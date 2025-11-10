@@ -1,5 +1,6 @@
 using UnityEngine;
 using PawnSurvivors.Managers;
+using PawnSurvivors.UI;
 using System.IO;
 
 public class GameManager : MonoBehaviour
@@ -9,6 +10,7 @@ public class GameManager : MonoBehaviour
     public LifecycleManager LifecycleManager { get; private set; }
     public CreationManager CreationManager { get; private set; }
     public StageManager StageManager { get; private set; }
+    public UIManager UIManager { get; private set; }
     private StageLoader _stageLoader;
 
     private void Awake()
@@ -24,6 +26,7 @@ public class GameManager : MonoBehaviour
         LifecycleManager = GetComponent<LifecycleManager>();
         CreationManager = GetComponent<CreationManager>();
         StageManager = GetComponent<StageManager>();
+        UIManager = GetComponent<UIManager>();
 
         _stageLoader = new StageLoader();
         string stagesPath = Path.Combine(Application.streamingAssetsPath, "Stages");
@@ -41,9 +44,32 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogError("GameManager: StageManager component not found on the same GameObject.");
         }
+        if (UIManager == null)
+        {
+            Debug.LogWarning("GameManager: UIManager component not found on the same GameObject. UI functionality will be limited.");
+        }
     }
 
     private void Start()
+    {
+        // UI 시스템이 있으면 타이틀 화면부터 시작
+        // UI 시스템이 없으면 기존처럼 바로 게임 시작 (테스트용)
+        if (UIManager != null)
+        {
+            Debug.Log("GameManager: UI System detected. Starting from Title Screen.");
+            // UIManager가 자동으로 타이틀 화면을 표시함
+        }
+        else
+        {
+            Debug.LogWarning("GameManager: No UI System. Starting game directly (Test Mode).");
+            StartGameDirectly();
+        }
+    }
+
+    /// <summary>
+    /// UI 없이 게임을 직접 시작합니다 (테스트용).
+    /// </summary>
+    public void StartGameDirectly()
     {
         // "Player" 레시피를 사용하여 플레이어 폰 생성
         PawnCore.Recipes.Json.PawnRecipeData playerRecipe = CreationManager.GetRecipe("Player");
@@ -67,5 +93,13 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogError("StageData for Stage1 not found! Cannot start stage.");
         }
+    }
+
+    /// <summary>
+    /// 스테이지를 로드합니다.
+    /// </summary>
+    public StageData LoadStage(string stageName)
+    {
+        return _stageLoader.GetStage(stageName);
     }
 }
