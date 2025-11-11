@@ -53,6 +53,13 @@ public class LifecycleManager : MonoBehaviour
         }
     }
 
+    public void TogglePause()
+    {
+        IsPaused = !IsPaused;
+        Debug.Log(IsPaused ? "LifecycleManager Paused" : "LifecycleManager Resumed");
+    }
+
+
     #endregion
 
     #region Unity Lifecycle
@@ -61,11 +68,11 @@ public class LifecycleManager : MonoBehaviour
     {
         // ESC 키로 일시정지 토글
         // 이부분은 무조건 의도한 사항임 라이프사이클 로직을 고의적으로 정지시키는게 목적이고 타임스케일을 수정하면 다른것도 같이 멈추거나 문제가 생겨서 일부러 하지 않은거임
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            IsPaused = !IsPaused;
-            Debug.Log(IsPaused ? "LifecycleManager Paused" : "LifecycleManager Resumed");
-        }
+        // if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        // {
+        //     IsPaused = !IsPaused;
+        //     Debug.Log(IsPaused ? "LifecycleManager Paused" : "LifecycleManager Resumed");
+        // }
 
         // 일시정지 체크
         if (IsPaused) return;

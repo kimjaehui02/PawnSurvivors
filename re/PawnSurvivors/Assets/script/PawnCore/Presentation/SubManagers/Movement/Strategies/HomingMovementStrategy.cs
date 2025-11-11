@@ -13,11 +13,18 @@ public class HomingMovementStrategy : MovementStrategyBase
     {
         base.Init(pawnManager);
         _pawnData = pawnManager.PawnData;
+        
+        // MovableData가 없으면 생성
+        if (_pawnData.movableData == null)
+        {
+            _pawnData.movableData = new PawnCore.Domain.MovableData();
+        }
     }
 
     public override void Move()
     {
         if (_pawnManager == null) return;
+        if (_pawnData?.movableData?.homingMovement == null) return;
 
         if (Time.time >= _nextRetargetTime)
         {

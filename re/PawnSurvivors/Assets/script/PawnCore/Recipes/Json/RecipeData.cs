@@ -37,7 +37,13 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            pawnData.damage = damage;
+            // CombatData가 없으면 생성
+            if (pawnData.combatData == null)
+            {
+                pawnData.combatData = new CombatData();
+            }
+
+            pawnData.combatData.damage = damage;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -53,8 +59,14 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            pawnData.maxHealth = maxHealth;
-            pawnData.currentHealth = maxHealth;
+            // HealthData가 없으면 생성
+            if (pawnData.healthData == null)
+            {
+                pawnData.healthData = new HealthData();
+            }
+
+            pawnData.healthData.maxHealth = maxHealth;
+            pawnData.healthData.currentHealth = maxHealth;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -71,6 +83,12 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
+            // MovableData가 없으면 생성
+            if (pawnData.movableData == null)
+            {
+                pawnData.movableData = new MovableData();
+            }
+
             foreach (var setup in strategySetups)
             {
                 setup.ApplyToMovableData(pawnData.movableData);
@@ -110,8 +128,12 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            pawnData.projectileRecipeName = projectileRecipeName;
-            pawnData.fireRate = fireRate;
+            if (pawnData.combatData == null)
+            {
+                pawnData.combatData = new CombatData();
+            }
+            pawnData.combatData.projectileRecipeName = projectileRecipeName;
+            pawnData.combatData.fireRate = fireRate;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -140,8 +162,14 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            pawnData.visualSpriteName = visualSpriteName;
-            pawnData.visualColor = visualColor;
+            // VisualData가 없으면 생성
+            if (pawnData.visualData == null)
+            {
+                pawnData.visualData = new VisualData();
+            }
+
+            pawnData.visualData.visualSpriteName = visualSpriteName;
+            pawnData.visualData.visualColor = visualColor;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -162,6 +190,12 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
+            // PhysicsData가 없으면 생성
+            if (pawnData.physicsData == null)
+            {
+                pawnData.physicsData = new PhysicsData();
+            }
+
             pawnData.physicsData.colliderType = colliderType;
             pawnData.physicsData.isTrigger = isTrigger;
             pawnData.physicsData.rigidbodyType = rigidbodyType;
@@ -193,6 +227,9 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToMovableData(MovableData movableData)
         {
+            if (movableData.directionalMovement == null)
+                movableData.directionalMovement = new DirectionalMovementData();
+                
             movableData.directionalMovement.speed = speed;
             movableData.directionalMovement.lifetime = lifetime;
             movableData.directionalMovement.moveDirection = moveDirection;
@@ -216,6 +253,9 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToMovableData(MovableData movableData)
         {
+            if (movableData.homingMovement == null)
+                movableData.homingMovement = new HomingMovementData();
+                
             movableData.homingMovement.speed = speed;
             movableData.homingMovement.targetTag = targetTag;
             movableData.homingMovement.detectionRange = detectionRange;
@@ -237,6 +277,9 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToMovableData(MovableData movableData)
         {
+            if (movableData.keyboardMovement == null)
+                movableData.keyboardMovement = new KeyboardMovementData();
+                
             movableData.keyboardMovement.moveSpeed = moveSpeed;
         }
 
@@ -255,6 +298,9 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToMovableData(MovableData movableData)
         {
+            if (movableData.targetMovement == null)
+                movableData.targetMovement = new TargetMovementData();
+                
             movableData.targetMovement.speed = speed;
         }
 

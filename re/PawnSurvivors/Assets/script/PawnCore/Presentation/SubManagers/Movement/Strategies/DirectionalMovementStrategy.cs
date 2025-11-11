@@ -10,11 +10,18 @@ public class DirectionalMovementStrategy : MovementStrategyBase
     {
         base.Init(pawnManager);
         _pawnData = pawnManager.PawnData;
+        
+        // MovableData가 없으면 생성
+        if (_pawnData.movableData == null)
+        {
+            _pawnData.movableData = new PawnCore.Domain.MovableData();
+        }
     }
 
     public override void Move()
     {
         if (_pawnManager == null) return;
+        if (_pawnData?.movableData?.directionalMovement == null) return;
 
         // 설정되지 않은 경우 moveDirection 초기화
         if (_pawnData.movableData.directionalMovement.moveDirection == Vector3.zero)

@@ -13,7 +13,14 @@ public class DamageableSubManager : PawnSubManager
     public override void SubStart()
     {
         _pawnData = _pawnManager.PawnData;
-        _pawnData.currentHealth = _pawnData.maxHealth;
+        
+        // HealthData가 없으면 생성
+        if (_pawnData.healthData == null)
+        {
+            _pawnData.healthData = new PawnCore.Domain.HealthData();
+        }
+        
+        _pawnData.healthData.currentHealth = _pawnData.healthData.maxHealth;
 
         // DamageEvent 구독
         _pawnManager.Subscribe<DamageEvent>(HandleDamageEvent);
@@ -40,14 +47,17 @@ public class DamageableSubManager : PawnSubManager
         // 이 Pawn을 대상으로 한 데미지인지 확인
         if (evt.Target != _pawnManager) return;
 
-        // 데미지 적용
-        _pawnData.currentHealth -= evt.Amount;
-        _pawnData.currentHealth = Mathf.Max(_pawnData.currentHealth, 0);
+        // HealthData가 없으면 무시
+        if (_pawnData?.healthData == null) return;
 
-        Debug.Log($"{_pawnManager.name} took {evt.Amount} damage. Current health: {_pawnData.currentHealth}");
+        // 데미지 적용
+        _pawnData.healthData.currentHealth -= evt.Amount;
+        _pawnData.healthData.currentHealth = Mathf.Max(_pawnData.healthData.currentHealth, 0);
+
+        Debug.Log($"{_pawnManager.name} took {evt.Amount} damage. Current health: {_pawnData.healthData.currentHealth}");
 
         // 체력이 0 이하가 되면 사망 이벤트 발행
-        if (_pawnData.currentHealth <= 0)
+        if (_pawnData.healthData.currentHealth <= 0)
         {
             Debug.Log($"{_pawnManager.name} has run out of health and will be destroyed.");
             _pawnManager.Publish(new PawnDeathEvent(_pawnManager, evt.Attacker));

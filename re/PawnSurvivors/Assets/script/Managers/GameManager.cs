@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
     public LifecycleManager LifecycleManager { get; private set; }
     public CreationManager CreationManager { get; private set; }
     public StageManager StageManager { get; private set; }
-    private StageLoader _stageLoader;
+    public StageLoader _stageLoader;
 
     private void Awake()
     {
@@ -81,5 +81,16 @@ public class GameManager : MonoBehaviour
     public StageData LoadStage(string stageName)
     {
         return _stageLoader.GetStage(stageName);
+    }
+
+    public void PauseStage(string stageName)
+    {
+        LifecycleManager.TogglePause();
+    }
+
+
+    public void EndStage(string stageName)
+    {
+        // StageManager.EndStage();
     }
 }

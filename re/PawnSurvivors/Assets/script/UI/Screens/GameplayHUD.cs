@@ -70,8 +70,8 @@ namespace PawnSurvivors.UI
                 return;
             }
 
-            float currentHealth = _playerPawn.PawnData.currentHealth;
-            float maxHealth = _playerPawn.PawnData.maxHealth;
+            float currentHealth = _playerPawn.PawnData.healthData.currentHealth;
+            float maxHealth = _playerPawn.PawnData.healthData.maxHealth;
 
             if (healthText != null)
             {

@@ -10,11 +10,18 @@ public class KeyboardMovementStrategy : MovementStrategyBase
     {
         base.Init(pawnManager);
         _pawnData = pawnManager.PawnData;
+        
+        // MovableData가 없으면 생성
+        if (_pawnData.movableData == null)
+        {
+            _pawnData.movableData = new PawnCore.Domain.MovableData();
+        }
     }
 
     public override void Move()
     {
         if (_pawnManager == null) return;
+        if (_pawnData?.movableData == null) return;
 
         Vector2 inputDirection = Vector2.zero;
         if (Keyboard.current != null)

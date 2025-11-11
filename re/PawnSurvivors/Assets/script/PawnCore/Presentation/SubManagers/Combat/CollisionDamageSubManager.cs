@@ -13,6 +13,12 @@ public class CollisionDamageSubManager : PawnSubManager
     public override void SubStart()
     {
         _pawnData = _pawnManager.PawnData;
+        
+        // CombatData가 없으면 생성
+        if (_pawnData.combatData == null)
+        {
+            _pawnData.combatData = new PawnCore.Domain.CombatData();
+        }
     }
 
     public override void SubUpdate()
@@ -28,11 +34,14 @@ public class CollisionDamageSubManager : PawnSubManager
             return;
         }
 
+        // CombatData가 없으면 무시
+        if (_pawnData?.combatData == null) return;
+
         // 상대방이 PawnManager를 가지고 있는지 확인
         if (other.TryGetComponent<PawnManager>(out var targetPawnManager))
         {
             // 상대방에게 DamageEvent 발행
-            targetPawnManager.Publish(new DamageEvent(targetPawnManager, _pawnData.damage, gameObject));
+            targetPawnManager.Publish(new DamageEvent(targetPawnManager, _pawnData.combatData.damage, gameObject));
 
             // 자신은 파괴 (발사체의 경우)
             _pawnManager.DestroyPawn();

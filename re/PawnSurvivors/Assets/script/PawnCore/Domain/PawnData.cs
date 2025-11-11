@@ -9,26 +9,77 @@ namespace PawnCore.Domain
     [Serializable]
     public class PawnData
     {
-        // 피해 가능
+        // 모듈화된 데이터 (nullable로 필요한 것만 할당)
+        public HealthData healthData;
+        public VisualData visualData;
+        public CombatData combatData;
+        public MovableData movableData;
+        public PhysicsData physicsData;
+
+        // 하위 호환성을 위한 속성들 (deprecated 예정)
+        // public float maxHealth
+        // {
+        //     get => healthData?.maxHealth ?? 0f;
+        //     set { if (healthData == null) healthData = new HealthData(); healthData.maxHealth = value; }
+        // }
+
+        // public float currentHealth
+        // {
+        //     get => healthData?.currentHealth ?? 0f;
+        //     set { if (healthData == null) healthData = new HealthData(); healthData.currentHealth = value; }
+        // }
+
+        // public string visualSpriteName
+        // {
+        //     get => visualData?.spriteName;
+        //     set { if (visualData == null) visualData = new VisualData(); visualData.spriteName = value; }
+        // }
+
+        // public Color visualColor
+        // {
+        //     get => visualData?.color ?? Color.white;
+        //     set { if (visualData == null) visualData = new VisualData(); visualData.color = value; }
+        // }
+
+        // public float damage
+        // {
+        //     get => combatData?.damage ?? 0f;
+        //     set { if (combatData == null) combatData = new CombatData(); combatData.damage = value; }
+        // }
+
+        // public string projectileRecipeName
+        // {
+        //     get => combatData?.projectileRecipeName;
+        //     set { if (combatData == null) combatData = new CombatData(); combatData.projectileRecipeName = value; }
+        // }
+
+        // public float fireRate
+        // {
+        //     get => combatData?.fireRate ?? 0f;
+        //     set { if (combatData == null) combatData = new CombatData(); combatData.fireRate = value; }
+        // }
+    }
+
+    [Serializable]
+    public class HealthData
+    {
         public float maxHealth = 100f;
         public float currentHealth = 100f;
+    }
 
-        // 시각적
-        public string visualSpriteName; // visualPrefabName에서 변경됨
-        public Color visualColor = Color.white; // 선택 사항: 스프라이트 색상 추가
+    [Serializable]
+    public class VisualData
+    {
+        public string visualSpriteName;
+        public Color visualColor = Color.white;
+    }
 
-        // 충돌 피해
+    [Serializable]
+    public class CombatData
+    {
         public float damage = 10f;
-
-        // 발사체 발사기
         public string projectileRecipeName;
         public float fireRate = 2f;
-
-        // 이동 가능
-        public MovableData movableData = new MovableData();
-
-        // 물리
-        public PhysicsData physicsData = new PhysicsData();
     }
 
     [Serializable]

@@ -12,6 +12,12 @@ namespace PawnCore.Presentation.SubManagers.Visual
         {
             _pawnData = _pawnManager.PawnData;
 
+            // VisualData가 없으면 생성
+            if (_pawnData.visualData == null)
+            {
+                _pawnData.visualData = new PawnCore.Domain.VisualData();
+            }
+
             // "Visuals" 라는 이름의 자식 게임오브젝트 생성
             GameObject visualsObject = new GameObject("Visuals");
             visualsObject.transform.SetParent(_pawnManager.transform);
@@ -22,9 +28,9 @@ namespace PawnCore.Presentation.SubManagers.Visual
 
             Sprite visualSprite = null;
             // 지정된 스프라이트 로드 시도
-            if (!string.IsNullOrEmpty(_pawnData.visualSpriteName))
+            if (!string.IsNullOrEmpty(_pawnData.visualData.visualSpriteName))
             {
-                visualSprite = Resources.Load<Sprite>(_pawnData.visualSpriteName);
+                visualSprite = Resources.Load<Sprite>(_pawnData.visualData.visualSpriteName);
             }
 
             // 찾을 수 없거나 지정되지 않은 경우 기본 원 스프라이트로 대체
@@ -39,7 +45,7 @@ namespace PawnCore.Presentation.SubManagers.Visual
             }
 
             _spriteRenderer.sprite = visualSprite;
-            _spriteRenderer.color = _pawnData.visualColor; // 색상 적용
+            _spriteRenderer.color = _pawnData.visualData.visualColor; // 색상 적용
         }
 
         public override void SubUpdate()
