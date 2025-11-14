@@ -32,7 +32,17 @@ public class DirectionalMovementStrategy : MovementStrategyBase
         Vector3 direction = _pawnData.movableData.directionalMovement.moveDirection.normalized;
         MovementUsecases.MoveInDirection(_pawnManager.transform, direction, _pawnData.movableData.directionalMovement.speed, _pawnData);
 
-        _currentAge += Time.deltaTime;
-        MovementUsecases.HandleLifetime(_pawnManager.gameObject, _pawnData, ref _currentAge, Time.deltaTime);
+        float deltaTime = GetGameDeltaTime();
+        _currentAge += deltaTime;
+        MovementUsecases.HandleLifetime(_pawnManager.gameObject, _pawnData, ref _currentAge, deltaTime);
+    }
+    
+    private float GetGameDeltaTime()
+    {
+        if (GameManager.Instance?.LifecycleManager != null)
+        {
+            return GameManager.Instance.LifecycleManager.GameDeltaTime;
+        }
+        return Time.deltaTime; // 폴백
     }
 }

@@ -16,11 +16,9 @@ namespace PawnSurvivors.UI
         [SerializeField] private Slider healthSlider;
 
         private PawnManager _playerPawn;
-        private float _gameTime;
 
         private void Start()
         {
-            _gameTime = 0f;
             FindPlayerPawn();
         }
 
@@ -50,13 +48,22 @@ namespace PawnSurvivors.UI
         /// </summary>
         private void UpdateGameTime()
         {
-            _gameTime += Time.deltaTime;
+            float gameTime = GetGameTime();
             if (timeText != null)
             {
-                int minutes = Mathf.FloorToInt(_gameTime / 60f);
-                int seconds = Mathf.FloorToInt(_gameTime % 60f);
+                int minutes = Mathf.FloorToInt(gameTime / 60f);
+                int seconds = Mathf.FloorToInt(gameTime % 60f);
                 timeText.text = $"Time: {minutes:00}:{seconds:00}";
             }
+        }
+        
+        private float GetGameTime()
+        {
+            if (GameManager.Instance?.LifecycleManager != null)
+            {
+                return GameManager.Instance.LifecycleManager.GameTime;
+            }
+            return Time.time; // 폴백
         }
 
         /// <summary>

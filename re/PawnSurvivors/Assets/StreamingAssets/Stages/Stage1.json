@@ -1,6 +1,48 @@
 {
   "stageName": "Stage1",
-  "spawnInterval": 2.5,
   "spawnRadius": 10.0,
-  "spawnDistanceFromCamera": 2.0
+  "spawnDistanceFromCamera": 2.0,
+  "stageDuration": 300.0,
+  "enemyWaves": [
+    {
+      "startTime": 0.0,
+      "endTime": 30.0,
+      "spawnInterval": 2.5,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "startTime": 30.0,
+      "endTime": 120.0,
+      "spawnInterval": 2.0,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 70
+        },
+        {
+          "recipeName": "Enemy",
+          "weight": 30
+        }
+      ]
+    },
+    {
+      "startTime": 120.0,
+      "endTime": -1,
+      "spawnInterval": 0.0,
+      "spawnOnce": true,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 100
+        }
+      ]
+    }
+  ]
 }

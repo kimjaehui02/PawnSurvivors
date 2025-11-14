@@ -13,7 +13,7 @@ namespace PawnSurvivors.UI
 
         [SerializeField] private string _selectedStage = "Stage1";
 
-        [SerializeField] private float stageTime = 0f;
+        [SerializeField] private float stageTime = 600f;
         
         #region UI Elements
         [Header("UI Elements")]
@@ -27,47 +27,74 @@ namespace PawnSurvivors.UI
         #region Unity Lifecycle
         private void Start()
         {
-
-
             if (OptionButton != null)
             {
                 OptionButton.onClick.AddListener(OnOptionButtonClicked);
             }
-
-
         }
 
         private void Update()
         {
             UpdateStageTime();
+            HandleInput();
         }
         #endregion
 
         #region Update methods
         private void UpdateStageTime()
         {
+            float deltaTime = GetGameDeltaTime();
+            
             if (stageTimeText != null)
             {
-                stageTimeText.text = $"Time: {Time.time:00}:{Time.time:00}";
+                float gameTime = GetGameTime();
+                int minutes = Mathf.FloorToInt(gameTime / 60f);
+                int seconds = Mathf.FloorToInt(gameTime % 60f);
+                stageTimeText.text = $"Time: {minutes:00}:{seconds:00}";
+            }
+
+            stageTime -= deltaTime;
+            if (stageTime <= 0)
+            {
+                StageEnd();
             }
         }
+        
+        private float GetGameDeltaTime()
+        {
+            if (GameManager.Instance?.LifecycleManager != null)
+            {
+                return GameManager.Instance.LifecycleManager.GameDeltaTime;
+            }
+            return Time.deltaTime; // 폴백
+        }
+        
+        private float GetGameTime()
+        {
+            if (GameManager.Instance?.LifecycleManager != null)
+            {
+                return GameManager.Instance.LifecycleManager.GameTime;
+            }
+            return Time.time; // 폴백
+        }
+
 
         private void HandleInput()
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                OpenOptionMenu();
-                StagePause();
+                OptionAndPause();
             }
         }
+
+        
         #endregion
 
         #region Button Clicked Events
         public void OnOptionButtonClicked()
         {
             Debug.Log("Option Button Clicked");
-            OpenOptionMenu();
-            StagePause();
+            OptionAndPause();
         }
 
 
@@ -77,6 +104,16 @@ namespace PawnSurvivors.UI
 
 
         #region Usecase methods
+
+        #region 1단계
+        public void OptionAndPause()
+        {
+            OpenOptionMenu();
+            StagePause();
+        }
+        #endregion
+
+        #region 0단계
         public void StageStart()
         {
             if (GameManager.Instance != null)
@@ -105,6 +142,8 @@ namespace PawnSurvivors.UI
         {
             Debug.Log("Option Menu Opened");
         }
+        #endregion
+
         #endregion
     }
 }
