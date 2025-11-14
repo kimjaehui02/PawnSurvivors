@@ -9,53 +9,58 @@ namespace PawnSurvivors.UI
     /// </summary>
     public class StageScreen : MonoBehaviour
     {
+
+
+        [SerializeField] private string _selectedStage = "Stage1";
+
+        [SerializeField] private float stageTime = 0f;
+        
+        #region UI Elements
         [Header("UI Elements")]
-        [SerializeField] private Button startStageButton;
-        [SerializeField] private Button backButton;
-        [SerializeField] private TMP_Text stageNameText;
 
-        private string _selectedStage = "Stage1";
+        [SerializeField] private Button OptionButton;
 
+        [SerializeField] private TMP_Text stageTimeText;
+        #endregion
+
+
+        #region Unity Lifecycle
         private void Start()
         {
-            if (startStageButton != null)
-                startStageButton.onClick.AddListener(OnStartStageButtonClicked);
-            
-            if (backButton != null)
-                backButton.onClick.AddListener(OnBackButtonClicked);
 
-            UpdateStageInfo();
+
+            if (OptionButton != null)
+            {
+                OptionButton.onClick.AddListener(OnOptionButtonClicked);
+            }
+
+
         }
 
-        private void UpdateStageInfo()
+        private void Update()
         {
-            if (stageNameText != null)
+            UpdateStageTime();
+        }
+        #endregion
+
+        #region Button Clicked Events
+        public void OnOptionButtonClicked()
+        {
+            Debug.Log("Option Button Clicked");
+        }
+
+
+        #endregion
+
+        #region Update methods
+        private void UpdateStageTime()
+        {
+            if (stageTimeText != null)
             {
-                stageNameText.text = $"Selected Stage: {_selectedStage}";
+                stageTimeText.text = $"Time: {Time.time:00}:{Time.time:00}";
             }
         }
-
-        private void OnStartStageButtonClicked()
-        {
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.StartStage(_selectedStage);
-            }
-        }
-
-        private void OnBackButtonClicked()
-        {
-            // TODO: 타이틀 씬으로 이동
-            Debug.Log("Back Button Clicked");
-        }
-
-        public void SelectStage(string stageName)
-        {
-            _selectedStage = stageName;
-            UpdateStageInfo();
-        }
-
-
+        #endregion
 
         public void StageStart()
         {
