@@ -43,15 +43,6 @@ namespace PawnSurvivors.UI
         }
         #endregion
 
-        #region Button Clicked Events
-        public void OnOptionButtonClicked()
-        {
-            Debug.Log("Option Button Clicked");
-        }
-
-
-        #endregion
-
         #region Update methods
         private void UpdateStageTime()
         {
@@ -60,8 +51,32 @@ namespace PawnSurvivors.UI
                 stageTimeText.text = $"Time: {Time.time:00}:{Time.time:00}";
             }
         }
+
+        private void HandleInput()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                OpenOptionMenu();
+                StagePause();
+            }
+        }
         #endregion
 
+        #region Button Clicked Events
+        public void OnOptionButtonClicked()
+        {
+            Debug.Log("Option Button Clicked");
+            OpenOptionMenu();
+            StagePause();
+        }
+
+
+        #endregion
+
+
+
+
+        #region Usecase methods
         public void StageStart()
         {
             if (GameManager.Instance != null)
@@ -85,5 +100,11 @@ namespace PawnSurvivors.UI
                 GameManager.Instance.LifecycleManager.TogglePause();
             }
         }
+
+        public void OpenOptionMenu()
+        {
+            Debug.Log("Option Menu Opened");
+        }
+        #endregion
     }
 }
