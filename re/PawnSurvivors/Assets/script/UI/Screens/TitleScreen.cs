@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 namespace PawnSurvivors.UI
 {
@@ -27,9 +26,10 @@ namespace PawnSurvivors.UI
 
         private void OnStartButtonClicked()
         {
-            // TODO: 다음 씬으로 이동 또는 게임 시작
-            Debug.Log("Start Button Clicked");
-            SceneManager.LoadScene("MainMenu");
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowMainMenuScreen();
+            }
         }
 
         private void OnQuitButtonClicked()

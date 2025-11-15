@@ -13,7 +13,7 @@ namespace PawnSurvivors.UI
         [SerializeField] private Button mainMenuButton;
         [SerializeField] private Button quitButton;
 
-        private void Start()
+        private void Awake()
         {
             if (resumeButton != null)
                 resumeButton.onClick.AddListener(OnResumeButtonClicked);
@@ -23,53 +23,44 @@ namespace PawnSurvivors.UI
             
             if (quitButton != null)
                 quitButton.onClick.AddListener(OnQuitButtonClicked);
-
-            // 기본적으로 숨김
-            gameObject.SetActive(false);
         }
 
-        private void Update()
+        // Inspector에서 이 GameObject를 처음부터 비활성화 상태로 설정하세요!
+
+    // Update()와 Show() 제거: StageScreen에서 이미 ESC 처리하므로 불필요
+
+    private void OnResumeButtonClicked()
+    {
+        if (UIManager.Instance != null)
         {
-            // ESC 키로 일시정지 토글
-            if (Input.GetKeyDown(KeyCode.Escape))
+            UIManager.Instance.HidePauseMenu();
+        }
+        else
+        {
+            // 폴백: UIManager가 없을 경우
+            gameObject.SetActive(false);
+            if (GameManager.Instance?.LifecycleManager != null)
             {
-                if (gameObject.activeSelf)
-                {
-                    OnResumeButtonClicked();
-                }
-                else
-                {
-                    Show();
-                }
+                GameManager.Instance.LifecycleManager.TogglePause();
             }
         }
+    }
 
-        private void Show()
+    private void OnMainMenuButtonClicked()
+    {
+        if (UIManager.Instance != null)
         {
-            gameObject.SetActive(true);
-            Time.timeScale = 0f;
+            UIManager.Instance.ReturnToMainMenu();
         }
+    }
 
-        private void OnResumeButtonClicked()
-        {
-            gameObject.SetActive(false);
-            Time.timeScale = 1f;
-        }
-
-        private void OnMainMenuButtonClicked()
-        {
-            Time.timeScale = 1f;
-            // TODO: 메인 메뉴 씬으로 이동
-            Debug.Log("Main Menu Button Clicked");
-        }
-
-        private void OnQuitButtonClicked()
-        {
+    private void OnQuitButtonClicked()
+    {
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
+        UnityEditor.EditorApplication.isPlaying = false;
 #else
-            Application.Quit();
+        Application.Quit();
 #endif
-        }
+    }
     }
 }

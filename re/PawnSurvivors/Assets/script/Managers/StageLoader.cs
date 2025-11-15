@@ -38,6 +38,15 @@ namespace PawnSurvivors.Managers
             _stages.TryGetValue(stageName, out StageData stage);
             return stage;
         }
+
+        /// <summary>
+        /// 로드된 모든 스테이지 이름을 가져옵니다.
+        /// </summary>
+        /// <returns>스테이지 이름 리스트</returns>
+        public List<string> GetAllStageNames()
+        {
+            return new List<string>(_stages.Keys);
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 using UnityEngine;
 using PawnCore.Recipes.Json;
 using System.IO;
+using System.Linq;
 using PawnCore.Domain;
 
 public class CreationManager : MonoBehaviour
@@ -74,5 +75,25 @@ public class CreationManager : MonoBehaviour
 
         // Debug.Log($"JSON 레시피에서 '{recipeData.pawnName}' 폰을 성공적으로 생성했습니다.");
         return pawnObject;
+    }
+
+    /// <summary>
+    /// 모든 Pawn을 파괴합니다. (메인 메뉴로 돌아갈 때 사용)
+    /// </summary>
+    public void DestroyAllPawns()
+    {
+        // PawnManager.AllPawnManagers의 복사본을 만들어 순회
+        // (파괴 중에 리스트가 수정되므로)
+        var allPawns = PawnManager.AllPawnManagers.ToArray();
+        
+        foreach (var pawnManager in allPawns)
+        {
+            if (pawnManager != null && pawnManager.gameObject != null)
+            {
+                Destroy(pawnManager.gameObject);
+            }
+        }
+        
+        Debug.Log($"Destroyed {allPawns.Length} pawns.");
     }
 }

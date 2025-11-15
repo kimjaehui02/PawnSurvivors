@@ -9,11 +9,9 @@ namespace PawnSurvivors.UI
     /// </summary>
     public class StageScreen : MonoBehaviour
     {
-
-
         [SerializeField] private string _selectedStage = "Stage1";
 
-        [SerializeField] private float stageTime = 600f;
+        private float stageTime = 0f; // JSON에서 초기화됨
         
         #region UI Elements
         [Header("UI Elements")]
@@ -21,6 +19,7 @@ namespace PawnSurvivors.UI
         [SerializeField] private Button OptionButton;
 
         [SerializeField] private TMP_Text stageTimeText;
+        [SerializeField] private TMP_Text healthText;
         #endregion
 
 
@@ -31,12 +30,35 @@ namespace PawnSurvivors.UI
             {
                 OptionButton.onClick.AddListener(OnOptionButtonClicked);
             }
+
+            InitializeStageData();
         }
 
         private void Update()
         {
             UpdateStageTime();
-            HandleInput();
+            UpdateHealth();
+            // HandleInput() 제거: UIManager에서 ESC 처리
+        }
+        #endregion
+
+        #region Initialization
+        private void InitializeStageData()
+        {
+            if (GameManager.Instance != null)
+            {
+                PawnSurvivors.Managers.StageData stageData = GameManager.Instance.LoadStage(_selectedStage);
+                if (stageData != null)
+                {
+                    stageTime = stageData.stageDuration;
+                    Debug.Log($"Stage '{_selectedStage}' loaded. Duration: {stageTime}s");
+                }
+                else
+                {
+                    Debug.LogWarning($"StageData for '{_selectedStage}' not found. Using default duration.");
+                    stageTime = 300f; // 기본값
+                }
+            }
         }
         #endregion
 
@@ -59,6 +81,28 @@ namespace PawnSurvivors.UI
                 StageEnd();
             }
         }
+
+        private void UpdateHealth()
+        {
+            if (healthText != null && GameManager.Instance?.CreationManager != null)
+            {
+                // Player 폰을 찾아서 체력 표시
+                GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+                if (playerObject != null)
+                {
+                    var pawnManager = playerObject.GetComponent<PawnManager>();
+                    if (pawnManager != null && pawnManager.PawnData != null)
+                    {
+                        var healthData = pawnManager.PawnData.healthData;
+                        healthText.text = $"HP: {healthData.currentHealth:F0}/{healthData.maxHealth:F0}";
+                    }
+                }
+                else
+                {
+                    healthText.text = "HP: --/--";
+                }
+            }
+        }
         
         private float GetGameDeltaTime()
         {
@@ -77,41 +121,21 @@ namespace PawnSurvivors.UI
             }
             return Time.time; // 폴백
         }
-
-
-        private void HandleInput()
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                OptionAndPause();
-            }
-        }
-
         
         #endregion
 
         #region Button Clicked Events
         public void OnOptionButtonClicked()
         {
-            Debug.Log("Option Button Clicked");
-            OptionAndPause();
+            // 옵션 버튼 클릭 시 UIManager를 통해 일시정지 메뉴 표시
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowPauseMenu();
+            }
         }
-
-
         #endregion
-
-
-
 
         #region Usecase methods
-
-        #region 1단계
-        public void OptionAndPause()
-        {
-            OpenOptionMenu();
-            StagePause();
-        }
-        #endregion
 
         #region 0단계
         public void StageStart()
@@ -126,22 +150,19 @@ namespace PawnSurvivors.UI
         {
             if (GameManager.Instance != null)
             {
-                // GameManager.Instance.EndStage(_selectedStage);
+                GameManager.Instance.StageManager?.EndStage();
+                
+                // TODO: 클리어인지 게임오버인지에 따라 다른 화면 표시
+                // 현재는 임시로 메인 메뉴로 이동
+                if (UIManager.Instance != null)
+                {
+                    UIManager.Instance.ReturnToMainMenu();
+                }
             }
         }
 
-        public void StagePause()
-        {
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.LifecycleManager.TogglePause();
-            }
-        }
-
-        public void OpenOptionMenu()
-        {
-            Debug.Log("Option Menu Opened");
-        }
+        // StagePause(), OpenOptionMenu(), OptionAndPause() 제거
+        // UIManager가 ESC와 일시정지를 중앙에서 관리
         #endregion
 
         #endregion

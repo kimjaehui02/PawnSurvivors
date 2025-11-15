@@ -177,5 +177,19 @@ public class StageManager : MonoBehaviour
         return new Vector3(x, y, 0);
     }
 
-
+    /// <summary>
+    /// 스테이지를 종료합니다.
+    /// </summary>
+    public void EndStage()
+    {
+        Debug.Log($"Stage '{_currentStageData?.stageName}' Ended!");
+        
+        // 웨이브 타이머 초기화
+        _waveTimers.Clear();
+        _waveSpawnedOnce.Clear();
+        
+        // 현재 스테이지 데이터 클리어
+        _currentStageData = null;
+        _stageElapsedTime = 0f;
+    }
 }
