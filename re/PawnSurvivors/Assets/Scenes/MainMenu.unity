@@ -724,6 +724,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 843860065492933419, guid: e4df30637d3a5fe47b922680ff5b72b3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1755308883903121631, guid: e4df30637d3a5fe47b922680ff5b72b3, type: 3}
       propertyPath: m_Name
       value: MainMenuScreen
@@ -810,6 +814,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2325476894798816789, guid: e4df30637d3a5fe47b922680ff5b72b3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8346864526643494871, guid: e4df30637d3a5fe47b922680ff5b72b3, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -909,6 +917,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 843860065492933419, guid: 8cee66977f711074892590e21cff4377, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1755308883903121631, guid: 8cee66977f711074892590e21cff4377, type: 3}
       propertyPath: m_Name
       value: TitleScreen

@@ -1,5 +1,6 @@
 using UnityEngine;
 using PawnSurvivors.Managers;
+using PawnSurvivors.Data;
 using System.IO;
 
 public class GameManager : MonoBehaviour
@@ -10,6 +11,11 @@ public class GameManager : MonoBehaviour
     public CreationManager CreationManager { get; private set; }
     public StageManager StageManager { get; private set; }
     public StageLoader _stageLoader;
+    
+    /// <summary>
+    /// 현재 게임 세션의 런타임 데이터
+    /// </summary>
+    public GameSessionData SessionData { get; private set; }
 
     private void Awake()
     {
@@ -20,6 +26,9 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // 세션 데이터 초기화
+        SessionData = new GameSessionData();
 
         // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();
@@ -50,6 +59,12 @@ public class GameManager : MonoBehaviour
     /// <param name="stageName">시작할 스테이지 이름 (기본값: Stage1)</param>
     public void StartStage(string stageName = "Stage1")
     {
+        // 세션 데이터 리셋 (새 게임 시작)
+        SessionData.Reset();
+        SessionData.currentStageName = stageName;
+        
+        Debug.Log($"[GameManager] 새 게임 세션 시작: {SessionData}");
+        
         // 플레이어 폰 생성
         PawnCore.Recipes.Json.PawnRecipeData playerRecipe = CreationManager.GetRecipe("Player");
         if (playerRecipe != null)
