@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using PawnCore.Domain;
 using PawnCore.Domain.Events;
@@ -9,6 +10,28 @@ using PawnCore.Domain.Events;
 public class CollisionDamageSubManager : PawnSubManager
 {
     private PawnData _pawnData;
+    
+    /// <summary>
+    /// 충돌 시 자신을 파괴할지 여부입니다.
+    /// 발사체는 true, 근접 공격 유닛은 false로 설정하세요.
+    /// </summary>
+    public bool destroyOnHit = true;
+    
+    /// <summary>
+    /// 연속 충돌 시 데미지를 주는 간격 (초)
+    /// destroyOnHit이 false일 때만 사용됩니다.
+    /// </summary>
+    public float damageCooldown = 0.5f;
+    
+    /// <summary>
+    /// 마지막으로 데미지를 준 대상과 시간을 기록
+    /// </summary>
+    private Dictionary<PawnManager, float> _lastDamageTimes = new Dictionary<PawnManager, float>();
+    
+    /// <summary>
+    /// 이미 충돌했는지 여부 (destroyOnHit이 true일 때 중복 충돌 방지)
+    /// </summary>
+    private bool _hasCollided = false;
 
     public override void SubStart()
     {
@@ -19,6 +42,9 @@ public class CollisionDamageSubManager : PawnSubManager
         {
             _pawnData.combatData = new PawnCore.Domain.CombatData();
         }
+        
+        // CombatData에서 destroyOnHit 설정 가져오기
+        destroyOnHit = _pawnData.combatData.destroyOnHit;
     }
 
     public override void SubUpdate()
@@ -28,8 +54,28 @@ public class CollisionDamageSubManager : PawnSubManager
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // 동일한 구성 요소를 가진 다른 개체에 부딪히지 않도록 방지
-        if (other.GetComponent<CollisionDamageSubManager>() != null)
+        ProcessCollision(other);
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        // destroyOnHit이 false인 경우(근접 공격 유닛)만 연속 충돌 처리
+        if (!destroyOnHit)
+        {
+            ProcessCollision(other);
+        }
+    }
+
+    private void ProcessCollision(Collider2D other)
+    {
+        // 이미 충돌 처리했으면 무시 (destroyOnHit이 true인 경우)
+        if (destroyOnHit && _hasCollided)
+        {
+            return;
+        }
+
+        // 같은 태그는 무시 (아군끼리 공격 방지)
+        if (other.CompareTag(gameObject.tag))
         {
             return;
         }
@@ -40,11 +86,37 @@ public class CollisionDamageSubManager : PawnSubManager
         // 상대방이 PawnManager를 가지고 있는지 확인
         if (other.TryGetComponent<PawnManager>(out var targetPawnManager))
         {
+            // 쿨다운 체크 (destroyOnHit이 false인 경우만)
+            if (!destroyOnHit)
+            {
+                float currentTime = GetGameTime();
+                if (_lastDamageTimes.TryGetValue(targetPawnManager, out float lastTime))
+                {
+                    if (currentTime - lastTime < damageCooldown)
+                    {
+                        return; // 쿨다운 중
+                    }
+                }
+                _lastDamageTimes[targetPawnManager] = currentTime;
+            }
+
             // 상대방에게 DamageEvent 발행
             targetPawnManager.Publish(new DamageEvent(targetPawnManager, _pawnData.combatData.damage, gameObject));
+            
+            Debug.Log($"[CollisionDamage] {gameObject.name} → {other.name}: {_pawnData.combatData.damage} damage");
 
-            // 자신은 파괴 (발사체의 경우)
-            _pawnManager.DestroyPawn();
+            // destroyOnHit이 true일 경우에만 자신 파괴 (발사체의 경우)
+            if (destroyOnHit)
+            {
+                _hasCollided = true; // 충돌 플래그 설정
+                _pawnManager.DestroyPawn();
+            }
         }
+    }
+
+    private void OnDisable()
+    {
+        // 메모리 누수 방지
+        _lastDamageTimes.Clear();
     }
 }

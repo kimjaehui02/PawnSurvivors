@@ -80,6 +80,12 @@ namespace PawnCore.Domain
         public float damage = 10f;
         public string projectileRecipeName;
         public float fireRate = 2f;
+        
+        /// <summary>
+        /// 충돌 시 자신을 파괴할지 여부입니다.
+        /// 발사체: true (기본값), 근접 공격 유닛: false
+        /// </summary>
+        public bool destroyOnHit = true;
     }
 
     [Serializable]

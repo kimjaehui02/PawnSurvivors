@@ -34,6 +34,12 @@ namespace PawnCore.Recipes.Json
     public class CollisionDamageSubManagerSetupData : SubManagerSetupData
     {
         public float damage;
+        
+        /// <summary>
+        /// 충돌 시 자신을 파괴할지 여부입니다.
+        /// 발사체: true (기본값), 근접 공격 유닛: false
+        /// </summary>
+        public bool destroyOnHit = true;
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
@@ -44,6 +50,7 @@ namespace PawnCore.Recipes.Json
             }
 
             pawnData.combatData.damage = damage;
+            pawnData.combatData.destroyOnHit = destroyOnHit;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -309,6 +316,76 @@ namespace PawnCore.Recipes.Json
             TargetMovementStrategy strategy = pawnObject.AddComponent<TargetMovementStrategy>();
             strategy.SetInitialEnabledState(isEnabledByDefault);
             return strategy;
+        }
+    }
+
+    [Serializable]
+    public class InvincibilitySubManagerSetupData : SubManagerSetupData
+    {
+        public float invincibilityDuration = 1f;
+        public float blinkSpeed = 5f;
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // InvincibilitySubManager는 PawnData에 저장할 데이터가 없음
+            // 모든 설정은 컴포넌트 자체에서 관리
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            InvincibilitySubManager subManager = pawnObject.AddComponent<InvincibilitySubManager>();
+            subManager.invincibilityDuration = invincibilityDuration;
+            subManager.blinkSpeed = blinkSpeed;
+            return subManager;
+        }
+    }
+
+    [Serializable]
+    public class HitFlashSubManagerSetupData : SubManagerSetupData
+    {
+        public float flashDuration = 0.1f;
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // HitFlashSubManager는 PawnData에 저장할 데이터가 없음
+            // 모든 설정은 컴포넌트 자체에서 관리
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            PawnCore.Presentation.SubManagers.Visual.HitFlashSubManager subManager = 
+                pawnObject.AddComponent<PawnCore.Presentation.SubManagers.Visual.HitFlashSubManager>();
+            subManager.flashDuration = flashDuration;
+            return subManager;
+        }
+    }
+
+    [Serializable]
+    public class SeparationSubManagerSetupData : SubManagerSetupData
+    {
+        [Tooltip("분리를 적용할 최소 거리")]
+        public float separationRadius = 1.0f;
+        
+        [Tooltip("분리 힘의 강도")]
+        public float separationStrength = 2.0f;
+        
+        [Tooltip("분리 체크 빈도 (초)")]
+        public float checkFrequency = 0.1f;
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // SeparationSubManager는 PawnData에 저장할 데이터가 없음
+            // 모든 설정은 컴포넌트 자체에서 관리
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            PawnCore.Presentation.SubManagers.Movement.SeparationSubManager subManager = 
+                pawnObject.AddComponent<PawnCore.Presentation.SubManagers.Movement.SeparationSubManager>();
+            subManager.separationRadius = separationRadius;
+            subManager.separationStrength = separationStrength;
+            subManager.checkFrequency = checkFrequency;
+            return subManager;
         }
     }
 }

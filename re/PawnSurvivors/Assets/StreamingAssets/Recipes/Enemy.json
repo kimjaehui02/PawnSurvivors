@@ -2,13 +2,22 @@
   "pawnName": "Enemy",
   "subManagerSetups": [
     {
+      "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
+      "damage": 5,
+      "destroyOnHit": false
+    },
+    {
       "$type": "PawnCore.Recipes.Json.DamageableSubManagerSetupData, Assembly-CSharp",
       "maxHealth": 50
     },
     {
+      "$type": "PawnCore.Recipes.Json.HitFlashSubManagerSetupData, Assembly-CSharp",
+      "flashDuration": 0.1
+    },
+    {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
       "visualSpriteName": "Sprites/Circle1Sprite",
-      "visualColor": {"r": 1, "g": 0, "b": 0, "a": 1} 
+      "visualColor": {"r": 0.75, "g": 0.75, "b": 0.75, "a": 1} 
     },
     {
       "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
@@ -22,6 +31,12 @@
           "retargetFrequency": 0.5
         }
       ]
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.SeparationSubManagerSetupData, Assembly-CSharp",
+      "separationRadius": 0.8,
+      "separationStrength": 3.0,
+      "checkFrequency": 0.1
     },
     {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",

@@ -8,6 +8,11 @@
       "maxHealth": 100
     },
     {
+      "$type": "PawnCore.Recipes.Json.InvincibilitySubManagerSetupData, Assembly-CSharp",
+      "invincibilityDuration": 1.0,
+      "blinkSpeed": 5.0
+    },
+    {
       "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
       "strategySetups": [
         {

@@ -4,7 +4,8 @@
   "subManagerSetups": [
     {
       "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
-      "damage": 10
+      "damage": 10,
+      "destroyOnHit": true
     },
     {
       "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",

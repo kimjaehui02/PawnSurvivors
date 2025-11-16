@@ -22,8 +22,9 @@ public class DamageableSubManager : PawnSubManager
         
         _pawnData.healthData.currentHealth = _pawnData.healthData.maxHealth;
 
-        // DamageEvent 구독
-        _pawnManager.Subscribe<DamageEvent>(HandleDamageEvent);
+        // DamageEvent 구독 (일반 우선순위)
+        // 무적 시스템(Highest)이 먼저 실행된 후 데미지를 처리합니다.
+        _pawnManager.Subscribe<DamageEvent>(HandleDamageEvent, EventPriority.Normal);
     }
 
     private void OnDisable()
@@ -47,17 +48,40 @@ public class DamageableSubManager : PawnSubManager
         // 이 Pawn을 대상으로 한 데미지인지 확인
         if (evt.Target != _pawnManager) return;
 
+        // 이벤트가 취소되었으면 무시 (무적 등)
+        if (evt.IsCancelled)
+        {
+            Debug.Log($"{_pawnManager.name} damage was cancelled (invincibility, etc.)");
+            return;
+        }
+
         // HealthData가 없으면 무시
         if (_pawnData?.healthData == null) return;
 
+        // 데미지 적용 전 체력
+        float healthBefore = _pawnData.healthData.currentHealth;
+        
         // 데미지 적용
         _pawnData.healthData.currentHealth -= evt.Amount;
         _pawnData.healthData.currentHealth = Mathf.Max(_pawnData.healthData.currentHealth, 0);
+        
+        // 실제 적용된 데미지 계산
+        float actualDamage = healthBefore - _pawnData.healthData.currentHealth;
+        bool isFatal = _pawnData.healthData.currentHealth <= 0;
 
-        Debug.Log($"{_pawnManager.name} took {evt.Amount} damage. Current health: {_pawnData.healthData.currentHealth}");
+        Debug.Log($"{_pawnManager.name} took {actualDamage} damage. Current health: {_pawnData.healthData.currentHealth}");
+
+        // 피격 이벤트 발행 (무적, 넉백, 이펙트 등 추가 효과를 위해)
+        _pawnManager.Publish(new PawnDamagedEvent(
+            _pawnManager, 
+            actualDamage, 
+            evt.Attacker, 
+            _pawnData.healthData.currentHealth,
+            isFatal
+        ));
 
         // 체력이 0 이하가 되면 사망 이벤트 발행
-        if (_pawnData.healthData.currentHealth <= 0)
+        if (isFatal)
         {
             Debug.Log($"{_pawnManager.name} has run out of health and will be destroyed.");
             _pawnManager.Publish(new PawnDeathEvent(_pawnManager, evt.Attacker));
