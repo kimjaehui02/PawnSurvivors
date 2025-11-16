@@ -17,7 +17,8 @@
     {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
       "visualSpriteName": "Sprites/Circle1Sprite",
-      "visualColor": {"r": 0.75, "g": 0.75, "b": 0.75, "a": 1} 
+      "visualColor": {"r": 0.75, "g": 0.75, "b": 0.75, "a": 1},
+      "shadowPreset": "EnemyShadow"
     },
     {
       "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",

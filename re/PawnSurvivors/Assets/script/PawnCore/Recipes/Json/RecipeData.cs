@@ -166,6 +166,9 @@ namespace PawnCore.Recipes.Json
     {
         public string visualSpriteName; // visualPrefabName에서 변경됨
         public Color visualColor = Color.white; // 선택 사항: 스프라이트 사용자 지정용
+        
+        [Tooltip("그림자 프리셋 이름 (null이면 그림자 없음)")]
+        public string shadowPreset = null;
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
@@ -177,6 +180,7 @@ namespace PawnCore.Recipes.Json
 
             pawnData.visualData.visualSpriteName = visualSpriteName;
             pawnData.visualData.visualColor = visualColor;
+            pawnData.visualData.shadowPresetName = shadowPreset;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)

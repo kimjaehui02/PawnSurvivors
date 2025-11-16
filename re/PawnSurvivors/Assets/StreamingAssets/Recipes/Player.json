@@ -33,7 +33,8 @@
     {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
       "visualSpriteName": "Sprites/mini",
-      "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1} 
+      "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1},
+      "shadowPreset": "PlayerShadow"
     },
     {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",

@@ -31,6 +31,13 @@ namespace PawnCore.Domain
     {
         public string visualSpriteName;
         public Color visualColor = Color.white;
+        
+        // 그림자 프리셋 이름 (null이면 그림자 없음)
+        public string shadowPresetName = null;
+        
+        // 런타임에 로드된 그림자 프리셋 데이터 (JSON에 저장 안 됨)
+        [System.NonSerialized]
+        public ShadowPresetData shadowPreset = null;
     }
 
     [Serializable]

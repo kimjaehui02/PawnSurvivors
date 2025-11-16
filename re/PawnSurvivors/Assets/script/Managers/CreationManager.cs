@@ -1,5 +1,6 @@
 using UnityEngine;
 using PawnCore.Recipes.Json;
+using PawnCore.Recipes;
 using System.IO;
 using System.Linq;
 using PawnCore.Domain;
@@ -7,12 +8,26 @@ using PawnCore.Domain;
 public class CreationManager : MonoBehaviour
 {
     private RecipeLoader recipeLoader;
+    private ShadowPresetLoader shadowPresetLoader;
 
     private void Awake()
     {
         recipeLoader = new RecipeLoader();
         string recipesPath = Path.Combine(Application.streamingAssetsPath, "Recipes");
         recipeLoader.LoadRecipes(recipesPath);
+        
+        // ShadowPreset 로드
+        shadowPresetLoader = new ShadowPresetLoader();
+        string shadowPresetsPath = Path.Combine(Application.streamingAssetsPath, "ShadowPresets");
+        shadowPresetLoader.LoadPresets(shadowPresetsPath);
+    }
+    
+    /// <summary>
+    /// ShadowPreset을 이름으로 가져옵니다.
+    /// </summary>
+    public ShadowPresetData GetShadowPreset(string presetName)
+    {
+        return shadowPresetLoader?.GetPreset(presetName);
     }
 
     public PawnRecipeData GetRecipe(string recipeName)
