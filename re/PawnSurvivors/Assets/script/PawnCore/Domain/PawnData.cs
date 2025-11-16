@@ -32,6 +32,10 @@ namespace PawnCore.Domain
         public string visualSpriteName;
         public Color visualColor = Color.white;
         
+        // 스프라이트 인덱스 (-1이면 이름 기반, 0 이상이면 인덱스 기반)
+        // 예: "Temporary/mini"와 index=0이면 mini의 첫 번째 슬라이스
+        public int visualSpriteIndex = -1;
+        
         // 그림자 프리셋 이름 (null이면 그림자 없음)
         public string shadowPresetName = null;
         

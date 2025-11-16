@@ -23,11 +23,11 @@ public static class CombatUsecases
     /// <summary>
     /// 발사체 공격을 처리합니다.
     /// </summary>
-    public static void HandleProjectileAttack(ref float nextFireTime, float fireRate, PawnRecipeData projectileRecipe, Transform firePoint)
+    public static void HandleProjectileAttack(ref float nextFireTime, float fireRate, PawnRecipeData projectileRecipe, Transform firePoint, float gameTime)
     {
-        if (Time.time >= nextFireTime)
+        if (gameTime >= nextFireTime)
         {
-            nextFireTime = Time.time + 1f / fireRate;
+            nextFireTime = gameTime + 1f / fireRate;
 
             Transform closestEnemy = TargetingUsecases.FindClosestTargetByTag(firePoint.position, "Enemy", 0); // 0은 무한 범위를 의미합니다.
             Vector3 direction = firePoint.up; // 기본 방향

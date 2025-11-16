@@ -76,7 +76,8 @@ public class ProjectileShooterSubManager : PawnSubManager
         PawnRecipeData projectileRecipe = GameManager.Instance.CreationManager.GetRecipe(_pawnData.combatData.projectileRecipeName);
         if (projectileRecipe != null)
         {
-            CombatUsecases.HandleProjectileAttack(ref _nextFireTime, _pawnData.combatData.fireRate, projectileRecipe, firePoint);
+            float currentGameTime = GetGameTime(); // 게임 시간 사용 (정지 시 멈춤)
+            CombatUsecases.HandleProjectileAttack(ref _nextFireTime, _pawnData.combatData.fireRate, projectileRecipe, firePoint, currentGameTime);
         }
     }
 }

@@ -35,21 +35,70 @@ namespace PawnCore.Presentation.SubManagers.Visual
             _spriteRenderer = visualsObject.AddComponent<SpriteRenderer>();
 
             Sprite visualSprite = null;
+            
             // 지정된 스프라이트 로드 시도
             if (!string.IsNullOrEmpty(_pawnData.visualData.visualSpriteName))
             {
-                visualSprite = Resources.Load<Sprite>(_pawnData.visualData.visualSpriteName);
+                // 인덱스 기반 로딩 (visualSpriteIndex >= 0)
+                if (_pawnData.visualData.visualSpriteIndex >= 0)
+                {
+                    Sprite[] allSprites = Resources.LoadAll<Sprite>(_pawnData.visualData.visualSpriteName);
+                    
+                    if (allSprites != null && allSprites.Length > _pawnData.visualData.visualSpriteIndex)
+                    {
+                        visualSprite = allSprites[_pawnData.visualData.visualSpriteIndex];
+                        Debug.Log($"VisualSubManager: '{_pawnData.visualData.visualSpriteName}'의 인덱스 {_pawnData.visualData.visualSpriteIndex} 스프라이트 로드 완료! (총 {allSprites.Length}개 슬라이스)", this);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"VisualSubManager: '{_pawnData.visualData.visualSpriteName}'의 인덱스 {_pawnData.visualData.visualSpriteIndex}를 찾을 수 없습니다. (총 {allSprites?.Length ?? 0}개 슬라이스). 기본 원 스프라이트를 사용합니다.", this);
+                    }
+                }
+                // 이름 기반 로딩 (visualSpriteIndex == -1)
+                else
+                {
+                    visualSprite = Resources.Load<Sprite>(_pawnData.visualData.visualSpriteName);
+                    
+                    if (visualSprite == null)
+                    {
+                        // 슬라이스된 스프라이트를 찾을 수 없는 경우, 부모 이미지에서 첫 번째 스프라이트 시도
+                        string basePath = _pawnData.visualData.visualSpriteName;
+                        
+                        // "Temporary/mini_0" → "Temporary/mini"로 변환
+                        if (basePath.Contains("_"))
+                        {
+                            int underscoreIndex = basePath.LastIndexOf('_');
+                            basePath = basePath.Substring(0, underscoreIndex);
+                        }
+                        
+                        // 모든 슬라이스 로드 시도
+                        Sprite[] allSprites = Resources.LoadAll<Sprite>(basePath);
+                        
+                        if (allSprites != null && allSprites.Length > 0)
+                        {
+                            visualSprite = allSprites[0]; // 첫 번째 슬라이스 사용
+                            Debug.Log($"VisualSubManager: '{_pawnData.visualData.visualSpriteName}'를 찾을 수 없어 '{basePath}'의 첫 번째 스프라이트를 사용합니다. (총 {allSprites.Length}개 슬라이스)", this);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"VisualSubManager: '{_pawnData.visualData.visualSpriteName}' 및 '{basePath}' 스프라이트를 찾을 수 없습니다. 기본 원 스프라이트를 사용합니다.", this);
+                        }
+                    }
+                }
             }
 
             // 찾을 수 없거나 지정되지 않은 경우 기본 원 스프라이트로 대체
             if (visualSprite == null)
             {
                 visualSprite = Resources.Load<Sprite>("Temporary/Circle");
+                
                 if (visualSprite == null)
                 {
                     Debug.LogError("VisualSubManager: 'Resources/Temporary/Circle'에서 기본 원 스프라이트를 찾을 수 없습니다. 시각적 개체가 인스턴스화되지 않습니다.", this);
                     return; // 렌더링할 스프라이트 없음
                 }
+                
+                Debug.Log($"{_pawnManager.name}: 기본 원 스프라이트를 사용합니다.");
             }
 
             _spriteRenderer.sprite = visualSprite;

@@ -167,6 +167,9 @@ namespace PawnCore.Recipes.Json
         public string visualSpriteName; // visualPrefabName에서 변경됨
         public Color visualColor = Color.white; // 선택 사항: 스프라이트 사용자 지정용
         
+        [Tooltip("스프라이트 인덱스 (-1이면 이름 기반, 0 이상이면 인덱스 기반)")]
+        public int visualSpriteIndex = -1;
+        
         [Tooltip("그림자 프리셋 이름 (null이면 그림자 없음)")]
         public string shadowPreset = null;
 
@@ -180,6 +183,7 @@ namespace PawnCore.Recipes.Json
 
             pawnData.visualData.visualSpriteName = visualSpriteName;
             pawnData.visualData.visualColor = visualColor;
+            pawnData.visualData.visualSpriteIndex = visualSpriteIndex;
             pawnData.visualData.shadowPresetName = shadowPreset;
         }
 
