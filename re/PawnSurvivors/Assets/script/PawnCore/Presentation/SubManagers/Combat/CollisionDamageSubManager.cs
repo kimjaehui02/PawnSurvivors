@@ -6,6 +6,7 @@ using PawnCore.Domain.Events;
 /// <summary>
 /// 충돌 시 데미지를 가하는 SubManager입니다.
 /// 충돌이 발생하면 DamageEvent를 발행합니다.
+/// 쿨다운 계산은 CombatUsecases에 위임합니다.
 /// </summary>
 public class CollisionDamageSubManager : PawnSubManager
 {
@@ -86,18 +87,14 @@ public class CollisionDamageSubManager : PawnSubManager
         // 상대방이 PawnManager를 가지고 있는지 확인
         if (other.TryGetComponent<PawnManager>(out var targetPawnManager))
         {
-            // 쿨다운 체크 (destroyOnHit이 false인 경우만)
+            // ✅ 쿨다운 체크 로직을 UseCases에 위임 (destroyOnHit이 false인 경우만)
             if (!destroyOnHit)
             {
                 float currentTime = GetGameTime();
-                if (_lastDamageTimes.TryGetValue(targetPawnManager, out float lastTime))
+                if (!CombatUsecases.CanDealDamageWithCooldown(targetPawnManager, currentTime, damageCooldown, _lastDamageTimes))
                 {
-                    if (currentTime - lastTime < damageCooldown)
-                    {
-                        return; // 쿨다운 중
-                    }
+                    return; // 쿨다운 중
                 }
-                _lastDamageTimes[targetPawnManager] = currentTime;
             }
 
             // 상대방에게 DamageEvent 발행

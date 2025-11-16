@@ -33,12 +33,6 @@
       ]
     },
     {
-      "$type": "PawnCore.Recipes.Json.SeparationSubManagerSetupData, Assembly-CSharp",
-      "separationRadius": 0.8,
-      "separationStrength": 3.0,
-      "checkFrequency": 0.1
-    },
-    {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
       "colliderType": "Circle2D",
       "isTrigger": true,

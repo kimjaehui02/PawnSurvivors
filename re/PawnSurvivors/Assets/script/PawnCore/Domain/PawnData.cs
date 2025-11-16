@@ -16,48 +16,7 @@ namespace PawnCore.Domain
         public MovableData movableData;
         public PhysicsData physicsData;
 
-        // 하위 호환성을 위한 속성들 (deprecated 예정)
-        // public float maxHealth
-        // {
-        //     get => healthData?.maxHealth ?? 0f;
-        //     set { if (healthData == null) healthData = new HealthData(); healthData.maxHealth = value; }
-        // }
 
-        // public float currentHealth
-        // {
-        //     get => healthData?.currentHealth ?? 0f;
-        //     set { if (healthData == null) healthData = new HealthData(); healthData.currentHealth = value; }
-        // }
-
-        // public string visualSpriteName
-        // {
-        //     get => visualData?.spriteName;
-        //     set { if (visualData == null) visualData = new VisualData(); visualData.spriteName = value; }
-        // }
-
-        // public Color visualColor
-        // {
-        //     get => visualData?.color ?? Color.white;
-        //     set { if (visualData == null) visualData = new VisualData(); visualData.color = value; }
-        // }
-
-        // public float damage
-        // {
-        //     get => combatData?.damage ?? 0f;
-        //     set { if (combatData == null) combatData = new CombatData(); combatData.damage = value; }
-        // }
-
-        // public string projectileRecipeName
-        // {
-        //     get => combatData?.projectileRecipeName;
-        //     set { if (combatData == null) combatData = new CombatData(); combatData.projectileRecipeName = value; }
-        // }
-
-        // public float fireRate
-        // {
-        //     get => combatData?.fireRate ?? 0f;
-        //     set { if (combatData == null) combatData = new CombatData(); combatData.fireRate = value; }
-        // }
     }
 
     [Serializable]

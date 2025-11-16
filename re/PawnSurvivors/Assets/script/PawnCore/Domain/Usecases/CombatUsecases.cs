@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using PawnCore.Domain;
 using PawnCore.Domain.Events;
@@ -43,5 +44,58 @@ public static class CombatUsecases
             
             GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction);
         }
+    }
+
+    /// <summary>
+    /// 데미지를 적용하고 결과를 반환합니다.
+    /// </summary>
+    /// <param name="healthData">체력 데이터</param>
+    /// <param name="damageAmount">데미지 양</param>
+    /// <returns>(실제 적용된 데미지, 적용 후 체력, 치명타 여부)</returns>
+    public static (float actualDamage, float newHealth, bool isFatal) ApplyDamage(HealthData healthData, float damageAmount)
+    {
+        if (healthData == null)
+        {
+            Debug.LogWarning("[CombatUsecases] HealthData is null. Cannot apply damage.");
+            return (0f, 0f, false);
+        }
+
+        float healthBefore = healthData.currentHealth;
+        
+        // 데미지 적용 (최소값 0)
+        healthData.currentHealth = Mathf.Max(healthData.currentHealth - damageAmount, 0f);
+        
+        // 결과 계산
+        float actualDamage = healthBefore - healthData.currentHealth;
+        bool isFatal = healthData.currentHealth <= 0f;
+        
+        return (actualDamage, healthData.currentHealth, isFatal);
+    }
+
+    /// <summary>
+    /// 쿨다운을 고려하여 데미지를 줄 수 있는지 확인합니다.
+    /// </summary>
+    /// <param name="target">대상 PawnManager</param>
+    /// <param name="currentTime">현재 시간</param>
+    /// <param name="cooldown">쿨다운 시간</param>
+    /// <param name="lastDamageTimes">마지막 데미지 시간 딕셔너리</param>
+    /// <returns>데미지를 줄 수 있으면 true</returns>
+    public static bool CanDealDamageWithCooldown(
+        PawnManager target, 
+        float currentTime, 
+        float cooldown, 
+        Dictionary<PawnManager, float> lastDamageTimes)
+    {
+        if (lastDamageTimes.TryGetValue(target, out float lastTime))
+        {
+            if (currentTime - lastTime < cooldown)
+            {
+                return false; // 쿨다운 중
+            }
+        }
+        
+        // 쿨다운이 지났거나 처음 공격하는 경우
+        lastDamageTimes[target] = currentTime;
+        return true;
     }
 }

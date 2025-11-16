@@ -5,6 +5,7 @@ using PawnCore.Domain.Events;
 /// <summary>
 /// Pawn이 데미지를 받을 수 있도록 하는 SubManager입니다.
 /// DamageEvent를 구독하여 데미지를 처리하고, 체력이 0이 되면 PawnDeathEvent를 발행합니다.
+/// 비즈니스 로직은 CombatUsecases에 위임합니다.
 /// </summary>
 public class DamageableSubManager : PawnSubManager
 {
@@ -58,25 +59,17 @@ public class DamageableSubManager : PawnSubManager
         // HealthData가 없으면 무시
         if (_pawnData?.healthData == null) return;
 
-        // 데미지 적용 전 체력
-        float healthBefore = _pawnData.healthData.currentHealth;
-        
-        // 데미지 적용
-        _pawnData.healthData.currentHealth -= evt.Amount;
-        _pawnData.healthData.currentHealth = Mathf.Max(_pawnData.healthData.currentHealth, 0);
-        
-        // 실제 적용된 데미지 계산
-        float actualDamage = healthBefore - _pawnData.healthData.currentHealth;
-        bool isFatal = _pawnData.healthData.currentHealth <= 0;
+        // ✅ 비즈니스 로직은 UseCases에 위임
+        var (actualDamage, newHealth, isFatal) = CombatUsecases.ApplyDamage(_pawnData.healthData, evt.Amount);
 
-        Debug.Log($"{_pawnManager.name} took {actualDamage} damage. Current health: {_pawnData.healthData.currentHealth}");
+        Debug.Log($"{_pawnManager.name} took {actualDamage} damage. Current health: {newHealth}");
 
         // 피격 이벤트 발행 (무적, 넉백, 이펙트 등 추가 효과를 위해)
         _pawnManager.Publish(new PawnDamagedEvent(
             _pawnManager, 
             actualDamage, 
             evt.Attacker, 
-            _pawnData.healthData.currentHealth,
+            newHealth,
             isFatal
         ));
 
