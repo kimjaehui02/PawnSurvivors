@@ -100,7 +100,7 @@ namespace PawnCore.Presentation.SubManagers.Visual
             _material.SetFloat(FlashAmountProperty, 0f);
             _material.SetColor(FlashColorProperty, flashColor);
 
-            Debug.Log($"[HitFlashSubManager] {name}: Flash Shader 설정 완료!");
+            // Debug.Log($"[HitFlashSubManager] {name}: Flash Shader 설정 완료!");
         }
 
         /// <summary>

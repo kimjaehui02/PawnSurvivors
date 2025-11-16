@@ -9,6 +9,24 @@ namespace PawnCore.Presentation.SubManagers.Visual
         private SpriteRenderer _spriteRenderer; // SpriteRenderer 참조 추가
         private GameObject _shadowObject;
         private SpriteRenderer _shadowRenderer;
+        private GameObject _visualsObject; // Visuals 게임오브젝트 참조
+        private Rigidbody2D _rigidbody2D; // 이동 체크용 (옵션)
+        private Vector3 _lastPosition; // 이전 프레임 위치
+        
+        [Header("바운스 애니메이션 설정")]
+        [Tooltip("바운스 효과 활성화")]
+        public bool enableBounce = true;
+        
+        [Tooltip("바운스 높이")]
+        public float bounceHeight = 0.1f;
+        
+        [Tooltip("바운스 속도 (높을수록 빠름)")]
+        public float bounceSpeed = 10f;
+        
+        [Tooltip("이동 시작으로 간주할 최소 속도")]
+        public float movementThreshold = 0.1f;
+        
+        private float _bounceTimer = 0f;
 
         public override void SubStart()
         {
@@ -27,12 +45,17 @@ namespace PawnCore.Presentation.SubManagers.Visual
             }
 
             // "Visuals" 라는 이름의 자식 게임오브젝트 생성
-            GameObject visualsObject = new GameObject("Visuals");
-            visualsObject.transform.SetParent(_pawnManager.transform);
-            visualsObject.transform.localPosition = Vector3.zero; // 위치 초기화
+            _visualsObject = new GameObject("Visuals");
+            _visualsObject.transform.SetParent(_pawnManager.transform);
+            _visualsObject.transform.localPosition = Vector3.zero; // 위치 초기화
 
             // 자식 오브젝트에 SpriteRenderer 추가 또는 가져오기
-            _spriteRenderer = visualsObject.AddComponent<SpriteRenderer>();
+            _spriteRenderer = _visualsObject.AddComponent<SpriteRenderer>();
+            
+            // Rigidbody2D는 SubUpdate에서 찾기 (PhysicsSubManager가 나중에 추가할 수 있음)
+            
+            // 이전 프레임 위치 초기화
+            _lastPosition = _pawnManager.transform.position;
 
             Sprite visualSprite = null;
             
@@ -47,7 +70,7 @@ namespace PawnCore.Presentation.SubManagers.Visual
                     if (allSprites != null && allSprites.Length > _pawnData.visualData.visualSpriteIndex)
                     {
                         visualSprite = allSprites[_pawnData.visualData.visualSpriteIndex];
-                        Debug.Log($"VisualSubManager: '{_pawnData.visualData.visualSpriteName}'의 인덱스 {_pawnData.visualData.visualSpriteIndex} 스프라이트 로드 완료! (총 {allSprites.Length}개 슬라이스)", this);
+                        // Debug.Log($"VisualSubManager: '{_pawnData.visualData.visualSpriteName}'의 인덱스 {_pawnData.visualData.visualSpriteIndex} 스프라이트 로드 완료! (총 {allSprites.Length}개 슬라이스)", this);
                     }
                     else
                     {
@@ -77,7 +100,7 @@ namespace PawnCore.Presentation.SubManagers.Visual
                         if (allSprites != null && allSprites.Length > 0)
                         {
                             visualSprite = allSprites[0]; // 첫 번째 슬라이스 사용
-                            Debug.Log($"VisualSubManager: '{_pawnData.visualData.visualSpriteName}'를 찾을 수 없어 '{basePath}'의 첫 번째 스프라이트를 사용합니다. (총 {allSprites.Length}개 슬라이스)", this);
+                            // Debug.Log($"VisualSubManager: '{_pawnData.visualData.visualSpriteName}'를 찾을 수 없어 '{basePath}'의 첫 번째 스프라이트를 사용합니다. (총 {allSprites.Length}개 슬라이스)", this);
                         }
                         else
                         {
@@ -98,7 +121,7 @@ namespace PawnCore.Presentation.SubManagers.Visual
                     return; // 렌더링할 스프라이트 없음
                 }
                 
-                Debug.Log($"{_pawnManager.name}: 기본 원 스프라이트를 사용합니다.");
+                // Debug.Log($"{_pawnManager.name}: 기본 원 스프라이트를 사용합니다.");
             }
 
             _spriteRenderer.sprite = visualSprite;
@@ -160,7 +183,70 @@ namespace PawnCore.Presentation.SubManagers.Visual
 
         public override void SubUpdate()
         {
-            // 시각적 업데이트가 있는 경우 여기에 배치합니다. 간단한 스프라이트의 경우 종종 아무것도 필요하지 않습니다.
+            // 바운스 애니메이션
+            if (enableBounce && _visualsObject != null)
+            {
+                UpdateBounceAnimation();
+            }
+        }
+        
+        /// <summary>
+        /// 이동 중일 때 콩콩 뛰는 바운스 애니메이션을 업데이트합니다.
+        /// Visuals 자식만 Y축으로 움직여서 실제 충돌/물리에는 영향을 주지 않습니다.
+        /// </summary>
+        private void UpdateBounceAnimation()
+        {
+            bool isMoving = false;
+            
+            // 현재 위치와 이전 프레임 위치 차이로 이동 체크
+            Vector3 currentPosition = _pawnManager.transform.position;
+            float positionDelta = Vector3.Distance(currentPosition, _lastPosition);
+            float deltaTime = GetGameDeltaTime();
+            
+            // deltaTime이 0이면 (정지 중) 속도 계산 건너뛰기
+            float speed = 0f;
+            if (deltaTime > 0f)
+            {
+                speed = positionDelta / deltaTime; // 속도 계산 (단위: units/sec)
+            }
+            
+            isMoving = speed > movementThreshold;
+            
+            // 다음 프레임을 위해 위치 저장
+            _lastPosition = currentPosition;
+            
+            // 디버그 로그 (1초에 한 번)
+            if (Time.frameCount % 60 == 0)
+            {
+                Debug.Log($"[Bounce] {_pawnManager.name}: speed={speed:F2}, positionDelta={positionDelta:F3}, isMoving={isMoving}, enableBounce={enableBounce}");
+            }
+            
+            if (isMoving)
+            {
+                // 이동 중: 바운스 타이머 증가
+                _bounceTimer += GetGameDeltaTime() * bounceSpeed;
+                
+                // Sine Wave로 상하 움직임 (0 ~ bounceHeight)
+                float yOffset = Mathf.Abs(Mathf.Sin(_bounceTimer)) * bounceHeight;
+                _visualsObject.transform.localPosition = new Vector3(0f, yOffset, 0f);
+            }
+            else
+            {
+                // 정지 중: 원위치로 부드럽게 복귀
+                Vector3 currentPos = _visualsObject.transform.localPosition;
+                if (currentPos.y > 0.01f)
+                {
+                    // Lerp로 부드럽게 내려오기
+                    float newY = Mathf.Lerp(currentPos.y, 0f, GetGameDeltaTime() * bounceSpeed);
+                    _visualsObject.transform.localPosition = new Vector3(0f, newY, 0f);
+                }
+                else
+                {
+                    // 거의 0에 가까우면 정확히 0으로
+                    _visualsObject.transform.localPosition = Vector3.zero;
+                    _bounceTimer = 0f; // 타이머 초기화
+                }
+            }
         }
     }
 }

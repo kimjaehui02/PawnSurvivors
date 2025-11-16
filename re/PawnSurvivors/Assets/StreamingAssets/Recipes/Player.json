@@ -35,7 +35,11 @@
       "visualSpriteName": "Temporary/mini",
       "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1},
       "visualSpriteIndex": 0,
-      "shadowPreset": "PlayerShadow"
+      "shadowPreset": "PlayerShadow",
+      "enableBounce": true,
+      "bounceHeight": 0.15,
+      "bounceSpeed": 12,
+      "movementThreshold": 0.1
     },
     {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",

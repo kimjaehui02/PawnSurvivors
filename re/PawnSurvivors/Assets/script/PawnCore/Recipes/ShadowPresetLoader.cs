@@ -37,7 +37,7 @@ namespace PawnCore.Recipes
                     if (preset != null && !string.IsNullOrEmpty(preset.presetName))
                     {
                         _presets[preset.presetName] = preset;
-                        Debug.Log($"ShadowPresetLoader: '{preset.presetName}' 프리셋 로드 완료 from {Path.GetFileName(filePath)}");
+                        // Debug.Log($"ShadowPresetLoader: '{preset.presetName}' 프리셋 로드 완료 from {Path.GetFileName(filePath)}");
                     }
                     else
                     {
@@ -50,7 +50,7 @@ namespace PawnCore.Recipes
                 }
             }
 
-            Debug.Log($"ShadowPresetLoader: 총 {_presets.Count}개의 프리셋 로드 완료.");
+            // Debug.Log($"ShadowPresetLoader: 총 {_presets.Count}개의 프리셋 로드 완료.");
         }
 
         /// <summary>

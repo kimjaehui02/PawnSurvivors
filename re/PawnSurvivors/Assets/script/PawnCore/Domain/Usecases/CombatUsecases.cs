@@ -35,11 +35,11 @@ public static class CombatUsecases
             if (closestEnemy != null)
             {
                 direction = (closestEnemy.position - firePoint.position).normalized;
-                Debug.Log($"Found closest enemy at {closestEnemy.position}. Projectile direction set to {direction}");
+                // Debug.Log($"Found closest enemy at {closestEnemy.position}. Projectile direction set to {direction}");
             }
             else
             {
-                Debug.Log("No enemy found. Projectile will fire in default direction (firePoint.up).");
+                // Debug.Log("No enemy found. Projectile will fire in default direction (firePoint.up).");
             }
             
             GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction);

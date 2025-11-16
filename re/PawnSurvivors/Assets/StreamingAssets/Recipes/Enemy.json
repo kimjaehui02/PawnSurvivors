@@ -18,7 +18,11 @@
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
       "visualSpriteName": "Temporary/Circle",
       "visualColor": {"r": 0.75, "g": 0.75, "b": 0.75, "a": 1},
-      "shadowPreset": "EnemyShadow"
+      "shadowPreset": "EnemyShadow",
+      "enableBounce": true,
+      "bounceHeight": 0.1,
+      "bounceSpeed": 8,
+      "movementThreshold": 0.1
     },
     {
       "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",

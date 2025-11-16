@@ -172,6 +172,19 @@ namespace PawnCore.Recipes.Json
         
         [Tooltip("그림자 프리셋 이름 (null이면 그림자 없음)")]
         public string shadowPreset = null;
+        
+        [Header("바운스 애니메이션")]
+        [Tooltip("바운스 효과 활성화")]
+        public bool enableBounce = true;
+        
+        [Tooltip("바운스 높이")]
+        public float bounceHeight = 0.1f;
+        
+        [Tooltip("바운스 속도 (높을수록 빠름)")]
+        public float bounceSpeed = 10f;
+        
+        [Tooltip("이동 시작으로 간주할 최소 속도")]
+        public float movementThreshold = 0.1f;
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
@@ -189,7 +202,15 @@ namespace PawnCore.Recipes.Json
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
         {
-            return pawnObject.AddComponent<PawnCore.Presentation.SubManagers.Visual.VisualSubManager>();
+            var visualSubManager = pawnObject.AddComponent<PawnCore.Presentation.SubManagers.Visual.VisualSubManager>();
+            
+            // 바운스 설정 적용
+            visualSubManager.enableBounce = enableBounce;
+            visualSubManager.bounceHeight = bounceHeight;
+            visualSubManager.bounceSpeed = bounceSpeed;
+            visualSubManager.movementThreshold = movementThreshold;
+            
+            return visualSubManager;
         }
     }
 

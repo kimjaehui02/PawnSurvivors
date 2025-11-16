@@ -100,7 +100,7 @@ public class CollisionDamageSubManager : PawnSubManager
             // 상대방에게 DamageEvent 발행
             targetPawnManager.Publish(new DamageEvent(targetPawnManager, _pawnData.combatData.damage, gameObject));
             
-            Debug.Log($"[CollisionDamage] {gameObject.name} → {other.name}: {_pawnData.combatData.damage} damage");
+            // Debug.Log($"[CollisionDamage] {gameObject.name} → {other.name}: {_pawnData.combatData.damage} damage");
 
             // destroyOnHit이 true일 경우에만 자신 파괴 (발사체의 경우)
             if (destroyOnHit)

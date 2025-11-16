@@ -59,10 +59,10 @@ public class DamageableSubManager : PawnSubManager
         // HealthData가 없으면 무시
         if (_pawnData?.healthData == null) return;
 
-        // ✅ 비즈니스 로직은 UseCases에 위임
-        var (actualDamage, newHealth, isFatal) = CombatUsecases.ApplyDamage(_pawnData.healthData, evt.Amount);
+            // ✅ 비즈니스 로직은 UseCases에 위임
+            var (actualDamage, newHealth, isFatal) = CombatUsecases.ApplyDamage(_pawnData.healthData, evt.Amount);
 
-        Debug.Log($"{_pawnManager.name} took {actualDamage} damage. Current health: {newHealth}");
+            // Debug.Log($"{_pawnManager.name} took {actualDamage} damage. Current health: {newHealth}");
 
         // 피격 이벤트 발행 (무적, 넉백, 이펙트 등 추가 효과를 위해)
         _pawnManager.Publish(new PawnDamagedEvent(
