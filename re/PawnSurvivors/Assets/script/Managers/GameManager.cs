@@ -1,6 +1,7 @@
 using UnityEngine;
 using PawnSurvivors.Managers;
 using PawnSurvivors.Data;
+using PawnSurvivors.Player;
 using System.IO;
 
 public class GameManager : MonoBehaviour
@@ -16,6 +17,11 @@ public class GameManager : MonoBehaviour
     /// 현재 게임 세션의 런타임 데이터
     /// </summary>
     public GameSessionData SessionData { get; private set; }
+    
+    /// <summary>
+    /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
+    /// </summary>
+    public PlayerController PlayerController { get; private set; }
 
     private void Awake()
     {
@@ -65,16 +71,28 @@ public class GameManager : MonoBehaviour
         
         Debug.Log($"[GameManager] 새 게임 세션 시작: {SessionData}");
         
-        // 플레이어 폰 생성
-        PawnCore.Recipes.Json.PawnRecipeData playerRecipe = CreationManager.GetRecipe("Player");
-        if (playerRecipe != null)
+        // PlayerController 생성 (입력 받는 중심 오브젝트)
+        GameObject playerControllerObj = new GameObject("PlayerController");
+        PlayerController = playerControllerObj.AddComponent<PlayerController>();
+        
+        // 메인 카메라를 PlayerController의 자식으로 설정
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
         {
-            CreationManager.CreatePawn(playerRecipe, Vector3.zero, Quaternion.identity);
+            mainCamera.transform.SetParent(PlayerController.transform);
+            mainCamera.transform.localPosition = new Vector3(0f, 0f, -10f); // 2D 게임용
+            Debug.Log("[GameManager] 메인 카메라가 PlayerController에 붙었습니다.");
         }
-        else
+        
+        // ========== 인원 테스트 ==========
+        // 이 숫자를 1~6 사이로 변경해서 대열 테스트!
+        int testPlayerCount = 3;
+        
+        for (int i = 0; i < testPlayerCount; i++)
         {
-            Debug.LogError("Player recipe not found! Cannot create player pawn.");
+            AddPlayerPawn("Player");
         }
+        // ========== 인원 테스트 끝 ==========
 
         // 스테이지 로드 및 시작
         StageData stageData = _stageLoader.GetStage(stageName);
@@ -90,6 +108,47 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 플레이어블 폰을 추가합니다.
+    /// </summary>
+    public GameObject AddPlayerPawn(string recipeName, Vector3? worldPosition = null)
+    {
+        if (PlayerController == null)
+        {
+            Debug.LogError("[GameManager] PlayerController가 없습니다!");
+            return null;
+        }
+        
+        var recipe = CreationManager.GetRecipe(recipeName);
+        if (recipe == null)
+        {
+            Debug.LogError($"[GameManager] Recipe '{recipeName}'를 찾을 수 없습니다!");
+            return null;
+        }
+        
+        Vector3 spawnPos = worldPosition ?? PlayerController.transform.position;
+        GameObject pawn = CreationManager.CreatePawn(recipe, spawnPos, Quaternion.identity);
+        
+        if (pawn != null)
+        {
+            PlayerController.AddPlayerPawn(pawn);
+            Debug.Log($"[GameManager] 플레이어 폰 추가: {recipeName}");
+        }
+        
+        return pawn;
+    }
+    
+    /// <summary>
+    /// 여러 플레이어블 폰을 한 번에 추가합니다.
+    /// </summary>
+    public void AddMultiplePlayerPawns(string[] recipeNames)
+    {
+        foreach (string recipeName in recipeNames)
+        {
+            AddPlayerPawn(recipeName);
+        }
+    }
+    
     /// <summary>
     /// 스테이지를 로드합니다.
     /// </summary>

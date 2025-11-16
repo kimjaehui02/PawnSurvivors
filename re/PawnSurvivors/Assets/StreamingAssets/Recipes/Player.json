@@ -13,16 +13,6 @@
       "blinkSpeed": 5.0
     },
     {
-      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
-      "strategySetups": [
-        {
-          "$type": "PawnCore.Recipes.Json.KeyboardStrategySetupData, Assembly-CSharp",
-          "isEnabledByDefault": true,
-          "moveSpeed": 5
-        }
-      ]
-    },
-    {
       "$type": "PawnCore.Recipes.Json.PlayerAttackInputSubManagerSetupData, Assembly-CSharp"
     },
     {
