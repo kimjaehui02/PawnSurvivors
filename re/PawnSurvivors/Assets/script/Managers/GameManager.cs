@@ -84,15 +84,21 @@ public class GameManager : MonoBehaviour
             Debug.Log("[GameManager] 메인 카메라가 PlayerController에 붙었습니다.");
         }
         
-        // ========== 인원 테스트 ==========
-        // 이 숫자를 1~6 사이로 변경해서 대열 테스트!
-        int testPlayerCount = 3;
-        
-        for (int i = 0; i < testPlayerCount; i++)
+        // ========== 초기 플레이어 생성 ==========
+        // 기본 플레이어 3개
+        for (int i = 0; i < 3; i++)
         {
             AddPlayerPawn("Player");
         }
-        // ========== 인원 테스트 끝 ==========
+        
+        // 버터 캐릭터 3개
+        for (int i = 0; i < 3; i++)
+        {
+            AddPlayerPawn("PlayerButter");
+        }
+        
+        Debug.Log("[GameManager] 총 6명의 플레이어 생성 완료 (Player x3, PlayerButter x3)");
+        // ========== 초기 플레이어 생성 끝 ==========
 
         // 스테이지 로드 및 시작
         StageData stageData = _stageLoader.GetStage(stageName);

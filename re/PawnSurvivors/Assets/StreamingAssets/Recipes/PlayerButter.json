@@ -1,0 +1,45 @@
+
+{
+  "pawnName": "PlayerButter",
+  "visualPrefab": "Prefabs/Circle",
+  "subManagerSetups": [
+    {
+      "$type": "PawnCore.Recipes.Json.DamageableSubManagerSetupData, Assembly-CSharp",
+      "maxHealth": 100
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.InvincibilitySubManagerSetupData, Assembly-CSharp",
+      "invincibilityDuration": 1.0,
+      "blinkSpeed": 5.0
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PlayerAttackInputSubManagerSetupData, Assembly-CSharp"
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
+      "projectileRecipeName": "Bullet",
+      "fireRate": 1
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualSpriteName": "Asprite/butter",
+      "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1},
+      "visualSpriteIndex": -1,
+      "shadowPreset": "PlayerShadow",
+      "enableBounce": true,
+      "bounceHeight": 0.15,
+      "bounceSpeed": 12,
+      "movementThreshold": 0.1
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": true,
+      "rigidbodyType": "Kinematic",
+      "gravityScale": 0,
+      "physicsLayerName": "Player",
+      "physicsTag": "Player"
+    }
+  ]
+}
+

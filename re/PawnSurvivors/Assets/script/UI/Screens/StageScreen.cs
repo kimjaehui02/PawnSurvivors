@@ -29,6 +29,7 @@ namespace PawnSurvivors.UI
             if (OptionButton != null)
             {
                 OptionButton.onClick.AddListener(OnOptionButtonClicked);
+                LoadOptionButtonSprite();
             }
 
             InitializeStageData();
@@ -58,6 +59,30 @@ namespace PawnSurvivors.UI
                     Debug.LogWarning($"StageData for '{_selectedStage}' not found. Using default duration.");
                     stageTime = 300f; // 기본값
                 }
+            }
+        }
+
+        private void LoadOptionButtonSprite()
+        {
+            // Resources에서 옵션 아이콘 스프라이트 로드
+            Sprite optionSprite = Resources.Load<Sprite>("Asprite/Option");
+            
+            if (optionSprite != null)
+            {
+                // 버튼의 Image 컴포넌트 찾기
+                Image buttonImage = OptionButton.GetComponent<Image>();
+                if (buttonImage != null)
+                {
+                    buttonImage.sprite = optionSprite;
+                }
+                else
+                {
+                    Debug.LogWarning("[StageScreen] OptionButton에 Image 컴포넌트가 없습니다.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[StageScreen] 'Resources/Asprite/Option' 스프라이트를 찾을 수 없습니다.");
             }
         }
         #endregion
