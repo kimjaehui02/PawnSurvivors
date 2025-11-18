@@ -18,7 +18,8 @@ namespace PawnCore.Recipes.Json
             }
 
             var info = new DirectoryInfo(directoryPath);
-            var fileInfo = info.GetFiles("*.json");
+            // 하위 폴더까지 재귀적으로 검색 (Players/, Enemies/, Projectiles/ 등)
+            var fileInfo = info.GetFiles("*.json", SearchOption.AllDirectories);
 
             var settings = new JsonSerializerSettings
             {
@@ -30,7 +31,10 @@ namespace PawnCore.Recipes.Json
                 string json = File.ReadAllText(file.FullName);
                 PawnRecipeData data = JsonConvert.DeserializeObject<PawnRecipeData>(json, settings);
                 recipes[data.pawnName] = data;
+                Debug.Log($"[RecipeLoader] 레시피 로드: {data.pawnName} (from {file.Name})");
             }
+            
+            Debug.Log($"[RecipeLoader] 총 {recipes.Count}개의 레시피 로드 완료");
         }
 
         public PawnRecipeData GetRecipe(string recipeName)

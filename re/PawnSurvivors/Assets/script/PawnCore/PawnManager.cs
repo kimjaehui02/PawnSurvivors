@@ -15,6 +15,12 @@ public class PawnManager : MonoBehaviour
     #region 필드 (Fields)
 
     public PawnData PawnData { get; set; }
+    
+    /// <summary>
+    /// 이 Pawn의 소유자(발사자)입니다. 
+    /// 탄환의 경우 발사한 PawnManager를 저장합니다.
+    /// </summary>
+    public PawnManager Owner { get; set; }
 
     /// <summary>
     /// 이벤트 핸들러와 우선순위를 저장하는 래퍼 클래스입니다.

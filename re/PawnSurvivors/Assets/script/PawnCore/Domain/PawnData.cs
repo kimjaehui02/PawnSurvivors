@@ -9,6 +9,9 @@ namespace PawnCore.Domain
     [Serializable]
     public class PawnData
     {
+        // 레시피 이름 (UI 표시 등에 사용)
+        public string recipeName;
+        
         // 모듈화된 데이터 (nullable로 필요한 것만 할당)
         public HealthData healthData;
         public VisualData visualData;

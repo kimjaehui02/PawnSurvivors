@@ -14,16 +14,27 @@ public static class CombatUsecases
     /// <summary>
     /// 발사체를 발사합니다.
     /// </summary>
-    public static void FireProjectile(PawnRecipeData projectileRecipe, Vector3 position, Quaternion rotation, Vector3 direction)
+    /// <param name="projectileRecipe">발사체 레시피</param>
+    /// <param name="position">발사 위치</param>
+    /// <param name="rotation">발사 회전</param>
+    /// <param name="direction">발사 방향</param>
+    /// <param name="owner">발사자 PawnManager (선택적)</param>
+    public static void FireProjectile(PawnRecipeData projectileRecipe, Vector3 position, Quaternion rotation, Vector3 direction, PawnManager owner = null)
     {
         // 발사체가 올바른 방향을 향하도록 생성되었는지 확인
-        GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, position, Quaternion.LookRotation(Vector3.forward, direction));
+        GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, position, Quaternion.LookRotation(Vector3.forward, direction), null, owner);
     }
 
     /// <summary>
     /// 발사체 공격을 처리합니다.
     /// </summary>
-    public static void HandleProjectileAttack(ref float nextFireTime, float fireRate, PawnRecipeData projectileRecipe, Transform firePoint, float gameTime)
+    /// <param name="nextFireTime">다음 발사 시간 (ref)</param>
+    /// <param name="fireRate">발사 속도</param>
+    /// <param name="projectileRecipe">발사체 레시피</param>
+    /// <param name="firePoint">발사 지점</param>
+    /// <param name="gameTime">현재 게임 시간</param>
+    /// <param name="owner">발사자 PawnManager (선택적)</param>
+    public static void HandleProjectileAttack(ref float nextFireTime, float fireRate, PawnRecipeData projectileRecipe, Transform firePoint, float gameTime, PawnManager owner = null)
     {
         if (gameTime >= nextFireTime)
         {
@@ -42,7 +53,7 @@ public static class CombatUsecases
                 // Debug.Log("No enemy found. Projectile will fire in default direction (firePoint.up).");
             }
             
-            GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction);
+            GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction, owner);
         }
     }
 

@@ -1,0 +1,64 @@
+{
+  "pawnName": "PlayerWithLevelUp",
+  "subManagerSetups": [
+    {
+      "$type": "PawnCore.Recipes.Json.DamageableSubManagerSetupData, Assembly-CSharp",
+      "maxHealth": 100
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualSpriteName": "Temporary/mini",
+      "visualSpriteIndex": 0,
+      "visualColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "shadowPreset": "PlayerShadow",
+      "enableBounce": true,
+      "bounceHeight": 0.1,
+      "bounceSpeed": 8.0,
+      "movementThreshold": 0.1
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": true,
+      "rigidbodyType": "Kinematic",
+      "gravityScale": 0,
+      "physicsLayerName": "Player",
+      "physicsTag": "Player"
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.InvincibilitySubManagerSetupData, Assembly-CSharp",
+      "invincibilityDuration": 1.0,
+      "blinkInterval": 0.1
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
+      "projectileRecipeName": "Bullet",
+      "fireRate": 2.0
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PlayerAttackInputSubManagerSetupData, Assembly-CSharp"
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.LevelUpSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.KillCountStrategySetup, Assembly-CSharp",
+          "targetLevel": 2,
+          "conditionDescription": "적 3명 처치",
+          "rewardDescription": "체력 +20, 데미지 1.5배",
+          "requiredKills": 3,
+          "healthIncrease": 20,
+          "damageMultiplier": 1.5,
+          "speedIncrease": 0,
+          "fireRateMultiplier": 1.0
+        }
+      ]
+    }
+  ]
+}
+

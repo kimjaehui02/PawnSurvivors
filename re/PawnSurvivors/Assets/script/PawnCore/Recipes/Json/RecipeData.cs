@@ -417,4 +417,124 @@ namespace PawnCore.Recipes.Json
             return subManager;
         }
     }
+
+    [Serializable]
+    public class LevelUpSubManagerSetupData : SubManagerSetupData
+    {
+        [SerializeReference]
+        public List<LevelUpStrategySetupData> strategySetups;
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // LevelUpSubManager는 PawnData에 저장할 데이터가 없음
+            // 레벨업 보상이 PawnData를 직접 수정함
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            LevelUpSubManager levelUpSubManager = pawnObject.AddComponent<LevelUpSubManager>();
+            
+            // 각 전략 컴포넌트 추가
+            if (strategySetups != null)
+            {
+                foreach (var strategySetup in strategySetups)
+                {
+                    strategySetup.AddLevelUpStrategyComponent(pawnObject);
+                }
+            }
+            
+            return levelUpSubManager;
+        }
+    }
+
+    // ========================================
+    // LevelUp Strategy Setup Data
+    // ========================================
+
+    [Serializable]
+    public abstract class LevelUpStrategySetupData
+    {
+        public int targetLevel = 2;
+        
+        // UI 표시용 텍스트
+        public string conditionDescription = "";
+        public string rewardDescription = "";
+        
+        // 보상 데이터
+        public float healthIncrease = 0f;
+        public float damageMultiplier = 1f;
+        public float speedIncrease = 0f;
+        public float fireRateMultiplier = 1f;
+
+        public abstract MonoBehaviour AddLevelUpStrategyComponent(GameObject pawnObject);
+        
+        protected void ApplyCommonSettings(LevelUpStrategyBase strategy)
+        {
+            strategy.targetLevel = targetLevel;
+            strategy.conditionDescription = conditionDescription;
+            strategy.rewardDescription = rewardDescription;
+            strategy.healthIncrease = healthIncrease;
+            strategy.damageMultiplier = damageMultiplier;
+            strategy.speedIncrease = speedIncrease;
+            strategy.fireRateMultiplier = fireRateMultiplier;
+        }
+    }
+
+    [Serializable]
+    public class KillCountStrategySetup : LevelUpStrategySetupData
+    {
+        public int requiredKills = 3;
+
+        public override MonoBehaviour AddLevelUpStrategyComponent(GameObject pawnObject)
+        {
+            KillCountLevelUpStrategy strategy = pawnObject.AddComponent<KillCountLevelUpStrategy>();
+            ApplyCommonSettings(strategy);
+            strategy.requiredKills = requiredKills;
+            return strategy;
+        }
+    }
+
+    [Serializable]
+    public class SurvivalTimeStrategySetup : LevelUpStrategySetupData
+    {
+        public float requiredSeconds = 30f;
+
+        public override MonoBehaviour AddLevelUpStrategyComponent(GameObject pawnObject)
+        {
+            SurvivalTimeLevelUpStrategy strategy = pawnObject.AddComponent<SurvivalTimeLevelUpStrategy>();
+            ApplyCommonSettings(strategy);
+            strategy.requiredSeconds = requiredSeconds;
+            return strategy;
+        }
+    }
+
+    [Serializable]
+    public class DamageDealtStrategySetup : LevelUpStrategySetupData
+    {
+        public float requiredDamage = 500f;
+
+        public override MonoBehaviour AddLevelUpStrategyComponent(GameObject pawnObject)
+        {
+            DamageDealtLevelUpStrategy strategy = pawnObject.AddComponent<DamageDealtLevelUpStrategy>();
+            ApplyCommonSettings(strategy);
+            strategy.requiredDamage = requiredDamage;
+            return strategy;
+        }
+    }
+
+    [Serializable]
+    public class EventTriggerStrategySetup : LevelUpStrategySetupData
+    {
+        public string eventName = "BossDiscoveredEvent";
+        public int requiredCount = 1;
+
+        public override MonoBehaviour AddLevelUpStrategyComponent(GameObject pawnObject)
+        {
+            EventTriggerLevelUpStrategy strategy = pawnObject.AddComponent<EventTriggerLevelUpStrategy>();
+            ApplyCommonSettings(strategy);
+            strategy.eventName = eventName;
+            strategy.requiredCount = requiredCount;
+            return strategy;
+        }
+    }
 }

@@ -46,7 +46,7 @@ public class CreationManager : MonoBehaviour
         return CreatePawn(recipeData, position, rotation);
     }
 
-    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null)
+    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null, PawnManager owner = null)
     {
         if (recipeData == null)
         {
@@ -62,6 +62,12 @@ public class CreationManager : MonoBehaviour
         // 3. 필수 PawnManager를 추가하고 PawnData를 초기화합니다.
         PawnManager pawnManager = pawnObject.AddComponent<PawnManager>();
         pawnManager.PawnData = recipeData.ToPawnData();
+        
+        // 레시피 이름 설정 (UI 표시용)
+        pawnManager.PawnData.recipeName = recipeData.pawnName;
+        
+        // 소유자 설정 (탄환의 경우 발사자)
+        pawnManager.Owner = owner;
 
         // 방향이 제공되면 PawnData의 directionalMovement.moveDirection을 재정의합니다.
         if (direction.HasValue && pawnManager.PawnData.movableData.directionalMovement != null)

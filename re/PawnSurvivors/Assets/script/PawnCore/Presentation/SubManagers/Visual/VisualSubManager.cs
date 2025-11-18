@@ -216,10 +216,10 @@ namespace PawnCore.Presentation.SubManagers.Visual
             _lastPosition = currentPosition;
             
             // 디버그 로그 (1초에 한 번)
-            if (Time.frameCount % 60 == 0)
-            {
-                Debug.Log($"[Bounce] {_pawnManager.name}: speed={speed:F2}, positionDelta={positionDelta:F3}, isMoving={isMoving}, enableBounce={enableBounce}");
-            }
+            // if (Time.frameCount % 60 == 0)
+            // {
+            //     // Debug.Log($"[Bounce] {_pawnManager.name}: speed={speed:F2}, positionDelta={positionDelta:F3}, isMoving={isMoving}, enableBounce={enableBounce}");
+            // }
             
             if (isMoving)
             {
