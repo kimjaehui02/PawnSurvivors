@@ -44,7 +44,7 @@ namespace PawnSurvivors.Player
         public float polygonRadius = 1.5f;
         
         [Tooltip("플레이어 폰의 크기 배율 (1.0 = 원본 크기)")]
-        public float pawnScale = 0.6f;
+        public float pawnScale = 1f;
         
         [Header("참조")]
         [Tooltip("플레이어 폰들 (수동 할당 또는 런타임 추가)")]
