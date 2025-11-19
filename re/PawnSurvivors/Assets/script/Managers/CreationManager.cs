@@ -46,7 +46,7 @@ public class CreationManager : MonoBehaviour
         return CreatePawn(recipeData, position, rotation);
     }
 
-    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null, PawnManager owner = null)
+    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null, PawnManager owner = null, float overrideDamage = 0f)
     {
         if (recipeData == null)
         {
@@ -68,6 +68,12 @@ public class CreationManager : MonoBehaviour
         
         // 소유자 설정 (탄환의 경우 발사자)
         pawnManager.Owner = owner;
+
+        // 발사자의 데미지가 제공되면 투사체의 데미지를 덮어쓰기
+        if (overrideDamage > 0f && pawnManager.PawnData.combatData != null)
+        {
+            pawnManager.PawnData.combatData.damage = overrideDamage;
+        }
 
         // 방향이 제공되면 PawnData의 directionalMovement.moveDirection을 재정의합니다.
         if (direction.HasValue && pawnManager.PawnData.movableData.directionalMovement != null)

@@ -132,6 +132,7 @@ namespace PawnCore.Recipes.Json
     {
         public string projectileRecipeName;
         public float fireRate;
+        public float damage; // 발사하는 투사체의 데미지
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
@@ -141,6 +142,7 @@ namespace PawnCore.Recipes.Json
             }
             pawnData.combatData.projectileRecipeName = projectileRecipeName;
             pawnData.combatData.fireRate = fireRate;
+            pawnData.combatData.damage = damage; // 발사자의 데미지 저장
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)

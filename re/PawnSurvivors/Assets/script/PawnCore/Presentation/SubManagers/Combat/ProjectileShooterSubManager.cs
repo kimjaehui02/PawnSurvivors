@@ -77,8 +77,9 @@ public class ProjectileShooterSubManager : PawnSubManager
         if (projectileRecipe != null)
         {
             float currentGameTime = GetGameTime(); // 게임 시간 사용 (정지 시 멈춤)
-            // 발사자 정보 전달 (탄환이 발사자를 추적할 수 있도록)
-            CombatUsecases.HandleProjectileAttack(ref _nextFireTime, _pawnData.combatData.fireRate, projectileRecipe, firePoint, currentGameTime, _pawnManager);
+            // 발사자 정보와 데미지 전달 (탄환이 발사자를 추적할 수 있도록)
+            float projectileDamage = _pawnData.combatData.damage; // 발사자의 데미지
+            CombatUsecases.HandleProjectileAttack(ref _nextFireTime, _pawnData.combatData.fireRate, projectileRecipe, firePoint, currentGameTime, _pawnManager, projectileDamage);
         }
     }
 }

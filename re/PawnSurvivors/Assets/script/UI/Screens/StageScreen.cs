@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using PawnCore.Recipes.Json;
 
 namespace PawnSurvivors.UI
 {
@@ -32,6 +33,9 @@ namespace PawnSurvivors.UI
         {
             public GameObject rootObject;
             public TMP_Text nameAndLevelText;
+            public TMP_Text healthText;
+            public Slider healthBar;
+            public TMP_Text dpsText;
             public TMP_Text progressText;
             public Slider progressBar;
         }
@@ -254,6 +258,81 @@ namespace PawnSurvivors.UI
                 if (pawnManager != null)
                 {
                     string pawnName = pawnManager.PawnData?.recipeName ?? pawnManager.name;
+                    var pawnData = pawnManager.PawnData;
+                    
+                    // 체력 표시 및 체력바 업데이트 (null-safe)
+                    if (pawnData?.healthData != null)
+                    {
+                        float currentHealth = pawnData.healthData.currentHealth;
+                        float maxHealth = pawnData.healthData.maxHealth;
+                        
+                        // 체력 텍스트 업데이트
+                        if (ui.healthText != null)
+                        {
+                            ui.healthText.text = $"HP: {currentHealth:F0}/{maxHealth:F0}";
+                        }
+                        
+                        // 체력바 업데이트
+                        if (ui.healthBar != null)
+                        {
+                            ui.healthBar.value = maxHealth > 0 ? currentHealth / maxHealth : 0f;
+                        }
+                    }
+                    else
+                    {
+                        if (ui.healthText != null)
+                        {
+                            ui.healthText.text = "HP: --/--";
+                        }
+                        if (ui.healthBar != null)
+                        {
+                            ui.healthBar.value = 0f;
+                        }
+                    }
+                    
+                    // 초당피해량 표시 (null-safe)
+                    // 투사체 레시피에서 데미지를 가져와서 계산
+                    if (ui.dpsText != null)
+                    {
+                        if (pawnData?.combatData != null && !string.IsNullOrEmpty(pawnData.combatData.projectileRecipeName))
+                        {
+                            // 투사체 레시피 가져오기
+                            var projectileRecipe = GameManager.Instance?.CreationManager?.GetRecipe(pawnData.combatData.projectileRecipeName);
+                            if (projectileRecipe != null)
+                            {
+                                // 투사체 레시피에서 데미지 찾기 (CollisionDamageSubManagerSetupData)
+                                float projectileDamage = 0f;
+                                if (projectileRecipe.subManagerSetups != null)
+                                {
+                                    foreach (var setup in projectileRecipe.subManagerSetups)
+                                    {
+                                        if (setup is CollisionDamageSubManagerSetupData damageSetup)
+                                        {
+                                            projectileDamage = damageSetup.damage;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                // 발사자의 데미지가 설정되어 있으면 그것을 사용 (우선순위)
+                                if (pawnData.combatData.damage > 0f)
+                                {
+                                    projectileDamage = pawnData.combatData.damage;
+                                }
+                                
+                                float dps = projectileDamage * pawnData.combatData.fireRate;
+                                ui.dpsText.text = $"DPS: {dps:F1}";
+                            }
+                            else
+                            {
+                                ui.dpsText.text = "DPS: --";
+                            }
+                        }
+                        else
+                        {
+                            ui.dpsText.text = "DPS: --";
+                        }
+                    }
                     
                     if (levelUpManager != null)
                     {
@@ -439,7 +518,7 @@ namespace PawnSurvivors.UI
             var rectTransform = ui.rootObject.AddComponent<RectTransform>();
             
             // 각 UI의 위치를 인덱스에 따라 계산
-            float uiHeight = 90f; // 각 UI의 높이
+            float uiHeight = 110f; // 각 UI의 높이 (겹침으로 인해 줄어듦)
             float spacing = 15f; // UI 간 간격
             float startY = -15f; // 시작 Y 위치 (상단에서)
             
@@ -501,50 +580,117 @@ namespace PawnSurvivors.UI
             nameRect.anchoredPosition = new Vector2(15f, -15f);
             nameRect.sizeDelta = new Vector2(-30f, 30f);
             
-            // 진행도 텍스트 (중간, 이름 텍스트와 간격)
-            var progressTextObj = new GameObject("ProgressText");
-            var progressTextRect = progressTextObj.AddComponent<RectTransform>();
-            progressTextObj.transform.SetParent(ui.rootObject.transform, false);
-            ui.progressText = progressTextObj.AddComponent<TextMeshProUGUI>();
-            ui.progressText.text = "0/100";
-            ui.progressText.fontSize = 20;
-            ui.progressText.color = Color.yellow;
-            ui.progressText.alignment = TextAlignmentOptions.Left;
+            // 체력바 (이름 아래, 좌측)
+            var healthBarObj = new GameObject("HealthBar");
+            var healthBarRect = healthBarObj.AddComponent<RectTransform>();
+            healthBarObj.transform.SetParent(ui.rootObject.transform, false);
+            ui.healthBar = healthBarObj.AddComponent<Slider>();
+            ui.healthBar.minValue = 0f;
+            ui.healthBar.maxValue = 1f;
+            ui.healthBar.value = 1f;
+            healthBarRect.anchorMin = new Vector2(0f, 1f);
+            healthBarRect.anchorMax = new Vector2(0.5f, 1f);
+            healthBarRect.pivot = new Vector2(0f, 1f);
+            healthBarRect.anchoredPosition = new Vector2(15f, -45f);
+            healthBarRect.sizeDelta = new Vector2(-15f, 20f);
             
-            // 한글 폰트 적용 (있으면, 없으면 자동으로 찾기)
+            // 체력바 배경
+            var healthBgObj = new GameObject("Background");
+            var healthBgRect = healthBgObj.AddComponent<RectTransform>();
+            healthBgObj.transform.SetParent(healthBarObj.transform, false);
+            var healthBgImg = healthBgObj.AddComponent<Image>();
+            healthBgImg.color = new Color(0.2f, 0.1f, 0.1f, 1f); // 어두운 빨간 배경
+            healthBgRect.anchorMin = Vector2.zero;
+            healthBgRect.anchorMax = Vector2.one;
+            healthBgRect.sizeDelta = Vector2.zero;
+            
+            // 체력바 채우기 영역
+            var healthFillAreaObj = new GameObject("Fill Area");
+            var healthFillAreaRect = healthFillAreaObj.AddComponent<RectTransform>();
+            healthFillAreaObj.transform.SetParent(healthBarObj.transform, false);
+            healthFillAreaRect.anchorMin = Vector2.zero;
+            healthFillAreaRect.anchorMax = Vector2.one;
+            healthFillAreaRect.sizeDelta = Vector2.zero;
+            
+            var healthFillObj = new GameObject("Fill");
+            var healthFillRect = healthFillObj.AddComponent<RectTransform>();
+            healthFillObj.transform.SetParent(healthFillAreaObj.transform, false);
+            var healthFillImg = healthFillObj.AddComponent<Image>();
+            healthFillImg.color = new Color(1f, 0.2f, 0.2f, 1f); // 빨간색
+            healthFillRect.anchorMin = Vector2.zero;
+            healthFillRect.anchorMax = Vector2.one;
+            healthFillRect.sizeDelta = Vector2.zero;
+            
+            ui.healthBar.fillRect = healthFillRect;
+            ui.healthBar.targetGraphic = healthFillImg;
+            
+            // 체력 텍스트 (체력바의 자식으로 배치하여 하나로 합침)
+            var healthTextObj = new GameObject("HealthText");
+            var healthTextRect = healthTextObj.AddComponent<RectTransform>();
+            healthTextObj.transform.SetParent(healthBarObj.transform, false); // 체력바의 자식으로 설정
+            ui.healthText = healthTextObj.AddComponent<TextMeshProUGUI>();
+            ui.healthText.text = "HP: 100/100";
+            ui.healthText.fontSize = 16;
+            ui.healthText.color = Color.white; // 흰색으로 변경 (빨간 바 위에서 잘 보이도록)
+            ui.healthText.alignment = TextAlignmentOptions.Center; // 중앙 정렬
+            ui.healthText.fontStyle = FontStyles.Bold; // 굵게
+            
+            // 한글 폰트 적용
             if (koreanFontAsset != null)
             {
-                ui.progressText.font = koreanFontAsset;
+                ui.healthText.font = koreanFontAsset;
             }
             else
             {
-                // Resources에서 나눔고딕 폰트 찾기
                 var nanumFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
+                #if UNITY_EDITOR
                 if (nanumFont == null)
-                {
-                    // Resources에 없으면 Assets/Fonts에서 직접 찾기 (에디터 전용)
-                    #if UNITY_EDITOR
                     nanumFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NanumGothic SDF.asset");
-                    #endif
-                }
-                
+                #endif
                 if (nanumFont != null)
-                {
-                    ui.progressText.font = nanumFont;
-                }
-                else
-                {
-                    Debug.LogWarning("[StageScreen] 한글 폰트를 찾을 수 없습니다. Inspector에서 koreanFontAsset을 할당하거나, Assets/Fonts/NanumGothic SDF.asset 파일을 확인하세요.");
-                }
+                    ui.healthText.font = nanumFont;
             }
             
-            progressTextRect.anchorMin = new Vector2(0f, 0.5f);
-            progressTextRect.anchorMax = new Vector2(1f, 0.5f);
-            progressTextRect.pivot = new Vector2(0f, 0.5f);
-            progressTextRect.anchoredPosition = new Vector2(15f, -5f); // 중간 위치, 간격 조정
-            progressTextRect.sizeDelta = new Vector2(-30f, 25f);
+            // 체력 텍스트를 체력바 전체 영역에 맞춰 배치
+            healthTextRect.anchorMin = Vector2.zero;
+            healthTextRect.anchorMax = Vector2.one;
+            healthTextRect.pivot = new Vector2(0.5f, 0.5f);
+            healthTextRect.anchoredPosition = Vector2.zero; // 체력바 중앙
+            healthTextRect.sizeDelta = Vector2.zero; // 체력바 전체 영역 사용
             
-            // 진행도 바 (하단, 진행도 텍스트와 간격)
+            // 초당피해량 텍스트 (체력 옆, 우측)
+            var dpsTextObj = new GameObject("DPSText");
+            var dpsTextRect = dpsTextObj.AddComponent<RectTransform>();
+            dpsTextObj.transform.SetParent(ui.rootObject.transform, false);
+            ui.dpsText = dpsTextObj.AddComponent<TextMeshProUGUI>();
+            ui.dpsText.text = "DPS: 0";
+            ui.dpsText.fontSize = 18;
+            ui.dpsText.color = Color.cyan;
+            ui.dpsText.alignment = TextAlignmentOptions.Left;
+            
+            // 한글 폰트 적용
+            if (koreanFontAsset != null)
+            {
+                ui.dpsText.font = koreanFontAsset;
+            }
+            else
+            {
+                var nanumFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
+                #if UNITY_EDITOR
+                if (nanumFont == null)
+                    nanumFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NanumGothic SDF.asset");
+                #endif
+                if (nanumFont != null)
+                    ui.dpsText.font = nanumFont;
+            }
+            
+            dpsTextRect.anchorMin = new Vector2(0.5f, 1f);
+            dpsTextRect.anchorMax = new Vector2(1f, 1f);
+            dpsTextRect.pivot = new Vector2(0f, 1f);
+            dpsTextRect.anchoredPosition = new Vector2(15f, -45f);
+            dpsTextRect.sizeDelta = new Vector2(-15f, 25f);
+            
+            // 레벨업 진행도 바 (하단)
             var sliderObj = new GameObject("ProgressBar");
             var sliderRect = sliderObj.AddComponent<RectTransform>();
             sliderObj.transform.SetParent(ui.rootObject.transform, false);
@@ -555,8 +701,8 @@ namespace PawnSurvivors.UI
             sliderRect.anchorMin = new Vector2(0f, 0f);
             sliderRect.anchorMax = new Vector2(1f, 0f);
             sliderRect.pivot = new Vector2(0.5f, 0f);
-            sliderRect.anchoredPosition = new Vector2(0f, 15f); // 하단에서 더 위로, 간격 조정
-            sliderRect.sizeDelta = new Vector2(-30f, 18f);
+            sliderRect.anchoredPosition = new Vector2(0f, 15f);
+            sliderRect.sizeDelta = new Vector2(-30f, 20f);
             
             // Slider 배경
             var bgObj = new GameObject("Background");
@@ -587,6 +733,40 @@ namespace PawnSurvivors.UI
             
             ui.progressBar.fillRect = fillRect;
             ui.progressBar.targetGraphic = fillImg;
+            
+            // 레벨업 진행도 텍스트 (진행도 바 위에 겹쳐서 배치)
+            var progressTextObj = new GameObject("ProgressText");
+            var progressTextRect = progressTextObj.AddComponent<RectTransform>();
+            progressTextObj.transform.SetParent(ui.rootObject.transform, false);
+            ui.progressText = progressTextObj.AddComponent<TextMeshProUGUI>();
+            ui.progressText.text = "0/100";
+            ui.progressText.fontSize = 16;
+            ui.progressText.color = Color.white; // 흰색으로 변경 (바 위에서 잘 보이도록)
+            ui.progressText.alignment = TextAlignmentOptions.Center; // 중앙 정렬
+            ui.progressText.fontStyle = FontStyles.Bold; // 굵게
+            
+            // 한글 폰트 적용
+            if (koreanFontAsset != null)
+            {
+                ui.progressText.font = koreanFontAsset;
+            }
+            else
+            {
+                var nanumFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
+                #if UNITY_EDITOR
+                if (nanumFont == null)
+                    nanumFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NanumGothic SDF.asset");
+                #endif
+                if (nanumFont != null)
+                    ui.progressText.font = nanumFont;
+            }
+            
+            // 진행도 텍스트를 진행도 바와 같은 위치에 겹쳐서 배치
+            progressTextRect.anchorMin = new Vector2(0f, 0f);
+            progressTextRect.anchorMax = new Vector2(1f, 0f);
+            progressTextRect.pivot = new Vector2(0.5f, 0.5f);
+            progressTextRect.anchoredPosition = new Vector2(0f, 25f); // 진행도 바 중앙
+            progressTextRect.sizeDelta = new Vector2(-30f, 20f);
             
             return ui;
         }

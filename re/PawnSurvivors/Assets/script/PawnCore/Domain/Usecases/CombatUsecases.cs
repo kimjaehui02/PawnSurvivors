@@ -34,7 +34,8 @@ public static class CombatUsecases
     /// <param name="firePoint">발사 지점</param>
     /// <param name="gameTime">현재 게임 시간</param>
     /// <param name="owner">발사자 PawnManager (선택적)</param>
-    public static void HandleProjectileAttack(ref float nextFireTime, float fireRate, PawnRecipeData projectileRecipe, Transform firePoint, float gameTime, PawnManager owner = null)
+    /// <param name="projectileDamage">발사자의 데미지 (투사체에 전달)</param>
+    public static void HandleProjectileAttack(ref float nextFireTime, float fireRate, PawnRecipeData projectileRecipe, Transform firePoint, float gameTime, PawnManager owner = null, float projectileDamage = 0f)
     {
         if (gameTime >= nextFireTime)
         {
@@ -53,7 +54,7 @@ public static class CombatUsecases
                 // Debug.Log("No enemy found. Projectile will fire in default direction (firePoint.up).");
             }
             
-            GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction, owner);
+            GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction, owner, projectileDamage);
         }
     }
 
