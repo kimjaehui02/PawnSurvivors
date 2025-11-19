@@ -2,7 +2,7 @@
   "stageName": "Stage1",
   "spawnRadius": 10.0,
   "spawnDistanceFromCamera": 2.0,
-  "stageDuration": 300.0,
+  "stageDuration": 15.0,
   "enemyWaves": [
     {
       "startTime": 0.0,

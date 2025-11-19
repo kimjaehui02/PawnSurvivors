@@ -1,0 +1,226 @@
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using PawnSurvivors.Managers;
+
+namespace PawnSurvivors.UI
+{
+    /// <summary>
+    /// 상점 화면입니다. 순수 코딩으로 생성됩니다.
+    /// </summary>
+    public class ShopScreen : MonoBehaviour
+    {
+        private Canvas _canvas;
+        private GameObject _rootPanel;
+        private Button _nextStageButton;
+        private Button _exitButton;
+        private bool _uiCreated = false;
+
+        private void Start()
+        {
+            if (!_uiCreated)
+            {
+                CreateShopUI();
+                _uiCreated = true;
+            }
+        }
+
+        private void OnEnable()
+        {
+            // 화면이 활성화될 때 UI가 생성되어 있지 않으면 생성
+            if (!_uiCreated)
+            {
+                CreateShopUI();
+                _uiCreated = true;
+            }
+            
+            // UI가 이미 생성되어 있으면 _rootPanel 활성화
+            if (_rootPanel != null)
+            {
+                _rootPanel.SetActive(true);
+            }
+        }
+
+        private void OnDisable()
+        {
+            // 화면이 비활성화될 때 _rootPanel도 함께 숨김
+            if (_rootPanel != null)
+            {
+                _rootPanel.SetActive(false);
+            }
+        }
+
+        private void CreateShopUI()
+        {
+            // Canvas 찾기 또는 생성
+            _canvas = GetComponentInParent<Canvas>();
+            if (_canvas == null)
+            {
+                _canvas = FindFirstObjectByType<Canvas>();
+            }
+            
+            if (_canvas == null)
+            {
+                GameObject canvasObj = new GameObject("ShopCanvas");
+                _canvas = canvasObj.AddComponent<Canvas>();
+                _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+                canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            }
+
+            // 한글 폰트 로드 (Assets/Fonts/NanumGothic SDF.asset)
+            TMP_FontAsset nanumFont = null;
+            // Resources에서 먼저 찾기
+            nanumFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
+            if (nanumFont == null)
+            {
+                // Resources에 없으면 Assets/Fonts에서 직접 찾기 (에디터 전용)
+                #if UNITY_EDITOR
+                nanumFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NanumGothic SDF.asset");
+                #endif
+            }
+            
+            if (nanumFont == null)
+            {
+                Debug.LogWarning("[ShopScreen] NanumGothic SDF 폰트를 찾을 수 없습니다. Assets/Fonts/NanumGothic SDF.asset 파일을 확인하세요.");
+            }
+
+            // 루트 패널 생성
+            _rootPanel = new GameObject("ShopPanel");
+            _rootPanel.transform.SetParent(_canvas.transform, false);
+            
+            var panelRect = _rootPanel.AddComponent<RectTransform>();
+            panelRect.anchorMin = Vector2.zero;
+            panelRect.anchorMax = Vector2.one;
+            panelRect.sizeDelta = Vector2.zero;
+            panelRect.anchoredPosition = Vector2.zero;
+            
+            var panelImage = _rootPanel.AddComponent<Image>();
+            panelImage.color = new Color(0.1f, 0.1f, 0.15f, 1f); // 어두운 배경
+
+            // 제목 텍스트
+            var titleObj = new GameObject("TitleText");
+            titleObj.transform.SetParent(_rootPanel.transform, false);
+            var titleRect = titleObj.AddComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0.5f, 0.8f);
+            titleRect.anchorMax = new Vector2(0.5f, 0.8f);
+            titleRect.pivot = new Vector2(0.5f, 0.5f);
+            titleRect.sizeDelta = new Vector2(400f, 80f);
+            titleRect.anchoredPosition = Vector2.zero;
+            
+            var titleText = titleObj.AddComponent<TextMeshProUGUI>();
+            titleText.text = "상점";
+            titleText.fontSize = 48;
+            titleText.color = Color.white;
+            titleText.alignment = TextAlignmentOptions.Center;
+            if (nanumFont != null)
+            {
+                titleText.font = nanumFont;
+            }
+
+            // 다음 스테이지 버튼
+            var buttonObj = new GameObject("NextStageButton");
+            buttonObj.transform.SetParent(_rootPanel.transform, false);
+            var buttonRect = buttonObj.AddComponent<RectTransform>();
+            buttonRect.anchorMin = new Vector2(0.5f, 0.2f);
+            buttonRect.anchorMax = new Vector2(0.5f, 0.2f);
+            buttonRect.pivot = new Vector2(0.5f, 0.5f);
+            buttonRect.sizeDelta = new Vector2(300f, 60f);
+            buttonRect.anchoredPosition = Vector2.zero;
+            
+            _nextStageButton = buttonObj.AddComponent<Button>();
+            var buttonImage = buttonObj.AddComponent<Image>();
+            buttonImage.color = new Color(0.2f, 0.6f, 0.2f, 1f); // 녹색 버튼
+            
+            // 버튼 텍스트
+            var buttonTextObj = new GameObject("Text");
+            buttonTextObj.transform.SetParent(buttonObj.transform, false);
+            var buttonTextRect = buttonTextObj.AddComponent<RectTransform>();
+            buttonTextRect.anchorMin = Vector2.zero;
+            buttonTextRect.anchorMax = Vector2.one;
+            buttonTextRect.sizeDelta = Vector2.zero;
+            buttonTextRect.anchoredPosition = Vector2.zero;
+            
+            var buttonText = buttonTextObj.AddComponent<TextMeshProUGUI>();
+            buttonText.text = "다음 스테이지";
+            buttonText.fontSize = 24;
+            buttonText.color = Color.white;
+            buttonText.alignment = TextAlignmentOptions.Center;
+            if (nanumFont != null)
+            {
+                buttonText.font = nanumFont;
+            }
+            
+            _nextStageButton.targetGraphic = buttonImage;
+            _nextStageButton.onClick.AddListener(OnNextStageButtonClicked);
+
+            // 종료 버튼 (메인 메뉴로)
+            var exitButtonObj = new GameObject("ExitButton");
+            exitButtonObj.transform.SetParent(_rootPanel.transform, false);
+            var exitButtonRect = exitButtonObj.AddComponent<RectTransform>();
+            exitButtonRect.anchorMin = new Vector2(0.5f, 0.1f);
+            exitButtonRect.anchorMax = new Vector2(0.5f, 0.1f);
+            exitButtonRect.pivot = new Vector2(0.5f, 0.5f);
+            exitButtonRect.sizeDelta = new Vector2(300f, 60f);
+            exitButtonRect.anchoredPosition = Vector2.zero;
+            
+            _exitButton = exitButtonObj.AddComponent<Button>();
+            var exitButtonImage = exitButtonObj.AddComponent<Image>();
+            exitButtonImage.color = new Color(0.6f, 0.2f, 0.2f, 1f); // 빨간색 버튼
+            
+            // 종료 버튼 텍스트
+            var exitButtonTextObj = new GameObject("Text");
+            exitButtonTextObj.transform.SetParent(exitButtonObj.transform, false);
+            var exitButtonTextRect = exitButtonTextObj.AddComponent<RectTransform>();
+            exitButtonTextRect.anchorMin = Vector2.zero;
+            exitButtonTextRect.anchorMax = Vector2.one;
+            exitButtonTextRect.sizeDelta = Vector2.zero;
+            exitButtonTextRect.anchoredPosition = Vector2.zero;
+            
+            var exitButtonText = exitButtonTextObj.AddComponent<TextMeshProUGUI>();
+            exitButtonText.text = "메인 메뉴로";
+            exitButtonText.fontSize = 24;
+            exitButtonText.color = Color.white;
+            exitButtonText.alignment = TextAlignmentOptions.Center;
+            if (nanumFont != null)
+            {
+                exitButtonText.font = nanumFont;
+            }
+            
+            _exitButton.targetGraphic = exitButtonImage;
+            _exitButton.onClick.AddListener(OnExitButtonClicked);
+
+            // 기본적으로 숨김
+            gameObject.SetActive(false);
+        }
+
+        private void OnNextStageButtonClicked()
+        {
+            // 일시정지 해제
+            if (GameManager.Instance?.LifecycleManager != null && 
+                GameManager.Instance.LifecycleManager.IsPaused)
+            {
+                GameManager.Instance.LifecycleManager.TogglePause();
+            }
+
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowStageScreen();
+            }
+            
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.StartStage("Stage1", resetSession: false);
+            }
+        }
+
+        private void OnExitButtonClicked()
+        {
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ReturnToMainMenu();
+            }
+        }
+    }
+}
+

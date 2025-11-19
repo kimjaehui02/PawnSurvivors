@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.UI
 {
@@ -27,22 +28,13 @@ namespace PawnSurvivors.UI
 
         // Inspector에서 이 GameObject를 처음부터 비활성화 상태로 설정하세요!
 
-    // Update()와 Show() 제거: StageScreen에서 이미 ESC 처리하므로 불필요
+    // Update()와 Show() 제거: GameStateManager에서 상태 관리
 
     private void OnResumeButtonClicked()
     {
         if (UIManager.Instance != null)
         {
             UIManager.Instance.HidePauseMenu();
-        }
-        else
-        {
-            // 폴백: UIManager가 없을 경우
-            gameObject.SetActive(false);
-            if (GameManager.Instance?.LifecycleManager != null)
-            {
-                GameManager.Instance.LifecycleManager.TogglePause();
-            }
         }
     }
 

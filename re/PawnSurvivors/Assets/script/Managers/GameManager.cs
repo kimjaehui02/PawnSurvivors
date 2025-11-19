@@ -63,42 +63,49 @@ public class GameManager : MonoBehaviour
     /// 스테이지를 시작합니다.
     /// </summary>
     /// <param name="stageName">시작할 스테이지 이름 (기본값: Stage1)</param>
-    public void StartStage(string stageName = "Stage1")
+    /// <param name="resetSession">세션 데이터를 리셋할지 여부 (기본값: true, 상점에서 올 때는 false)</param>
+    public void StartStage(string stageName = "Stage1", bool resetSession = true)
     {
-        // 세션 데이터 리셋 (새 게임 시작)
-        SessionData.Reset();
+        // 세션 데이터 리셋 (새 게임 시작 시에만)
+        if (resetSession)
+        {
+            SessionData.Reset();
+        }
         SessionData.currentStageName = stageName;
         
-        Debug.Log($"[GameManager] 새 게임 세션 시작: {SessionData}");
+        Debug.Log($"[GameManager] 스테이지 시작: {stageName} (세션 리셋: {resetSession})");
         
-        // PlayerController 생성 (입력 받는 중심 오브젝트)
-        GameObject playerControllerObj = new GameObject("PlayerController");
-        PlayerController = playerControllerObj.AddComponent<PlayerController>();
-        
-        // 메인 카메라를 PlayerController의 자식으로 설정
-        Camera mainCamera = Camera.main;
-        if (mainCamera != null)
+        // PlayerController가 없으면 생성 (상점에서 올 때는 기존 것 유지)
+        if (PlayerController == null)
         {
-            mainCamera.transform.SetParent(PlayerController.transform);
-            mainCamera.transform.localPosition = new Vector3(0f, 0f, -10f); // 2D 게임용
-            Debug.Log("[GameManager] 메인 카메라가 PlayerController에 붙었습니다.");
+            GameObject playerControllerObj = new GameObject("PlayerController");
+            PlayerController = playerControllerObj.AddComponent<PlayerController>();
+            
+            // 메인 카메라를 PlayerController의 자식으로 설정
+            Camera mainCamera = Camera.main;
+            if (mainCamera != null)
+            {
+                mainCamera.transform.SetParent(PlayerController.transform);
+                mainCamera.transform.localPosition = new Vector3(0f, 0f, -10f); // 2D 게임용
+                Debug.Log("[GameManager] 메인 카메라가 PlayerController에 붙었습니다.");
+            }
+            
+            // ========== 초기 플레이어 생성 ==========
+            // 기본 플레이어 3개
+            for (int i = 0; i < 3; i++)
+            {
+                AddPlayerPawn("Player");
+            }
+            
+            // 버터 캐릭터 3개
+            for (int i = 0; i < 3; i++)
+            {
+                AddPlayerPawn("PlayerButter");
+            }
+            
+            Debug.Log("[GameManager] 총 6명의 플레이어 생성 완료 (Player x3, PlayerButter x3)");
+            // ========== 초기 플레이어 생성 끝 ==========
         }
-        
-        // ========== 초기 플레이어 생성 ==========
-        // 기본 플레이어 3개
-        for (int i = 0; i < 3; i++)
-        {
-            AddPlayerPawn("Player");
-        }
-        
-        // 버터 캐릭터 3개
-        for (int i = 0; i < 3; i++)
-        {
-            AddPlayerPawn("PlayerButter");
-        }
-        
-        Debug.Log("[GameManager] 총 6명의 플레이어 생성 완료 (Player x3, PlayerButter x3)");
-        // ========== 초기 플레이어 생성 끝 ==========
 
         // 스테이지 로드 및 시작
         StageData stageData = _stageLoader.GetStage(stageName);

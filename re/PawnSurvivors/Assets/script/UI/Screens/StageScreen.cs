@@ -2,7 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using System.Linq;
 using PawnCore.Recipes.Json;
+using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.UI
 {
@@ -52,7 +54,11 @@ namespace PawnSurvivors.UI
                 OptionButton.onClick.AddListener(OnOptionButtonClicked);
                 LoadOptionButtonSprite();
             }
+        }
 
+        private void OnEnable()
+        {
+            // 스테이지 화면이 활성화될 때마다 타이머 리셋
             InitializeStageData();
         }
 
@@ -776,7 +782,6 @@ namespace PawnSurvivors.UI
         #region Button Clicked Events
         public void OnOptionButtonClicked()
         {
-            // 옵션 버튼 클릭 시 UIManager를 통해 일시정지 메뉴 표시
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.ShowPauseMenu();
@@ -799,14 +804,46 @@ namespace PawnSurvivors.UI
         {
             if (GameManager.Instance != null)
             {
+                // 스테이지 종료 시 남은 적 모두 파괴
+                DestroyAllEnemies();
+                
                 GameManager.Instance.StageManager?.EndStage();
                 
-                // TODO: 클리어인지 게임오버인지에 따라 다른 화면 표시
-                // 현재는 임시로 메인 메뉴로 이동
+                // 게임 일시정지
+                if (GameManager.Instance.LifecycleManager != null && 
+                    !GameManager.Instance.LifecycleManager.IsPaused)
+                {
+                    GameManager.Instance.LifecycleManager.TogglePause();
+                }
+                
+                // 상점으로 이동
                 if (UIManager.Instance != null)
                 {
-                    UIManager.Instance.ReturnToMainMenu();
+                    UIManager.Instance.ShowShopScreen();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Enemy 태그를 가진 모든 Pawn을 파괴합니다.
+        /// </summary>
+        private void DestroyAllEnemies()
+        {
+            var allPawns = PawnManager.AllPawnManagers.ToArray();
+            int destroyedCount = 0;
+            
+            foreach (var pawnManager in allPawns)
+            {
+                if (pawnManager != null && pawnManager.gameObject != null && pawnManager.gameObject.CompareTag("Enemy"))
+                {
+                    Destroy(pawnManager.gameObject);
+                    destroyedCount++;
+                }
+            }
+            
+            if (destroyedCount > 0)
+            {
+                Debug.Log($"[StageScreen] 스테이지 종료: {destroyedCount}명의 적 파괴");
             }
         }
 

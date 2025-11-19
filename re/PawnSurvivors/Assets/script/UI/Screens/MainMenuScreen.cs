@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.UI
 {
@@ -78,7 +79,6 @@ namespace PawnSurvivors.UI
             {
                 GameManager.Instance.StartStage(_selectedStage);
                 
-                // 스테이지 화면으로 전환
                 if (UIManager.Instance != null)
                 {
                     UIManager.Instance.ShowStageScreen();

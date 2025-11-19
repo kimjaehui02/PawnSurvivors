@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using PawnSurvivors.Managers;
 
 public class StageManager : MonoBehaviour
@@ -49,6 +50,36 @@ public class StageManager : MonoBehaviour
         if (GameManager.Instance?.LifecycleManager != null)
         {
             GameManager.Instance.LifecycleManager.ResetGameTime();
+        }
+        
+        // 모든 플레이어 Pawn의 ProjectileShooterSubManager의 _nextFireTime 리셋
+        ResetAllProjectileShooters();
+    }
+    
+    /// <summary>
+    /// 모든 플레이어 Pawn의 ProjectileShooterSubManager의 _nextFireTime을 리셋합니다.
+    /// </summary>
+    private void ResetAllProjectileShooters()
+    {
+        foreach (var pawnManager in PawnManager.AllPawnManagers)
+        {
+            if (pawnManager == null) continue;
+            
+                // 플레이어 태그를 가진 Pawn만 처리
+                if (pawnManager.gameObject.CompareTag("Player"))
+                {
+                    var shooter = pawnManager.GetComponent<ProjectileShooterSubManager>();
+                    if (shooter != null)
+                    {
+                        // 리플렉션을 사용하여 private 필드 _nextFireTime 리셋
+                        var field = typeof(ProjectileShooterSubManager).GetField("_nextFireTime", 
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (field != null)
+                        {
+                            field.SetValue(shooter, 0f);
+                        }
+                    }
+                }
         }
     }
 
