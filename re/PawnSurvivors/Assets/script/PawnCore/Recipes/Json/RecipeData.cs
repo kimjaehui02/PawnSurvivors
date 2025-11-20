@@ -133,6 +133,8 @@ namespace PawnCore.Recipes.Json
         public string projectileRecipeName;
         public float fireRate;
         public float damage; // 발사하는 투사체의 데미지
+        public string targetTag = null; // 타겟 태그 (null이면 자동 결정)
+        public float projectileSpeed = 0f; // 투사체 속도 (0이면 레시피 기본값 사용)
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
@@ -143,6 +145,8 @@ namespace PawnCore.Recipes.Json
             pawnData.combatData.projectileRecipeName = projectileRecipeName;
             pawnData.combatData.fireRate = fireRate;
             pawnData.combatData.damage = damage; // 발사자의 데미지 저장
+            pawnData.combatData.targetTag = targetTag; // 타겟 태그 설정
+            pawnData.combatData.projectileSpeed = projectileSpeed; // 투사체 속도 설정
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -175,6 +179,9 @@ namespace PawnCore.Recipes.Json
         [Tooltip("그림자 프리셋 이름 (null이면 그림자 없음)")]
         public string shadowPreset = null;
         
+        [Tooltip("시각적 스케일 (기본값: 1,1,1)")]
+        public Vector3 visualScale = Vector3.one;
+        
         [Header("바운스 애니메이션")]
         [Tooltip("바운스 효과 활성화")]
         public bool enableBounce = true;
@@ -200,6 +207,7 @@ namespace PawnCore.Recipes.Json
             pawnData.visualData.visualColor = visualColor;
             pawnData.visualData.visualSpriteIndex = visualSpriteIndex;
             pawnData.visualData.shadowPresetName = shadowPreset;
+            pawnData.visualData.visualScale = visualScale;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)

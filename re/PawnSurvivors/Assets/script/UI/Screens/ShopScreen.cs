@@ -196,13 +196,6 @@ namespace PawnSurvivors.UI
 
         private void OnNextStageButtonClicked()
         {
-            // 일시정지 해제
-            if (GameManager.Instance?.LifecycleManager != null && 
-                GameManager.Instance.LifecycleManager.IsPaused)
-            {
-                GameManager.Instance.LifecycleManager.TogglePause();
-            }
-
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.ShowStageScreen();

@@ -809,14 +809,7 @@ namespace PawnSurvivors.UI
                 
                 GameManager.Instance.StageManager?.EndStage();
                 
-                // 게임 일시정지
-                if (GameManager.Instance.LifecycleManager != null && 
-                    !GameManager.Instance.LifecycleManager.IsPaused)
-                {
-                    GameManager.Instance.LifecycleManager.TogglePause();
-                }
-                
-                // 상점으로 이동
+                // 상점으로 이동 (일시정지는 ShowShopScreen()에서 처리)
                 if (UIManager.Instance != null)
                 {
                     UIManager.Instance.ShowShopScreen();
@@ -825,7 +818,7 @@ namespace PawnSurvivors.UI
         }
 
         /// <summary>
-        /// Enemy 태그를 가진 모든 Pawn을 파괴합니다.
+        /// Enemy 태그를 가진 모든 Pawn과 적 투사체를 파괴합니다.
         /// </summary>
         private void DestroyAllEnemies()
         {
@@ -834,16 +827,21 @@ namespace PawnSurvivors.UI
             
             foreach (var pawnManager in allPawns)
             {
-                if (pawnManager != null && pawnManager.gameObject != null && pawnManager.gameObject.CompareTag("Enemy"))
+                if (pawnManager != null && pawnManager.gameObject != null)
                 {
-                    Destroy(pawnManager.gameObject);
-                    destroyedCount++;
+                    // Enemy 태그 또는 EnemyBullet 태그를 가진 모든 Pawn 파괴
+                    if (pawnManager.gameObject.CompareTag("Enemy") || 
+                        pawnManager.gameObject.CompareTag("EnemyBullet"))
+                    {
+                        Destroy(pawnManager.gameObject);
+                        destroyedCount++;
+                    }
                 }
             }
             
             if (destroyedCount > 0)
             {
-                Debug.Log($"[StageScreen] 스테이지 종료: {destroyedCount}명의 적 파괴");
+                Debug.Log($"[StageScreen] 스테이지 종료: {destroyedCount}개의 적/적 투사체 파괴");
             }
         }
 

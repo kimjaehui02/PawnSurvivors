@@ -42,6 +42,9 @@ namespace PawnCore.Domain
         // 그림자 프리셋 이름 (null이면 그림자 없음)
         public string shadowPresetName = null;
         
+        // 시각적 스케일 (1.0이 기본값, 작게 하려면 1.0보다 작게)
+        public Vector3 visualScale = Vector3.one;
+        
         // 런타임에 로드된 그림자 프리셋 데이터 (JSON에 저장 안 됨)
         [System.NonSerialized]
         public ShadowPresetData shadowPreset = null;
@@ -59,6 +62,18 @@ namespace PawnCore.Domain
         /// 발사체: true (기본값), 근접 공격 유닛: false
         /// </summary>
         public bool destroyOnHit = true;
+        
+        /// <summary>
+        /// 투사체 발사 시 타겟으로 할 태그입니다.
+        /// null이거나 빈 문자열이면 자동으로 결정됩니다 (Player 태그면 Enemy, Enemy 태그면 Player).
+        /// </summary>
+        public string targetTag = null;
+        
+        /// <summary>
+        /// 발사하는 투사체의 속도입니다.
+        /// 0이면 투사체 레시피의 기본 속도를 사용합니다.
+        /// </summary>
+        public float projectileSpeed = 0f;
     }
 
     [Serializable]

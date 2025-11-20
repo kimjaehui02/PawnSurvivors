@@ -62,9 +62,9 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 스테이지를 시작합니다.
     /// </summary>
-    /// <param name="stageName">시작할 스테이지 이름 (기본값: Stage1)</param>
+    /// <param name="stageName">시작할 스테이지 이름 (기본값: DebugStage)</param>
     /// <param name="resetSession">세션 데이터를 리셋할지 여부 (기본값: true, 상점에서 올 때는 false)</param>
-    public void StartStage(string stageName = "Stage1", bool resetSession = true)
+    public void StartStage(string stageName = "DebugStage", bool resetSession = true)
     {
         // 세션 데이터 리셋 (새 게임 시작 시에만)
         if (resetSession)

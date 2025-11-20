@@ -55,9 +55,22 @@ public class ProjectileShooterSubManager : PawnSubManager
         // CombatData가 없으면 무시
         if (_pawnData?.combatData == null) return;
 
-        // 적이 범위 내에 있으면 자동 발사
-        Transform closestEnemy = TargetingUsecases.FindClosestTargetByTag(firePoint.position, "Enemy", 0);
-        if (closestEnemy != null)
+        // 타겟 태그 결정: 설정되어 있으면 사용, 없으면 자동 결정
+        string targetTag;
+        if (!string.IsNullOrEmpty(_pawnData.combatData.targetTag))
+        {
+            // 설정에서 지정된 타겟 태그 사용
+            targetTag = _pawnData.combatData.targetTag;
+        }
+        else
+        {
+            // 자동 결정: 자신의 태그에 따라 타겟 결정
+            // Player 태그면 Enemy를 타겟, Enemy 태그면 Player를 타겟
+            targetTag = _pawnManager.gameObject.CompareTag("Player") ? "Enemy" : "Player";
+        }
+        
+        Transform closestTarget = TargetingUsecases.FindClosestTargetByTag(firePoint.position, targetTag, 0);
+        if (closestTarget != null)
         {
             PerformAttack();
         }

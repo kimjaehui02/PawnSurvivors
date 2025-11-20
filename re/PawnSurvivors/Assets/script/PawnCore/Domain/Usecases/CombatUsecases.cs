@@ -41,20 +41,41 @@ public static class CombatUsecases
         {
             nextFireTime = gameTime + 1f / fireRate;
 
-            Transform closestEnemy = TargetingUsecases.FindClosestTargetByTag(firePoint.position, "Enemy", 0); // 0은 무한 범위를 의미합니다.
-            Vector3 direction = firePoint.up; // 기본 방향
-
-            if (closestEnemy != null)
+            // 타겟 태그 결정: CombatData에 설정되어 있으면 사용, 없으면 자동 결정
+            string targetTag;
+            if (owner != null && owner.PawnData?.combatData != null && !string.IsNullOrEmpty(owner.PawnData.combatData.targetTag))
             {
-                direction = (closestEnemy.position - firePoint.position).normalized;
-                // Debug.Log($"Found closest enemy at {closestEnemy.position}. Projectile direction set to {direction}");
+                // 설정에서 지정된 타겟 태그 사용
+                targetTag = owner.PawnData.combatData.targetTag;
             }
             else
             {
-                // Debug.Log("No enemy found. Projectile will fire in default direction (firePoint.up).");
+                // 자동 결정: 발사자의 태그에 따라 타겟 결정
+                // Player 태그면 Enemy를 타겟, Enemy 태그면 Player를 타겟
+                targetTag = (owner != null && owner.gameObject.CompareTag("Player")) ? "Enemy" : "Player";
             }
             
-            GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction, owner, projectileDamage);
+            Transform closestTarget = TargetingUsecases.FindClosestTargetByTag(firePoint.position, targetTag, 0); // 0은 무한 범위를 의미합니다.
+            Vector3 direction = firePoint.up; // 기본 방향
+
+            if (closestTarget != null)
+            {
+                direction = (closestTarget.position - firePoint.position).normalized;
+                // Debug.Log($"Found closest target at {closestTarget.position}. Projectile direction set to {direction}");
+            }
+            else
+            {
+                // Debug.Log("No target found. Projectile will fire in default direction (firePoint.up).");
+            }
+            
+            // 발사자의 투사체 속도 가져오기 (설정되어 있으면 사용, 없으면 0 = 레시피 기본값)
+            float projectileSpeed = 0f;
+            if (owner != null && owner.PawnData?.combatData != null && owner.PawnData.combatData.projectileSpeed > 0f)
+            {
+                projectileSpeed = owner.PawnData.combatData.projectileSpeed;
+            }
+            
+            GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction, owner, projectileDamage, projectileSpeed);
         }
     }
 

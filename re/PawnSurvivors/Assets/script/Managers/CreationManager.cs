@@ -46,7 +46,7 @@ public class CreationManager : MonoBehaviour
         return CreatePawn(recipeData, position, rotation);
     }
 
-    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null, PawnManager owner = null, float overrideDamage = 0f)
+    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null, PawnManager owner = null, float overrideDamage = 0f, float overrideSpeed = 0f)
     {
         if (recipeData == null)
         {
@@ -73,6 +73,12 @@ public class CreationManager : MonoBehaviour
         if (overrideDamage > 0f && pawnManager.PawnData.combatData != null)
         {
             pawnManager.PawnData.combatData.damage = overrideDamage;
+        }
+
+        // 발사자의 속도가 제공되면 투사체의 속도를 덮어쓰기
+        if (overrideSpeed > 0f && pawnManager.PawnData.movableData.directionalMovement != null)
+        {
+            pawnManager.PawnData.movableData.directionalMovement.speed = overrideSpeed;
         }
 
         // 방향이 제공되면 PawnData의 directionalMovement.moveDirection을 재정의합니다.

@@ -1,0 +1,57 @@
+{
+  "pawnName": "EnemyShooter",
+  "subManagerSetups": [
+    {
+      "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
+      "damage": 3,
+      "destroyOnHit": false
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.DamageableSubManagerSetupData, Assembly-CSharp",
+      "maxHealth": 40
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.HitFlashSubManagerSetupData, Assembly-CSharp",
+      "flashDuration": 0.1
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
+      "projectileRecipeName": "EnemyBullet",
+      "fireRate": 0.8,
+      "damage": 2
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualSpriteName": "Temporary/Circle",
+      "visualColor": {"r": 0.8, "g": 0.2, "b": 0.8, "a": 1},
+      "shadowPreset": "EnemyShadow",
+      "enableBounce": true,
+      "bounceHeight": 0.1,
+      "bounceSpeed": 8,
+      "movementThreshold": 0.1
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.HomingStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "speed": 1.5,
+          "targetTag": "Player",
+          "detectionRange": 100,
+          "retargetFrequency": 0.5
+        }
+      ]
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": true,
+      "rigidbodyType": "Kinematic",
+      "gravityScale": 0,
+      "physicsLayerName": "Enemy",
+      "physicsTag": "Enemy"
+    }
+  ]
+}
+

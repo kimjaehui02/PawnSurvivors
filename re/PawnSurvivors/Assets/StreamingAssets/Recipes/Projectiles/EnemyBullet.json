@@ -1,10 +1,9 @@
-
 {
-  "pawnName": "Bullet",
+  "pawnName": "EnemyBullet",
   "subManagerSetups": [
     {
       "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
-      "damage": 3,
+      "damage": 2,
       "destroyOnHit": true
     },
     {
@@ -13,11 +12,11 @@
         {
           "$type": "PawnCore.Recipes.Json.DirectionalStrategySetupData, Assembly-CSharp",
           "isEnabledByDefault": true,
-          "speed": 10,
+          "speed": 5,
           "lifetime": 5,
           "moveDirection": {
             "x": 0,
-            "y": 1,
+            "y": -1,
             "z": 0
           }
         }
@@ -26,7 +25,7 @@
     {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
       "visualSpriteName": "Temporary/Circle",
-      "visualColor": {"r": 0.2, "g": 0.6, "b": 1, "a": 1},
+      "visualColor": {"r": 1, "g": 0.2, "b": 0.2, "a": 1},
       "visualScale": {"x": 0.5, "y": 0.5, "z": 1}
     },
     {
@@ -35,8 +34,8 @@
       "isTrigger": true,
       "rigidbodyType": "Kinematic",
       "gravityScale": 0,
-      "physicsLayerName": "Bullet",
-      "physicsTag": "Bullet"
+      "physicsLayerName": "EnemyProjectile",
+      "physicsTag": "EnemyBullet"
     }
   ]
 }

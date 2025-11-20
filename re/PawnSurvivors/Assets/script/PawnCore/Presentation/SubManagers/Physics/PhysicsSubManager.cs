@@ -61,13 +61,30 @@ namespace PawnCore.Presentation.SubManagers.Physics
             // 레이어 설정
             if (!string.IsNullOrEmpty(_physicsData.physicsLayerName) && _physicsData.physicsLayerName != "Default")
             {
-                gameObject.layer = LayerMask.NameToLayer(_physicsData.physicsLayerName);
+                int layerIndex = LayerMask.NameToLayer(_physicsData.physicsLayerName);
+                if (layerIndex != -1)
+                {
+                    gameObject.layer = layerIndex;
+                }
+                else
+                {
+                    Debug.LogWarning($"Physics layer '{_physicsData.physicsLayerName}' not found. Using Default layer.");
+                }
             }
 
             // 태그 설정
             if (!string.IsNullOrEmpty(_physicsData.physicsTag) && _physicsData.physicsTag != "Untagged")
             {
-                gameObject.tag = _physicsData.physicsTag;
+                // 태그가 존재하는지 확인
+                try
+                {
+                    gameObject.tag = _physicsData.physicsTag;
+                }
+                catch (UnityException)
+                {
+                    Debug.LogWarning($"Tag '{_physicsData.physicsTag}' not defined in Unity. Using Untagged.");
+                    gameObject.tag = "Untagged";
+                }
             }
         }
 

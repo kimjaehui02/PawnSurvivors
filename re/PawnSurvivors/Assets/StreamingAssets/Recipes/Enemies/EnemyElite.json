@@ -1,0 +1,51 @@
+{
+  "pawnName": "EnemyElite",
+  "subManagerSetups": [
+    {
+      "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
+      "damage": 10,
+      "destroyOnHit": false
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.DamageableSubManagerSetupData, Assembly-CSharp",
+      "maxHealth": 150
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.HitFlashSubManagerSetupData, Assembly-CSharp",
+      "flashDuration": 0.1
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualSpriteName": "Temporary/Circle",
+      "visualColor": {"r": 0.9, "g": 0.5, "b": 0.1, "a": 1},
+      "shadowPreset": "EnemyShadow",
+      "enableBounce": true,
+      "bounceHeight": 0.15,
+      "bounceSpeed": 10,
+      "movementThreshold": 0.1
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.HomingStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "speed": 4,
+          "targetTag": "Player",
+          "detectionRange": 100,
+          "retargetFrequency": 0.3
+        }
+      ]
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": true,
+      "rigidbodyType": "Kinematic",
+      "gravityScale": 0,
+      "physicsLayerName": "Enemy",
+      "physicsTag": "Enemy"
+    }
+  ]
+}
+

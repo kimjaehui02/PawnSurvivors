@@ -126,6 +126,9 @@ namespace PawnCore.Presentation.SubManagers.Visual
 
             _spriteRenderer.sprite = visualSprite;
             _spriteRenderer.color = _pawnData.visualData.visualColor; // 색상 적용
+            
+            // 시각적 스케일 적용
+            _visualsObject.transform.localScale = _pawnData.visualData.visualScale;
         }
 
         /// <summary>

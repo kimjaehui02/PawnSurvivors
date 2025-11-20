@@ -16,7 +16,7 @@ namespace PawnSurvivors.UI
         [SerializeField] private TMP_Text stageNameText;
         [SerializeField] private TMP_Dropdown stageDropdown;
 
-        private string _selectedStage = "Stage1";
+        private string _selectedStage = "DebugStage";
 
         private void Start()
         {

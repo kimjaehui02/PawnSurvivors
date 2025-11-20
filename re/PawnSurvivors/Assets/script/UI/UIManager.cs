@@ -93,6 +93,16 @@ namespace PawnSurvivors.UI
         public void ShowStageScreen()
         {
             HideAllScreens();
+            
+            // 게임 재개 (일시정지 상태면 해제)
+            if (GameManager.Instance?.LifecycleManager != null)
+            {
+                if (GameManager.Instance.LifecycleManager.IsPaused)
+                {
+                    GameManager.Instance.LifecycleManager.TogglePause();
+                }
+            }
+            
             if (stageScreen != null)
                 stageScreen.SetActive(true);
         }
@@ -167,6 +177,15 @@ namespace PawnSurvivors.UI
         public void ShowShopScreen()
         {
             HideAllScreens();
+            
+            // 게임 일시정지 (상점 진입 시)
+            if (GameManager.Instance?.LifecycleManager != null)
+            {
+                if (!GameManager.Instance.LifecycleManager.IsPaused)
+                {
+                    GameManager.Instance.LifecycleManager.TogglePause();
+                }
+            }
             
             // 상점 화면이 없으면 자동 생성
             if (shopScreen == null)
