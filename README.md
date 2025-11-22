@@ -63,11 +63,93 @@ PawnSurvivors는 캐릭터(Pawn) 기반의 생존 게임으로, 다음과 같은
 PawnCore/
 ├── Domain/           # 도메인 계층 (비즈니스 로직)
 │   ├── Events/       # 이벤트 정의
+│   ├── Repositories/ # Repository 인터페이스
 │   └── Usecases/     # 유스케이스 (순수 로직)
 ├── Presentation/     # 프레젠테이션 계층 (Unity 연동)
 │   └── SubManagers/  # 기능별 서브매니저
 └── Recipes/          # 레시피 시스템 (JSON 기반)
+
+Data/
+├── Repositories/     # Repository 구현체
+├── Models/           # 데이터 모델 (GameSessionData)
+└── Storage/          # 저장 시스템 (향후 확장용)
 ```
+
+### 아키텍처 원칙
+
+이 프로젝트는 엄격한 클린 아키텍처 원칙을 따릅니다:
+
+1. **데이터 접근 규칙**
+   - `GameSessionData`는 Data 계층 내부에만 존재
+   - 외부는 `ISessionDataRepository` 인터페이스를 통해서만 접근
+   - 모든 데이터 접근은 UseCase를 통해 수행
+
+2. **의존성 방향**
+   ```
+   Presentation → Domain (UseCase) → Domain (Repository 인터페이스) → Data (Repository 구현체) → Data (모델)
+   ```
+
+3. **UseCase 중심 설계**
+   - Presentation 계층은 Repository를 직접 접근하지 않음
+   - 모든 비즈니스 로직은 UseCase를 통해 처리
+   - UseCase는 Repository 인터페이스만 의존
+
+### 의도적인 아키텍처 예외사항
+
+Unity 게임 개발의 실용성을 위해 다음 예외를 두었습니다:
+
+#### 1. Singleton 패턴 사용
+**위치**: `GameManager.Instance`, `UIManager.Instance` 등
+
+**이유**:
+- Unity 게임 개발에서 Singleton은 표준적인 패턴
+- MonoBehaviour 기반 아키텍처와 자연스럽게 통합
+- 전역 접근이 필요한 매니저들에 실용적
+- 프로젝트 전반에 걸쳐 일관된 접근 방식 제공
+
+**영향**:
+- Presentation 계층에서만 사용 (Domain 계층에는 영향 없음)
+- 테스트는 통합 테스트 중심으로 진행 (Unity 특성상 적합)
+
+#### 2. Domain 계층의 일부 Unity 의존성
+**위치**: 
+- `SurvivalTimeTrackingUseCase` → `LifecycleManager` 의존
+- `MovementUsecases` → `GameManager.Instance.LifecycleManager` 참조
+- `CombatUsecases` → `GameManager.Instance.CreationManager` 참조
+
+**이유**:
+- Unity 전용 프로젝트이므로 플랫폼 이식성보다 실용성 우선
+- 완전한 분리를 위해 인터페이스 도입 시 오버엔지니어링
+- 현재 구조가 잘 작동하고 있으며 복잡도 증가 대비 이점이 적음
+- Unity 게임에서는 통합 테스트가 단위 테스트보다 실용적
+
+**향후 개선 계획**:
+- 단위 테스트가 필요해지면 `ITimeProvider`, `IPawnFactory` 인터페이스 도입
+- 다른 플랫폼 이식이 필요해지면 의존성 주입 패턴 적용
+- 현재는 문제가 발생하지 않으므로 YAGNI 원칙 적용
+
+#### 3. 이벤트 버스가 Presentation 계층 내부에 위치
+**위치**: `PawnManager`의 이벤트 버스 시스템
+
+**이유**:
+- 이벤트 버스는 Unity GameObject 생명주기와 밀접하게 연관
+- Presentation 계층 컴포넌트 간 통신에 최적화
+- UseCase는 이벤트를 구독하지 않고 Presentation 계층에서 직접 호출
+- 이는 의도된 설계로, 이벤트는 Presentation 계층의 관심사
+
+**설계 철학**:
+- 이벤트 버스: Presentation 계층 내부의 느슨한 결합
+- UseCase: Domain 계층의 명시적 비즈니스 로직
+- 두 시스템이 분리되어 있어 각각의 목적에 집중 가능
+
+### 아키텍처 결정 기록 (ADR)
+
+| 결정 | 이유 | 대안 | 선택 이유 |
+|------|------|------|----------|
+| Singleton 패턴 | Unity 표준 패턴 | 의존성 주입 | 실용성, Unity 생태계 적합성 |
+| Domain의 Unity 의존 | 실용성 우선 | 완전한 분리 | 오버엔지니어링 방지, YAGNI |
+| 이벤트 버스 위치 | GameObject 생명주기 연동 | Domain 이벤트 | Unity 특성에 맞는 설계 |
+| UseCase 직접 호출 | 명시적 비즈니스 로직 | 이벤트 구독 | 코드 가독성, 디버깅 용이성 |
 
 ### 핵심 구성 요소
 
@@ -99,6 +181,12 @@ PawnCore/
    - `StageData`: 스테이지 설정 (스폰 간격, 반지름 등)
    - `StageManager`: 적 스폰 및 스테이지 진행 관리
    - `StageLoader`: JSON 스테이지 파일 로드
+
+7. **데이터 관리 시스템**: 클린 아키텍처 기반 데이터 계층
+   - `GameSessionData`: 런타임 세션 데이터 모델 (Data 계층)
+   - `ISessionDataRepository`: 데이터 접근 인터페이스 (Domain 계층)
+   - `SessionDataRepository`: Repository 구현체 (Data 계층)
+   - UseCase를 통한 데이터 접근: `DamageTrackingUseCase`, `KillTrackingUseCase`, `SurvivalTimeTrackingUseCase`, `SessionManagementUseCase`
 
 ## 📁 프로젝트 구조
 

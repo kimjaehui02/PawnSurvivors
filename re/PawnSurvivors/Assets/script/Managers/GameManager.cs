@@ -17,14 +17,14 @@ public class GameManager : MonoBehaviour
     public StageLoader _stageLoader;
     
     /// <summary>
-    /// 현재 게임 세션의 런타임 데이터
+    /// 현재 게임 세션의 런타임 데이터 (Data 계층 내부용, 외부 접근 불가)
     /// </summary>
-    public GameSessionData SessionData { get; private set; }
+    private GameSessionData _sessionData;
     
     /// <summary>
-    /// 세션 데이터 Repository (Domain 계층용)
+    /// 세션 데이터 Repository (Data 계층 내부용, UseCase에서만 사용)
     /// </summary>
-    public ISessionDataRepository SessionDataRepository { get; private set; }
+    private ISessionDataRepository SessionDataRepository { get; set; }
     
     /// <summary>
     /// UseCase 인스턴스들
@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     public DamageTrackingUseCase DamageTrackingUseCase { get; private set; }
     public KillTrackingUseCase KillTrackingUseCase { get; private set; }
     public SurvivalTimeTrackingUseCase SurvivalTimeTrackingUseCase { get; private set; }
+    public SessionManagementUseCase SessionManagementUseCase { get; private set; }
     
     /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
@@ -48,16 +49,17 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         
-        // 세션 데이터 초기화
-        SessionData = new GameSessionData();
+        // 세션 데이터 초기화 (Data 계층 내부)
+        _sessionData = new GameSessionData();
         
-        // Repository 초기화
-        SessionDataRepository = new SessionDataRepository(SessionData);
+        // Repository 초기화 (Data 계층 구현체)
+        SessionDataRepository = new SessionDataRepository(_sessionData);
         
         // UseCase 초기화
         DamageTrackingUseCase = new DamageTrackingUseCase(SessionDataRepository);
         KillTrackingUseCase = new KillTrackingUseCase(SessionDataRepository);
         SurvivalTimeTrackingUseCase = new SurvivalTimeTrackingUseCase(SessionDataRepository, null); // LifecycleManager는 나중에 설정
+        SessionManagementUseCase = new SessionManagementUseCase(SessionDataRepository);
 
         // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();
@@ -95,12 +97,12 @@ public class GameManager : MonoBehaviour
     /// <param name="resetSession">세션 데이터를 리셋할지 여부 (기본값: true, 상점에서 올 때는 false)</param>
     public void StartStage(string stageName = "DebugStage", bool resetSession = true)
     {
-        // 세션 데이터 리셋 (새 게임 시작 시에만)
+        // 세션 데이터 리셋 (새 게임 시작 시에만) - UseCase를 통해 접근
         if (resetSession)
         {
-            SessionData.Reset();
+            SessionManagementUseCase.ResetSession();
         }
-        SessionData.currentStageName = stageName;
+        SessionManagementUseCase.SetCurrentStageName(stageName);
         
         Debug.Log($"[GameManager] 스테이지 시작: {stageName} (세션 리셋: {resetSession})");
         

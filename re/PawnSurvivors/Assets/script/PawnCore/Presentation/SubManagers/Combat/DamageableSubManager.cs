@@ -75,32 +75,16 @@ public class DamageableSubManager : PawnSubManager
         Debug.Log($"[DamageableSubManager] {_pawnManager.name} - PawnDamagedEvent 발행: Attacker={evt.Attacker?.name}, Damage={actualDamage}, Target={_pawnManager.name}");
         _pawnManager.Publish(damagedEvent);
 
-        // SessionData에 통계 기록 (레벨업 시스템용 - KillCountLevelUpStrategy 등에서 사용)
-        // DamageDealtLevelUpStrategy는 PawnDamagedEvent를 구독하여 추적하므로 여기서는 처치 수만 기록
-        if (GameManager.Instance?.SessionData != null && evt.Attacker != null)
-        {
-            // ✅ Owner 기반으로 플레이어 공격 확인 (Tag/Layer 하드코딩 제거)
-            PawnManager attackerPawnManager = evt.Attacker.GetComponent<PawnManager>();
-            if (attackerPawnManager != null)
-            {
-                // 탄환의 경우 Owner를 확인, 직접 공격의 경우 Attacker 자체를 확인
-                PawnManager actualOwner = attackerPawnManager.Owner ?? attackerPawnManager;
-                
-                // PlayerController에 속한 플레이어인지 확인
-                if (IsPlayerPawn(actualOwner))
-                {
-                    GameManager.Instance.SessionData.AddFloat("totalDamageDealt", actualDamage);
-                }
-            }
-        }
+        // 통계 기록은 UseCase를 통해 처리 (DamageTrackingUseCase가 PawnDamagedEvent를 구독하여 처리)
+        // 여기서는 직접 기록하지 않음
 
         // 체력이 0 이하가 되면 사망 이벤트 발행
         if (isFatal)
         {
             Debug.Log($"{_pawnManager.name} has run out of health and will be destroyed.");
             
-            // SessionData에 처치 수 기록 (레벨업 시스템용)
-            if (GameManager.Instance?.SessionData != null && evt.Attacker != null)
+            // SessionData에 처치 수 기록 (레벨업 시스템용) - UseCase를 통해 처리
+            if (GameManager.Instance?.KillTrackingUseCase != null && evt.Attacker != null)
             {
                 // ✅ Owner 기반으로 플레이어 공격 확인 (Tag/Layer 하드코딩 제거)
                 PawnManager attackerPawnManager = evt.Attacker.GetComponent<PawnManager>();

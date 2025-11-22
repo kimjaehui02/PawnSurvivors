@@ -1,5 +1,6 @@
 using UnityEngine;
 using PawnSurvivors.UI;
+using PawnSurvivors.Domain.Usecases;
 
 namespace PawnSurvivors.Managers
 {
@@ -160,7 +161,7 @@ namespace PawnSurvivors.Managers
                     {
                         if (GameManager.Instance != null)
                         {
-                            string stageName = GameManager.Instance.SessionData?.currentStageName ?? "Stage1";
+                            string stageName = GameManager.Instance?.SessionManagementUseCase?.GetCurrentStageName() ?? "Stage1";
                             bool resetSession = _previousState == GameState.MainMenu || _previousState == GameState.Title;
                             GameManager.Instance.StartStage(stageName, resetSession);
                         }
@@ -281,7 +282,7 @@ namespace PawnSurvivors.Managers
         {
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.SessionData.currentStageName = stageName;
+                GameManager.Instance?.SessionManagementUseCase?.SetCurrentStageName(stageName);
             }
             ChangeState(GameState.Stage);
         }
