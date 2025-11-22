@@ -22,7 +22,7 @@
     },
     {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
-      "visualSpriteName": "Asprite/butter",
+      "visualSpriteName": "Sprites/butter",
       "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1},
       "visualSpriteIndex": -1,
       "shadowPreset": "PlayerShadow",

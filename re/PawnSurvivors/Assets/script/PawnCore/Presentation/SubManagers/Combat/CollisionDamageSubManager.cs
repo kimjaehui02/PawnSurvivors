@@ -81,6 +81,14 @@ public class CollisionDamageSubManager : PawnSubManager
             return;
         }
 
+        // 총알끼리 충돌 무시 (Bullet과 EnemyBullet)
+        bool isSelfBullet = gameObject.CompareTag("Bullet") || gameObject.CompareTag("EnemyBullet");
+        bool isOtherBullet = other.CompareTag("Bullet") || other.CompareTag("EnemyBullet");
+        if (isSelfBullet && isOtherBullet)
+        {
+            return;
+        }
+
         // CombatData가 없으면 무시
         if (_pawnData?.combatData == null) return;
 
