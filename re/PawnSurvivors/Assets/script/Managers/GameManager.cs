@@ -1,6 +1,9 @@
 using UnityEngine;
 using PawnSurvivors.Managers;
 using PawnSurvivors.Data;
+using PawnSurvivors.Data.Repositories;
+using PawnSurvivors.Domain.Repositories;
+using PawnSurvivors.Domain.Usecases;
 using PawnSurvivors.Player;
 using System.IO;
 
@@ -19,6 +22,18 @@ public class GameManager : MonoBehaviour
     public GameSessionData SessionData { get; private set; }
     
     /// <summary>
+    /// 세션 데이터 Repository (Domain 계층용)
+    /// </summary>
+    public ISessionDataRepository SessionDataRepository { get; private set; }
+    
+    /// <summary>
+    /// UseCase 인스턴스들
+    /// </summary>
+    public DamageTrackingUseCase DamageTrackingUseCase { get; private set; }
+    public KillTrackingUseCase KillTrackingUseCase { get; private set; }
+    public SurvivalTimeTrackingUseCase SurvivalTimeTrackingUseCase { get; private set; }
+    
+    /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
     /// </summary>
     public PlayerController PlayerController { get; private set; }
@@ -35,11 +50,25 @@ public class GameManager : MonoBehaviour
         
         // 세션 데이터 초기화
         SessionData = new GameSessionData();
+        
+        // Repository 초기화
+        SessionDataRepository = new SessionDataRepository(SessionData);
+        
+        // UseCase 초기화
+        DamageTrackingUseCase = new DamageTrackingUseCase(SessionDataRepository);
+        KillTrackingUseCase = new KillTrackingUseCase(SessionDataRepository);
+        SurvivalTimeTrackingUseCase = new SurvivalTimeTrackingUseCase(SessionDataRepository, null); // LifecycleManager는 나중에 설정
 
         // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();
         CreationManager = GetComponent<CreationManager>();
         StageManager = GetComponent<StageManager>();
+        
+        // LifecycleManager 설정 후 UseCase 업데이트
+        if (LifecycleManager != null)
+        {
+            SurvivalTimeTrackingUseCase = new SurvivalTimeTrackingUseCase(SessionDataRepository, LifecycleManager);
+        }
 
         _stageLoader = new StageLoader();
         string stagesPath = Path.Combine(Application.streamingAssetsPath, "Stages");

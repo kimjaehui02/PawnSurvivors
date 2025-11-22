@@ -112,7 +112,11 @@ public class DamageableSubManager : PawnSubManager
                     // 플레이어가 적을 처치한 경우
                     if (IsPlayerPawn(actualOwner) && _pawnManager.CompareTag("Enemy"))
                     {
-                        GameManager.Instance.SessionData.AddInt("enemiesKilled");
+                        // UseCase를 통해 처치 수 기록
+                        if (GameManager.Instance?.KillTrackingUseCase != null)
+                        {
+                            GameManager.Instance.KillTrackingUseCase.RecordKill();
+                        }
                     }
                 }
             }

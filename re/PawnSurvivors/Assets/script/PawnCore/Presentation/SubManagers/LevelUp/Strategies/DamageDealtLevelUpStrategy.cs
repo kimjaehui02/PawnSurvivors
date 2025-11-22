@@ -1,5 +1,6 @@
 using UnityEngine;
 using PawnCore.Domain.Events;
+using PawnSurvivors.Domain.Usecases;
 using System.Collections.Generic;
 
 /// <summary>
@@ -11,8 +12,14 @@ public class DamageDealtLevelUpStrategy : LevelUpStrategyBase
     /// <summary>레벨업에 필요한 누적 데미지</summary>
     public float requiredDamage = 500f;
 
-    /// <summary>이 전략이 초기화된 이후 입힌 누적 데미지</summary>
-    private float _damageDealt = 0f;
+    /// <summary>전략 활성화 시점의 데미지</summary>
+    private float _damageAtStart = 0f;
+    
+    /// <summary>UseCase 인스턴스</summary>
+    private DamageTrackingUseCase _damageTrackingUseCase;
+    
+    /// <summary>플레이어 ID (PawnManager의 InstanceID)</summary>
+    private int _playerId;
     
     /// <summary>구독한 PawnManager 목록 (구독 해지용)</summary>
     private List<PawnManager> _subscribedPawns = new List<PawnManager>();
@@ -25,10 +32,20 @@ public class DamageDealtLevelUpStrategy : LevelUpStrategyBase
     {
         base.Init(pawnManager);
 
+        // UseCase 가져오기
+        if (GameManager.Instance?.DamageTrackingUseCase != null)
+        {
+            _damageTrackingUseCase = GameManager.Instance.DamageTrackingUseCase;
+            _playerId = pawnManager.GetInstanceID();
+            _damageAtStart = _damageTrackingUseCase.GetTotalDamage(_playerId);
+        }
+        else
+        {
+            Debug.LogWarning($"[DamageDealtLevelUpStrategy] {pawnManager.name} - DamageTrackingUseCase를 찾을 수 없습니다.", this);
+        }
+
         // 모든 PawnManager의 PawnDamagedEvent 구독 (플레이어가 입힌 데미지 추적)
         SubscribeToAllPawns();
-
-        _damageDealt = 0f;
 
         Debug.Log($"[DamageDealtLevelUpStrategy] {pawnManager.name} 초기화 - 목표: {requiredDamage} 데미지", this);
     }
@@ -139,8 +156,13 @@ public class DamageDealtLevelUpStrategy : LevelUpStrategyBase
         // Unity의 MonoBehaviour는 참조 비교가 안정적이지 않을 수 있으므로 GetInstanceID 사용
         if (actualOwner != null && _pawnManager != null && actualOwner.GetInstanceID() == _pawnManager.GetInstanceID())
         {
-            _damageDealt += evt.DamageApplied;
-            Debug.Log($"[DamageDealtLevelUpStrategy] ✅ {_pawnManager.name} 데미지 기록: {evt.DamageApplied} (누적: {_damageDealt:F0}/{requiredDamage:F0})");
+            // UseCase를 통해 데미지 기록
+            if (_damageTrackingUseCase != null)
+            {
+                _damageTrackingUseCase.RecordDamage(_playerId, evt.DamageApplied);
+                float currentDamage = _damageTrackingUseCase.GetDamageSinceStart(_playerId, _damageAtStart);
+                Debug.Log($"[DamageDealtLevelUpStrategy] ✅ {_pawnManager.name} 데미지 기록: {evt.DamageApplied} (누적: {currentDamage:F0}/{requiredDamage:F0})");
+            }
         }
         else
         {
@@ -150,18 +172,26 @@ public class DamageDealtLevelUpStrategy : LevelUpStrategyBase
 
     public override bool CheckCondition()
     {
-        return _damageDealt >= requiredDamage;
+        if (_damageTrackingUseCase == null) return false;
+        
+        float damageSinceStart = _damageTrackingUseCase.GetDamageSinceStart(_playerId, _damageAtStart);
+        return damageSinceStart >= requiredDamage;
     }
 
     public override float GetProgress()
     {
-        return Mathf.Clamp01(_damageDealt / requiredDamage);
+        if (_damageTrackingUseCase == null) return 0f;
+        
+        float damageSinceStart = _damageTrackingUseCase.GetDamageSinceStart(_playerId, _damageAtStart);
+        return Mathf.Clamp01(damageSinceStart / requiredDamage);
     }
 
     public override string GetProgressText()
     {
-        float currentProgress = Mathf.Min(_damageDealt, requiredDamage);
-        return $"{currentProgress:F0}/{requiredDamage:F0} 데미지";
+        if (_damageTrackingUseCase == null) return "0/0";
+        
+        float damageSinceStart = Mathf.Min(_damageTrackingUseCase.GetDamageSinceStart(_playerId, _damageAtStart), requiredDamage);
+        return $"{damageSinceStart:F0}/{requiredDamage:F0} 데미지";
     }
 }
 
