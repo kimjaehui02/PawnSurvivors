@@ -33,6 +33,7 @@ public class GameManager : MonoBehaviour
     public KillTrackingUseCase KillTrackingUseCase { get; private set; }
     public SurvivalTimeTrackingUseCase SurvivalTimeTrackingUseCase { get; private set; }
     public SessionManagementUseCase SessionManagementUseCase { get; private set; }
+    public CurrencyUseCase CurrencyUseCase { get; private set; }
     
     /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
@@ -60,6 +61,7 @@ public class GameManager : MonoBehaviour
         KillTrackingUseCase = new KillTrackingUseCase(SessionDataRepository);
         SurvivalTimeTrackingUseCase = new SurvivalTimeTrackingUseCase(SessionDataRepository, null); // LifecycleManager는 나중에 설정
         SessionManagementUseCase = new SessionManagementUseCase(SessionDataRepository);
+        CurrencyUseCase = new CurrencyUseCase(SessionDataRepository);
 
         // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();

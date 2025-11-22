@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using PawnSurvivors.Domain;
 
 namespace PawnSurvivors.Domain.Repositories
 {
@@ -19,7 +20,23 @@ namespace PawnSurvivors.Domain.Repositories
         float GetSurvivalTime();
         
         // ========================================
-        // 정수 값
+        // 정수 값 (enum 기반 - 권장)
+        // ========================================
+        
+        int GetInt(SessionDataIntKey key, int defaultValue = 0);
+        void SetInt(SessionDataIntKey key, int value);
+        void AddInt(SessionDataIntKey key, int amount = 1);
+        
+        // ========================================
+        // 실수 값 (enum 기반 - 권장)
+        // ========================================
+        
+        float GetFloat(SessionDataFloatKey key, float defaultValue = 0f);
+        void SetFloat(SessionDataFloatKey key, float value);
+        void AddFloat(SessionDataFloatKey key, float amount);
+        
+        // ========================================
+        // 정수 값 (string 기반 - 하위 호환성)
         // ========================================
         
         int GetInt(string key, int defaultValue = 0);
@@ -27,7 +44,7 @@ namespace PawnSurvivors.Domain.Repositories
         void AddInt(string key, int amount = 1);
         
         // ========================================
-        // 실수 값
+        // 실수 값 (string 기반 - 하위 호환성)
         // ========================================
         
         float GetFloat(string key, float defaultValue = 0f);

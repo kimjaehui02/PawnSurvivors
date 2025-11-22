@@ -1,4 +1,5 @@
 using PawnSurvivors.Domain.Repositories;
+using PawnSurvivors.Domain;
 
 namespace PawnSurvivors.Domain.Usecases
 {
@@ -20,7 +21,7 @@ namespace PawnSurvivors.Domain.Usecases
         /// <param name="amount">증가량 (기본값: 1)</param>
         public void RecordKill(int amount = 1)
         {
-            _repository.AddInt("enemiesKilled", amount);
+            _repository.AddInt(SessionDataIntKey.EnemiesKilled, amount);
         }
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace PawnSurvivors.Domain.Usecases
         /// <returns>전체 처치 수</returns>
         public int GetTotalKills()
         {
-            return _repository.GetInt("enemiesKilled", 0);
+            return _repository.GetInt(SessionDataIntKey.EnemiesKilled, 0);
         }
 
         /// <summary>

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using PawnSurvivors.Data;
 using PawnSurvivors.Domain.Repositories;
+using PawnSurvivors.Domain;
 
 namespace PawnSurvivors.Data.Repositories
 {
@@ -48,7 +49,45 @@ namespace PawnSurvivors.Data.Repositories
         }
 
         // ========================================
-        // 정수 값
+        // 정수 값 (enum 기반 - 권장)
+        // ========================================
+        
+        public int GetInt(SessionDataIntKey key, int defaultValue = 0)
+        {
+            return _sessionData.GetInt(EnumToString(key), defaultValue);
+        }
+
+        public void SetInt(SessionDataIntKey key, int value)
+        {
+            _sessionData.SetInt(EnumToString(key), value);
+        }
+
+        public void AddInt(SessionDataIntKey key, int amount = 1)
+        {
+            _sessionData.AddInt(EnumToString(key), amount);
+        }
+
+        // ========================================
+        // 실수 값 (enum 기반 - 권장)
+        // ========================================
+        
+        public float GetFloat(SessionDataFloatKey key, float defaultValue = 0f)
+        {
+            return _sessionData.GetFloat(EnumToString(key), defaultValue);
+        }
+
+        public void SetFloat(SessionDataFloatKey key, float value)
+        {
+            _sessionData.SetFloat(EnumToString(key), value);
+        }
+
+        public void AddFloat(SessionDataFloatKey key, float amount)
+        {
+            _sessionData.AddFloat(EnumToString(key), amount);
+        }
+
+        // ========================================
+        // 정수 값 (string 기반 - 하위 호환성)
         // ========================================
         
         public int GetInt(string key, int defaultValue = 0)
@@ -67,7 +106,7 @@ namespace PawnSurvivors.Data.Repositories
         }
 
         // ========================================
-        // 실수 값
+        // 실수 값 (string 기반 - 하위 호환성)
         // ========================================
         
         public float GetFloat(string key, float defaultValue = 0f)
@@ -83,6 +122,40 @@ namespace PawnSurvivors.Data.Repositories
         public void AddFloat(string key, float amount)
         {
             _sessionData.AddFloat(key, amount);
+        }
+
+        // ========================================
+        // Enum 변환 헬퍼
+        // ========================================
+        
+        /// <summary>
+        /// Enum을 문자열로 변환합니다. (camelCase)
+        /// 예: EnemiesKilled → "enemiesKilled", Gold → "gold"
+        /// </summary>
+        private static string EnumToString(SessionDataIntKey key)
+        {
+            // Enum 이름을 camelCase로 변환
+            string enumName = key.ToString();
+            if (enumName.Length > 0)
+            {
+                return char.ToLowerInvariant(enumName[0]) + enumName.Substring(1);
+            }
+            return enumName;
+        }
+
+        /// <summary>
+        /// Enum을 문자열로 변환합니다. (camelCase)
+        /// 예: TotalDamageDealt → "totalDamageDealt"
+        /// </summary>
+        private static string EnumToString(SessionDataFloatKey key)
+        {
+            // Enum 이름을 camelCase로 변환
+            string enumName = key.ToString();
+            if (enumName.Length > 0)
+            {
+                return char.ToLowerInvariant(enumName[0]) + enumName.Substring(1);
+            }
+            return enumName;
         }
 
         // ========================================
