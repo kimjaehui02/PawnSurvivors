@@ -43,14 +43,10 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            // CombatData가 없으면 생성
-            if (pawnData.combatData == null)
-            {
-                pawnData.combatData = new CombatData();
-            }
-
-            pawnData.combatData.damage = damage;
-            pawnData.combatData.destroyOnHit = destroyOnHit;
+            // CombatData 가져오기 또는 생성
+            var combatData = pawnData.GetOrCreateCombatData();
+            combatData.damage = damage;
+            combatData.destroyOnHit = destroyOnHit;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -66,14 +62,10 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            // HealthData가 없으면 생성
-            if (pawnData.healthData == null)
-            {
-                pawnData.healthData = new HealthData();
-            }
-
-            pawnData.healthData.maxHealth = maxHealth;
-            pawnData.healthData.currentHealth = maxHealth;
+            // HealthData 가져오기 또는 생성
+            var healthData = pawnData.GetOrCreateHealthData();
+            healthData.maxHealth = maxHealth;
+            healthData.currentHealth = maxHealth;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -90,11 +82,8 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            // MovableData가 없으면 생성
-            if (pawnData.movableData == null)
-            {
-                pawnData.movableData = new MovableData();
-            }
+            // MovableData 가져오기 또는 생성
+            pawnData.GetOrCreateMovableData();
 
             foreach (var setup in strategySetups)
             {
@@ -138,15 +127,12 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            if (pawnData.combatData == null)
-            {
-                pawnData.combatData = new CombatData();
-            }
-            pawnData.combatData.projectileRecipeName = projectileRecipeName;
-            pawnData.combatData.fireRate = fireRate;
-            pawnData.combatData.damage = damage; // 발사자의 데미지 저장
-            pawnData.combatData.targetTag = targetTag; // 타겟 태그 설정
-            pawnData.combatData.projectileSpeed = projectileSpeed; // 투사체 속도 설정
+            var combatData = pawnData.GetOrCreateCombatData();
+            combatData.projectileRecipeName = projectileRecipeName;
+            combatData.fireRate = fireRate;
+            combatData.damage = damage; // 발사자의 데미지 저장
+            combatData.targetTag = targetTag; // 타겟 태그 설정
+            combatData.projectileSpeed = projectileSpeed; // 투사체 속도 설정
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -197,17 +183,13 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            // VisualData가 없으면 생성
-            if (pawnData.visualData == null)
-            {
-                pawnData.visualData = new VisualData();
-            }
-
-            pawnData.visualData.visualSpriteName = visualSpriteName;
-            pawnData.visualData.visualColor = visualColor;
-            pawnData.visualData.visualSpriteIndex = visualSpriteIndex;
-            pawnData.visualData.shadowPresetName = shadowPreset;
-            pawnData.visualData.visualScale = visualScale;
+            // VisualData 가져오기 또는 생성
+            var visualData = pawnData.GetOrCreateVisualData();
+            visualData.visualSpriteName = visualSpriteName;
+            visualData.visualColor = visualColor;
+            visualData.visualSpriteIndex = visualSpriteIndex;
+            visualData.shadowPresetName = shadowPreset;
+            visualData.visualScale = visualScale;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -236,18 +218,14 @@ namespace PawnCore.Recipes.Json
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
-            // PhysicsData가 없으면 생성
-            if (pawnData.physicsData == null)
-            {
-                pawnData.physicsData = new PhysicsData();
-            }
-
-            pawnData.physicsData.colliderType = colliderType;
-            pawnData.physicsData.isTrigger = isTrigger;
-            pawnData.physicsData.rigidbodyType = rigidbodyType;
-            pawnData.physicsData.gravityScale = gravityScale;
-            pawnData.physicsData.physicsLayerName = physicsLayerName;
-            pawnData.physicsData.physicsTag = physicsTag;
+            // PhysicsData 가져오기 또는 생성
+            var physicsData = pawnData.GetOrCreatePhysicsData();
+            physicsData.colliderType = colliderType;
+            physicsData.isTrigger = isTrigger;
+            physicsData.rigidbodyType = rigidbodyType;
+            physicsData.gravityScale = gravityScale;
+            physicsData.physicsLayerName = physicsLayerName;
+            physicsData.physicsTag = physicsTag;
         }
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
@@ -545,6 +523,72 @@ namespace PawnCore.Recipes.Json
             strategy.eventName = eventName;
             strategy.requiredCount = requiredCount;
             return strategy;
+        }
+    }
+
+    // ========================================
+    // SpawnOnDeath SubManager Setup Data
+    // ========================================
+
+    [Serializable]
+    public class SpawnOnDeathSubManagerSetupData : SubManagerSetupData
+    {
+        /// <summary>죽을 때 생성할 Pawn의 레시피 이름들</summary>
+        public string[] spawnRecipeNames = new string[0];
+        
+        /// <summary>각 Pawn의 생성 확률 (0.0 ~ 1.0)</summary>
+        public float[] spawnChances = new float[0];
+        
+        /// <summary>각 Pawn의 생성 개수</summary>
+        public int[] spawnCounts = new int[0];
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // SpawnOnDeathSubManager는 PawnData에 저장할 데이터가 없음
+            // 모든 설정은 컴포넌트 자체에서 관리
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            SpawnOnDeathSubManager subManager = pawnObject.AddComponent<SpawnOnDeathSubManager>();
+            subManager.spawnRecipeNames = spawnRecipeNames ?? new string[0];
+            subManager.spawnChances = spawnChances ?? new float[0];
+            subManager.spawnCounts = spawnCounts ?? new int[0];
+            return subManager;
+        }
+    }
+
+    // ========================================
+    // CoinPickup SubManager Setup Data
+    // ========================================
+
+    [Serializable]
+    public class CoinPickupSubManagerSetupData : SubManagerSetupData
+    {
+        /// <summary>이 코인이 주는 골드 양</summary>
+        public int goldAmount = 1;
+        
+        /// <summary>플레이어와의 거리가 이 값 이하일 때 자동 흡수 시작</summary>
+        public float magnetRange = 3f;
+        
+        /// <summary>
+        /// 주의: 이동 속도는 MovableSubManager의 HomingMovementStrategy에서 관리됩니다.
+        /// magnetSpeed는 더 이상 사용되지 않습니다.
+        /// </summary>
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // CoinPickupSubManager는 PawnData에 저장할 데이터가 없음
+            // 모든 설정은 컴포넌트 자체에서 관리
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            CoinPickupSubManager subManager = pawnObject.AddComponent<CoinPickupSubManager>();
+            subManager.goldAmount = goldAmount;
+            subManager.magnetRange = magnetRange;
+            // magnetSpeed는 제거됨 - 이동은 MovableSubManager의 HomingMovementStrategy가 처리
+            return subManager;
         }
     }
 }

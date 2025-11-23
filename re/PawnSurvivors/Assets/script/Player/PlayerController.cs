@@ -104,6 +104,14 @@ namespace PawnSurvivors.Player
             // 리스트에 추가
             playerPawns.Add(pawn);
             
+            // PawnData에 인덱스 설정 (경험치 추적 등에 사용)
+            int index = playerPawns.Count - 1;
+            var pawnManager = pawn.GetComponent<PawnManager>();
+            if (pawnManager != null && pawnManager.PawnData != null)
+            {
+                pawnManager.PawnData.playerIndex = index;
+            }
+            
             // 자동 대열 생성
             if (useAutomaticFormation)
             {
@@ -111,7 +119,6 @@ namespace PawnSurvivors.Player
             }
             
             // 대열 위치 설정
-            int index = playerPawns.Count - 1;
             if (index < formationPositions.Length)
             {
                 pawn.transform.localPosition = formationPositions[index];
@@ -122,7 +129,7 @@ namespace PawnSurvivors.Player
                 Debug.LogWarning($"[PlayerController] 대열 위치 부족! Pawn {index}를 기본 위치에 배치합니다.");
             }
             
-            Debug.Log($"[PlayerController] Pawn 추가됨: {pawn.name} at localPosition {pawn.transform.localPosition}, scale {pawnScale}");
+            Debug.Log($"[PlayerController] Pawn 추가됨: {pawn.name} at localPosition {pawn.transform.localPosition}, scale {pawnScale}, playerIndex={index}");
         }
         
         /// <summary>

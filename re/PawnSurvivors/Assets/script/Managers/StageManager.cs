@@ -83,6 +83,7 @@ public class StageManager : MonoBehaviour
         }
     }
 
+
     public void UpdateStage()
     {
         if (_currentStageData == null || _creationManager == null) return;

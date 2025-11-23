@@ -54,6 +54,13 @@ namespace PawnSurvivors.UI
                 OptionButton.onClick.AddListener(OnOptionButtonClicked);
                 LoadOptionButtonSprite();
             }
+            
+            // 골드 UI 추가
+            if (GetComponent<CurrencyUI>() == null)
+            {
+                var currencyUI = gameObject.AddComponent<CurrencyUI>();
+                currencyUI.anchorPosition = new Vector2(0.95f, 0.95f); // 우측 상단
+            }
         }
 
         private void OnEnable()

@@ -38,11 +38,8 @@ public class CollisionDamageSubManager : PawnSubManager
     {
         _pawnData = _pawnManager.PawnData;
         
-        // CombatData가 없으면 생성
-        if (_pawnData.combatData == null)
-        {
-            _pawnData.combatData = new PawnCore.Domain.CombatData();
-        }
+        // CombatData 가져오기 또는 생성
+        _pawnData.GetOrCreateCombatData();
         
         // CombatData에서 destroyOnHit 설정 가져오기
         destroyOnHit = _pawnData.combatData.destroyOnHit;

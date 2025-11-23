@@ -67,6 +67,13 @@ namespace PawnSurvivors.UI
                 canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
                 canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
             }
+            
+            // 골드 UI 추가
+            if (GetComponent<CurrencyUI>() == null)
+            {
+                var currencyUI = gameObject.AddComponent<CurrencyUI>();
+                currencyUI.anchorPosition = new Vector2(0.95f, 0.95f); // 우측 상단
+            }
 
             // 한글 폰트 로드 (Assets/Fonts/NanumGothic SDF.asset)
             TMP_FontAsset nanumFont = null;

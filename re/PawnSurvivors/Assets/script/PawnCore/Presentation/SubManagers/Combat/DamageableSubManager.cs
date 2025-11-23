@@ -15,13 +15,9 @@ public class DamageableSubManager : PawnSubManager
     {
         _pawnData = _pawnManager.PawnData;
         
-        // HealthData가 없으면 생성
-        if (_pawnData.healthData == null)
-        {
-            _pawnData.healthData = new PawnCore.Domain.HealthData();
-        }
-        
-        _pawnData.healthData.currentHealth = _pawnData.healthData.maxHealth;
+        // HealthData 가져오기 또는 생성
+        var healthData = _pawnData.GetOrCreateHealthData();
+        healthData.currentHealth = healthData.maxHealth;
 
         // DamageEvent 구독 (일반 우선순위)
         // 무적 시스템(Highest)이 먼저 실행된 후 데미지를 처리합니다.
@@ -63,6 +59,29 @@ public class DamageableSubManager : PawnSubManager
             var (actualDamage, newHealth, isFatal) = CombatUsecases.ApplyDamage(_pawnData.healthData, evt.Amount);
 
             // Debug.Log($"{_pawnManager.name} took {actualDamage} damage. Current health: {newHealth}");
+
+        // ✅ 공격자의 경험치(experienceData.currentProgress) 직접 업데이트
+        // 적에게 데미지를 입힌 플레이어의 PawnData에 데미지 기록
+        // 주의: ExperienceData는 LevelUpSubManager가 있을 때만 생성되므로, 여기서는 존재할 때만 업데이트
+        if (evt.Attacker != null && _pawnManager.CompareTag("Enemy"))
+        {
+            PawnManager attackerPawnManager = evt.Attacker.GetComponent<PawnManager>();
+            if (attackerPawnManager != null)
+            {
+                // 탄환의 경우 Owner를 확인, 직접 공격의 경우 Attacker 자체를 확인
+                PawnManager actualOwner = attackerPawnManager.Owner ?? attackerPawnManager;
+                
+                // 플레이어가 적에게 데미지를 입힌 경우
+                // ExperienceData가 있는 경우에만 업데이트 (레벨업 시스템이 있는 Pawn만)
+                if (IsPlayerPawn(actualOwner) && 
+                    actualOwner.PawnData != null && 
+                    actualOwner.PawnData.experienceData != null)
+                {
+                    // 데미지만큼 진행도 증가
+                    actualOwner.PawnData.experienceData.currentProgress += actualDamage;
+                }
+            }
+        }
 
         // 피격 이벤트 발행 (무적, 넉백, 이펙트 등 추가 효과를 위해)
         var damagedEvent = new PawnDamagedEvent(

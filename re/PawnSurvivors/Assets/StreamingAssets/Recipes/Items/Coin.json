@@ -1,0 +1,39 @@
+{
+  "pawnName": "Coin",
+  "subManagerSetups": [
+    {
+      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualSpriteName": "Temporary/Circle",
+      "visualColor": {"r": 1, "g": 0.84, "b": 0, "a": 1},
+      "visualScale": {"x": 0.3, "y": 0.3, "z": 1}
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": true,
+      "rigidbodyType": "Kinematic",
+      "gravityScale": 0,
+      "physicsLayerName": "Default",
+      "physicsTag": "Untagged"
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.HomingStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": false,
+          "speed": 8.0,
+          "targetTag": "Player",
+          "detectionRange": 100.0,
+          "retargetFrequency": 0.1
+        }
+      ]
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.CoinPickupSubManagerSetupData, Assembly-CSharp",
+      "goldAmount": 1,
+      "magnetRange": 3.0
+    }
+  ]
+}
+

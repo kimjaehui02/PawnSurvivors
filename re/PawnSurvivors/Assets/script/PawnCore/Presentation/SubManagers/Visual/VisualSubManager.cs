@@ -32,11 +32,8 @@ namespace PawnCore.Presentation.SubManagers.Visual
         {
             _pawnData = _pawnManager.PawnData;
 
-            // VisualData가 없으면 생성
-            if (_pawnData.visualData == null)
-            {
-                _pawnData.visualData = new PawnCore.Domain.VisualData();
-            }
+            // VisualData 가져오기 또는 생성
+            _pawnData.GetOrCreateVisualData();
 
             // 그림자 프리셋 로드 및 생성
             if (!string.IsNullOrEmpty(_pawnData.visualData.shadowPresetName))

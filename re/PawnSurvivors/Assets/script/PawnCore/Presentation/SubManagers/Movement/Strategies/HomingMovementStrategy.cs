@@ -14,11 +14,8 @@ public class HomingMovementStrategy : MovementStrategyBase
         base.Init(pawnManager);
         _pawnData = pawnManager.PawnData;
         
-        // MovableData가 없으면 생성
-        if (_pawnData.movableData == null)
-        {
-            _pawnData.movableData = new PawnCore.Domain.MovableData();
-        }
+        // MovableData 가져오기 또는 생성
+        _pawnData.GetOrCreateMovableData();
     }
 
     public override void Move()
@@ -26,9 +23,10 @@ public class HomingMovementStrategy : MovementStrategyBase
         if (_pawnManager == null) return;
         if (_pawnData?.movableData?.homingMovement == null) return;
 
-        if (Time.time >= _nextRetargetTime)
+        float currentTime = GetGameTime();
+        if (currentTime >= _nextRetargetTime)
         {
-            _nextRetargetTime = Time.time + _pawnData.movableData.homingMovement.retargetFrequency;
+            _nextRetargetTime = currentTime + _pawnData.movableData.homingMovement.retargetFrequency;
             _currentTarget = TargetingUsecases.FindClosestTargetByTag(_pawnManager.transform.position, _pawnData.movableData.homingMovement.targetTag, _pawnData.movableData.homingMovement.detectionRange);
         }
 
@@ -37,5 +35,18 @@ public class HomingMovementStrategy : MovementStrategyBase
             Vector3 direction = (_currentTarget.position - _pawnManager.transform.position);
             MovementUsecases.MoveInDirection(_pawnManager.transform, direction, _pawnData.movableData.homingMovement.speed, _pawnData);
         }
+    }
+
+    /// <summary>
+    /// 게임 시간을 가져옵니다. (일시정지 중에는 멈춤)
+    /// LifecycleManager가 없으면 Time.time을 반환합니다.
+    /// </summary>
+    private float GetGameTime()
+    {
+        if (GameManager.Instance?.LifecycleManager != null)
+        {
+            return GameManager.Instance.LifecycleManager.GameTime;
+        }
+        return Time.time; // 폴백
     }
 }

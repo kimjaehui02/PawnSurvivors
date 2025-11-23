@@ -12,14 +12,90 @@ namespace PawnCore.Domain
         // 레시피 이름 (UI 표시 등에 사용)
         public string recipeName;
         
+        // 플레이어 인덱스 (PlayerController의 playerPawns 리스트에서의 인덱스)
+        // 경험치 추적 등에 사용됨 (같은 레시피로 생성된 여러 Pawn도 각각 독립적인 경험치를 가짐)
+        public int playerIndex = -1;
+        
         // 모듈화된 데이터 (nullable로 필요한 것만 할당)
         public HealthData healthData;
         public VisualData visualData;
         public CombatData combatData;
         public MovableData movableData;
         public PhysicsData physicsData;
+        public ExperienceData experienceData;
 
+        /// <summary>
+        /// HealthData를 가져오거나 없으면 생성합니다.
+        /// </summary>
+        public HealthData GetOrCreateHealthData()
+        {
+            if (healthData == null)
+            {
+                healthData = new HealthData();
+            }
+            return healthData;
+        }
 
+        /// <summary>
+        /// VisualData를 가져오거나 없으면 생성합니다.
+        /// </summary>
+        public VisualData GetOrCreateVisualData()
+        {
+            if (visualData == null)
+            {
+                visualData = new VisualData();
+            }
+            return visualData;
+        }
+
+        /// <summary>
+        /// CombatData를 가져오거나 없으면 생성합니다.
+        /// </summary>
+        public CombatData GetOrCreateCombatData()
+        {
+            if (combatData == null)
+            {
+                combatData = new CombatData();
+            }
+            return combatData;
+        }
+
+        /// <summary>
+        /// MovableData를 가져오거나 없으면 생성합니다.
+        /// </summary>
+        public MovableData GetOrCreateMovableData()
+        {
+            if (movableData == null)
+            {
+                movableData = new MovableData();
+            }
+            return movableData;
+        }
+
+        /// <summary>
+        /// PhysicsData를 가져오거나 없으면 생성합니다.
+        /// </summary>
+        public PhysicsData GetOrCreatePhysicsData()
+        {
+            if (physicsData == null)
+            {
+                physicsData = new PhysicsData();
+            }
+            return physicsData;
+        }
+
+        /// <summary>
+        /// ExperienceData를 가져오거나 없으면 생성합니다.
+        /// 주의: 레벨업 시스템이 있는 Pawn에만 사용해야 합니다.
+        /// </summary>
+        public ExperienceData GetOrCreateExperienceData()
+        {
+            if (experienceData == null)
+            {
+                experienceData = new ExperienceData();
+            }
+            return experienceData;
+        }
     }
 
     [Serializable]
@@ -123,6 +199,17 @@ namespace PawnCore.Domain
         public float gravityScale = 1f;
         public string physicsLayerName = "Default";
         public string physicsTag = "Untagged";
+    }
+
+    [Serializable]
+    public class ExperienceData
+    {
+        /// <summary>
+        /// 경험치바에 표시될 현재 진행도입니다.
+        /// 각 레벨업 전략이 자신의 조건에 맞게 이 값을 증가시킵니다.
+        /// 예: DamageDealtLevelUpStrategy는 데미지를 쌓고, KillCountLevelUpStrategy는 킬을 쌓습니다.
+        /// </summary>
+        public float currentProgress = 0f;
     }
 
     public enum ColliderType

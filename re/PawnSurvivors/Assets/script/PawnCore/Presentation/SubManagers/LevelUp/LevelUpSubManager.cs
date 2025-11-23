@@ -13,6 +13,12 @@ public class LevelUpSubManager : PawnSubManager
 
     public override void SubStart()
     {
+        // ExperienceData 생성 (레벨업 시스템이 있는 Pawn에만 필요)
+        if (_pawnManager.PawnData != null)
+        {
+            _pawnManager.PawnData.GetOrCreateExperienceData();
+        }
+
         _allStrategies = GetComponents<LevelUpStrategyBase>();
 
         // targetLevel 순으로 정렬
@@ -102,7 +108,9 @@ public class LevelUpSubManager : PawnSubManager
     /// </summary>
     public float GetCurrentProgress()
     {
+        if (_allStrategies == null || _allStrategies.Length == 0) return 0f;
         if (_currentStrategyIndex >= _allStrategies.Length) return 1f;
+        if (_allStrategies[_currentStrategyIndex] == null) return 0f;
         return _allStrategies[_currentStrategyIndex].GetProgress();
     }
 
@@ -111,7 +119,9 @@ public class LevelUpSubManager : PawnSubManager
     /// </summary>
     public string GetCurrentProgressText()
     {
+        if (_allStrategies == null || _allStrategies.Length == 0) return "0/0";
         if (_currentStrategyIndex >= _allStrategies.Length) return "최대 레벨";
+        if (_allStrategies[_currentStrategyIndex] == null) return "0/0";
         return _allStrategies[_currentStrategyIndex].GetProgressText();
     }
 

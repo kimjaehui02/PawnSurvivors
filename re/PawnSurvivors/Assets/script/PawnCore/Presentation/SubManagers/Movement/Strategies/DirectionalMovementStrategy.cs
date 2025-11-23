@@ -11,11 +11,8 @@ public class DirectionalMovementStrategy : MovementStrategyBase
         base.Init(pawnManager);
         _pawnData = pawnManager.PawnData;
         
-        // MovableData가 없으면 생성
-        if (_pawnData.movableData == null)
-        {
-            _pawnData.movableData = new PawnCore.Domain.MovableData();
-        }
+        // MovableData 가져오기 또는 생성
+        _pawnData.GetOrCreateMovableData();
     }
 
     public override void Move()

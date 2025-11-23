@@ -8,13 +8,8 @@ namespace PawnCore.Presentation.SubManagers.Physics
 
         public override void SubStart()
         {
-            // PhysicsData가 없으면 생성
-            if (_pawnManager.PawnData.physicsData == null)
-            {
-                _pawnManager.PawnData.physicsData = new PawnCore.Domain.PhysicsData();
-            }
-            
-            _physicsData = _pawnManager.PawnData.physicsData;
+            // PhysicsData 가져오기 또는 생성
+            _physicsData = _pawnManager.PawnData.GetOrCreatePhysicsData();
 
             // Collider2D 추가
             Collider2D collider = null;
