@@ -24,9 +24,15 @@
     },
     {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
-      "visualSpriteName": "Temporary/Circle",
-      "visualColor": {"r": 1, "g": 0.2, "b": 0.2, "a": 1},
-      "visualScale": {"x": 0.5, "y": 0.5, "z": 1}
+      "visualSpriteName": "Sprites/투사체/투사체",
+      "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1},
+      "visualSpriteIndex": -1,
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.IdleAnimationStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true
+        }
+      ]
     },
     {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",

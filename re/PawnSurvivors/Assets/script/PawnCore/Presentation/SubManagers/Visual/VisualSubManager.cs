@@ -1,8 +1,13 @@
+using System.Linq;
 using UnityEngine;
 using PawnCore.Domain;
 
 namespace PawnCore.Presentation.SubManagers.Visual
 {
+    /// <summary>
+    /// Pawn의 시각적 표현을 관리하는 SubManager입니다.
+    /// 여러 애니메이션 전략을 관리합니다.
+    /// </summary>
     public class VisualSubManager : PawnSubManager
     {
         private PawnData _pawnData;
@@ -10,23 +15,7 @@ namespace PawnCore.Presentation.SubManagers.Visual
         private GameObject _shadowObject;
         private SpriteRenderer _shadowRenderer;
         private GameObject _visualsObject; // Visuals 게임오브젝트 참조
-        private Rigidbody2D _rigidbody2D; // 이동 체크용 (옵션)
-        private Vector3 _lastPosition; // 이전 프레임 위치
-        
-        [Header("바운스 애니메이션 설정")]
-        [Tooltip("바운스 효과 활성화")]
-        public bool enableBounce = true;
-        
-        [Tooltip("바운스 높이")]
-        public float bounceHeight = 0.1f;
-        
-        [Tooltip("바운스 속도 (높을수록 빠름)")]
-        public float bounceSpeed = 10f;
-        
-        [Tooltip("이동 시작으로 간주할 최소 속도")]
-        public float movementThreshold = 0.1f;
-        
-        private float _bounceTimer = 0f;
+        private AnimationStrategyBase _currentStrategy;
 
         public override void SubStart()
         {
@@ -48,11 +37,6 @@ namespace PawnCore.Presentation.SubManagers.Visual
 
             // 자식 오브젝트에 SpriteRenderer 추가 또는 가져오기
             _spriteRenderer = _visualsObject.AddComponent<SpriteRenderer>();
-            
-            // Rigidbody2D는 SubUpdate에서 찾기 (PhysicsSubManager가 나중에 추가할 수 있음)
-            
-            // 이전 프레임 위치 초기화
-            _lastPosition = _pawnManager.transform.position;
 
             Sprite visualSprite = null;
             
@@ -126,6 +110,42 @@ namespace PawnCore.Presentation.SubManagers.Visual
             
             // 시각적 스케일 적용
             _visualsObject.transform.localScale = _pawnData.visualData.visualScale;
+
+            // 애니메이션 전략 초기화
+            InitializeAnimationStrategies();
+        }
+
+        /// <summary>
+        /// 애니메이션 전략들을 초기화합니다.
+        /// </summary>
+        private void InitializeAnimationStrategies()
+        {
+            var allStrategies = GetComponents<AnimationStrategyBase>();
+
+            // PawnManager와 VisualsObject에 대한 참조로 모든 전략 초기화
+            foreach (var strategy in allStrategies)
+            {
+                strategy.Init(_pawnManager, _visualsObject);
+            }
+
+            // 초기에 활성화된 전략 찾기 (JSON 레시피로 설정)
+            _currentStrategy = allStrategies.FirstOrDefault(s => s.enabled);
+
+            if (_currentStrategy == null && allStrategies.Length > 0)
+            {
+                // 활성화된 것이 없으면 첫 번째 것으로 기본 설정하고 활성화합니다.
+                _currentStrategy = allStrategies[0];
+                _currentStrategy.enabled = true;
+            }
+
+            // 현재 전략만 활성 상태인지 확인합니다. 실수로 여러 개가 활성화된 경우 중요합니다.
+            foreach (var strategy in allStrategies)
+            {
+                if (strategy != _currentStrategy)
+                {
+                    strategy.enabled = false;
+                }
+            }
         }
 
         /// <summary>
@@ -183,69 +203,10 @@ namespace PawnCore.Presentation.SubManagers.Visual
 
         public override void SubUpdate()
         {
-            // 바운스 애니메이션
-            if (enableBounce && _visualsObject != null)
+            // 현재 활성화된 애니메이션 전략 실행
+            if (_currentStrategy != null && _currentStrategy.enabled)
             {
-                UpdateBounceAnimation();
-            }
-        }
-        
-        /// <summary>
-        /// 이동 중일 때 콩콩 뛰는 바운스 애니메이션을 업데이트합니다.
-        /// Visuals 자식만 Y축으로 움직여서 실제 충돌/물리에는 영향을 주지 않습니다.
-        /// </summary>
-        private void UpdateBounceAnimation()
-        {
-            bool isMoving = false;
-            
-            // 현재 위치와 이전 프레임 위치 차이로 이동 체크
-            Vector3 currentPosition = _pawnManager.transform.position;
-            float positionDelta = Vector3.Distance(currentPosition, _lastPosition);
-            float deltaTime = GetGameDeltaTime();
-            
-            // deltaTime이 0이면 (정지 중) 속도 계산 건너뛰기
-            float speed = 0f;
-            if (deltaTime > 0f)
-            {
-                speed = positionDelta / deltaTime; // 속도 계산 (단위: units/sec)
-            }
-            
-            isMoving = speed > movementThreshold;
-            
-            // 다음 프레임을 위해 위치 저장
-            _lastPosition = currentPosition;
-            
-            // 디버그 로그 (1초에 한 번)
-            // if (Time.frameCount % 60 == 0)
-            // {
-            //     // Debug.Log($"[Bounce] {_pawnManager.name}: speed={speed:F2}, positionDelta={positionDelta:F3}, isMoving={isMoving}, enableBounce={enableBounce}");
-            // }
-            
-            if (isMoving)
-            {
-                // 이동 중: 바운스 타이머 증가
-                _bounceTimer += GetGameDeltaTime() * bounceSpeed;
-                
-                // Sine Wave로 상하 움직임 (0 ~ bounceHeight)
-                float yOffset = Mathf.Abs(Mathf.Sin(_bounceTimer)) * bounceHeight;
-                _visualsObject.transform.localPosition = new Vector3(0f, yOffset, 0f);
-            }
-            else
-            {
-                // 정지 중: 원위치로 부드럽게 복귀
-                Vector3 currentPos = _visualsObject.transform.localPosition;
-                if (currentPos.y > 0.01f)
-                {
-                    // Lerp로 부드럽게 내려오기
-                    float newY = Mathf.Lerp(currentPos.y, 0f, GetGameDeltaTime() * bounceSpeed);
-                    _visualsObject.transform.localPosition = new Vector3(0f, newY, 0f);
-                }
-                else
-                {
-                    // 거의 0에 가까우면 정확히 0으로
-                    _visualsObject.transform.localPosition = Vector3.zero;
-                    _bounceTimer = 0f; // 타이머 초기화
-                }
+                _currentStrategy.Animate();
             }
         }
     }

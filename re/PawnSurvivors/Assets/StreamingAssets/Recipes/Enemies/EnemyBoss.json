@@ -25,10 +25,15 @@
       "visualSpriteName": "Temporary/Circle",
       "visualColor": {"r": 0.5, "g": 0.1, "b": 0.1, "a": 1},
       "shadowPreset": "EnemyShadow",
-      "enableBounce": true,
-      "bounceHeight": 0.2,
-      "bounceSpeed": 6,
-      "movementThreshold": 0.1
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.BounceAnimationStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "bounceHeight": 0.2,
+          "bounceSpeed": 6,
+          "movementThreshold": 0.1
+        }
+      ]
     },
     {
       "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",

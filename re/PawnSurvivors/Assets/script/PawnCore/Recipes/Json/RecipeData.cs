@@ -168,18 +168,8 @@ namespace PawnCore.Recipes.Json
         [Tooltip("시각적 스케일 (기본값: 1,1,1)")]
         public Vector3 visualScale = Vector3.one;
         
-        [Header("바운스 애니메이션")]
-        [Tooltip("바운스 효과 활성화")]
-        public bool enableBounce = true;
-        
-        [Tooltip("바운스 높이")]
-        public float bounceHeight = 0.1f;
-        
-        [Tooltip("바운스 속도 (높을수록 빠름)")]
-        public float bounceSpeed = 10f;
-        
-        [Tooltip("이동 시작으로 간주할 최소 속도")]
-        public float movementThreshold = 0.1f;
+        [SerializeReference]
+        public List<AnimationStrategySetupData> strategySetups;
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
@@ -196,13 +186,63 @@ namespace PawnCore.Recipes.Json
         {
             var visualSubManager = pawnObject.AddComponent<PawnCore.Presentation.SubManagers.Visual.VisualSubManager>();
             
-            // 바운스 설정 적용
-            visualSubManager.enableBounce = enableBounce;
-            visualSubManager.bounceHeight = bounceHeight;
-            visualSubManager.bounceSpeed = bounceSpeed;
-            visualSubManager.movementThreshold = movementThreshold;
+            // 각 애니메이션 전략 컴포넌트 추가
+            if (strategySetups != null)
+            {
+                foreach (var strategySetup in strategySetups)
+                {
+                    strategySetup.AddAnimationStrategyComponent(pawnObject);
+                }
+            }
             
             return visualSubManager;
+        }
+    }
+
+    // ========================================
+    // Animation Strategy Setup Data
+    // ========================================
+
+    [Serializable]
+    public abstract class AnimationStrategySetupData
+    {
+        [Tooltip("레시피에서 기본적으로 활성화할지 여부")]
+        public bool isEnabledByDefault = true;
+
+        public abstract MonoBehaviour AddAnimationStrategyComponent(GameObject pawnObject);
+    }
+
+    [Serializable]
+    public class BounceAnimationStrategySetupData : AnimationStrategySetupData
+    {
+        [Tooltip("바운스 높이")]
+        public float bounceHeight = 0.1f;
+        
+        [Tooltip("바운스 속도 (높을수록 빠름)")]
+        public float bounceSpeed = 10f;
+        
+        [Tooltip("이동 시작으로 간주할 최소 속도")]
+        public float movementThreshold = 0.1f;
+
+        public override MonoBehaviour AddAnimationStrategyComponent(GameObject pawnObject)
+        {
+            BounceAnimationStrategy strategy = pawnObject.AddComponent<BounceAnimationStrategy>();
+            strategy.bounceHeight = bounceHeight;
+            strategy.bounceSpeed = bounceSpeed;
+            strategy.movementThreshold = movementThreshold;
+            strategy.SetInitialEnabledState(isEnabledByDefault);
+            return strategy;
+        }
+    }
+
+    [Serializable]
+    public class IdleAnimationStrategySetupData : AnimationStrategySetupData
+    {
+        public override MonoBehaviour AddAnimationStrategyComponent(GameObject pawnObject)
+        {
+            IdleAnimationStrategy strategy = pawnObject.AddComponent<IdleAnimationStrategy>();
+            strategy.SetInitialEnabledState(isEnabledByDefault);
+            return strategy;
         }
     }
 

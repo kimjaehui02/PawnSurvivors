@@ -124,19 +124,12 @@ public class GameManager : MonoBehaviour
             }
             
             // ========== 초기 플레이어 생성 ==========
-            // 기본 플레이어 3개
-            for (int i = 0; i < 3; i++)
-            {
-                AddPlayerPawn("Player");
-            }
+            // 각 캐릭터 1개씩
+            AddPlayerPawn("Player");
+            AddPlayerPawn("PlayerButter");
+            AddPlayerPawn("PlayerOpal");
             
-            // 버터 캐릭터 3개
-            for (int i = 0; i < 3; i++)
-            {
-                AddPlayerPawn("PlayerButter");
-            }
-            
-            Debug.Log("[GameManager] 총 6명의 플레이어 생성 완료 (Player x3, PlayerButter x3)");
+            Debug.Log("[GameManager] 총 3명의 플레이어 생성 완료 (Player x1, PlayerButter x1, PlayerOpal x1)");
             // ========== 초기 플레이어 생성 끝 ==========
         }
 

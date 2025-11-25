@@ -92,6 +92,13 @@ public class CollisionDamageSubManager : PawnSubManager
         // 상대방이 PawnManager를 가지고 있는지 확인
         if (other.TryGetComponent<PawnManager>(out var targetPawnManager))
         {
+            // DamageableSubManager가 있는 대상만 공격 (데미지를 받을 수 있는 대상만)
+            // 코인처럼 DamageableSubManager가 없는 아이템은 자동으로 무시됨
+            if (!targetPawnManager.TryGetComponent<DamageableSubManager>(out _))
+            {
+                return;
+            }
+
             // ✅ 쿨다운 체크 로직을 UseCases에 위임 (destroyOnHit이 false인 경우만)
             if (!destroyOnHit)
             {

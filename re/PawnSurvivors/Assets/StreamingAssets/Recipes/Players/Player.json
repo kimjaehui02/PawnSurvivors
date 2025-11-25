@@ -23,14 +23,19 @@
     },
     {
       "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
-      "visualSpriteName": "Temporary/mini",
+      "visualSpriteName": "Sprites/player/에르핀",
       "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1},
-      "visualSpriteIndex": 0,
+      "visualSpriteIndex": -1,
       "shadowPreset": "PlayerShadow",
-      "enableBounce": true,
-      "bounceHeight": 0.15,
-      "bounceSpeed": 12,
-      "movementThreshold": 0.1
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.BounceAnimationStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "bounceHeight": 0.15,
+          "bounceSpeed": 12,
+          "movementThreshold": 0.1
+        }
+      ]
     },
     {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",

@@ -16,10 +16,15 @@
         "a": 1.0
       },
       "shadowPreset": "PlayerShadow",
-      "enableBounce": true,
-      "bounceHeight": 0.1,
-      "bounceSpeed": 8.0,
-      "movementThreshold": 0.1
+      "strategySetups": [
+        {
+          "$type": "PawnCore.Recipes.Json.BounceAnimationStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "bounceHeight": 0.1,
+          "bounceSpeed": 8.0,
+          "movementThreshold": 0.1
+        }
+      ]
     },
     {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
