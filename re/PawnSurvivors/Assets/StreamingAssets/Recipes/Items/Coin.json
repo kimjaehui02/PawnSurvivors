@@ -24,7 +24,7 @@
           "isEnabledByDefault": false,
           "speed": 8.0,
           "targetTag": "Player",
-          "detectionRange": 100.0,
+          "detectionRange": 0.5,
           "retargetFrequency": 0.1
         }
       ]
@@ -32,7 +32,7 @@
     {
       "$type": "PawnCore.Recipes.Json.CoinPickupSubManagerSetupData, Assembly-CSharp",
       "goldAmount": 1,
-      "magnetRange": 3.0
+      "magnetRange": 0.5
     }
   ]
 }

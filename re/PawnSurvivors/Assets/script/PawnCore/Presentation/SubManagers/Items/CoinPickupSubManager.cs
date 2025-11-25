@@ -24,12 +24,32 @@ public class CoinPickupSubManager : PawnSubManager
 
     public override void SubStart()
     {
-        // 초기화
+        // HomingMovementStrategy의 detectionRange를 magnetRange로 미리 제한
+        // (MovableSubManager가 자동으로 활성화하더라도 올바른 범위를 사용하도록)
+        if (_pawnManager.PawnData != null)
+        {
+            var movableData = _pawnManager.PawnData.GetOrCreateMovableData();
+            if (movableData.homingMovement != null)
+            {
+                movableData.homingMovement.detectionRange = magnetRange;
+            }
+        }
     }
 
     public override void SubUpdate()
     {
         if (_isCollected) return;
+
+        // HomingMovementStrategy의 detectionRange를 항상 magnetRange로 제한
+        // (MovableSubManager가 자동 활성화하거나 다른 곳에서 변경해도 유지)
+        if (_pawnManager.PawnData != null)
+        {
+            var movableData = _pawnManager.PawnData.GetOrCreateMovableData();
+            if (movableData.homingMovement != null)
+            {
+                movableData.homingMovement.detectionRange = magnetRange;
+            }
+        }
 
         // 플레이어 찾기
         if (GameManager.Instance?.PlayerController == null) return;

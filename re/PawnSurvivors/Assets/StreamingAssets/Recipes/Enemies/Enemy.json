@@ -45,6 +45,12 @@
       "gravityScale": 0,
       "physicsLayerName": "Enemy",
       "physicsTag": "Enemy"
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.SpawnOnDeathSubManagerSetupData, Assembly-CSharp",
+      "spawnRecipeNames": ["Coin"],
+      "spawnChances": [1.0],
+      "spawnCounts": [1]
     }
   ]
 }

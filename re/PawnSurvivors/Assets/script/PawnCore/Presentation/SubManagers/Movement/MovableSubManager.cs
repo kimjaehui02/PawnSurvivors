@@ -29,7 +29,8 @@ public class MovableSubManager : PawnSubManager
             // 활성화된 것이 없으면 첫 번째 것으로 기본 설정하고 활성화합니다.
             _currentStrategy = allStrategies[0];
             _currentStrategy.enabled = true;
-            Debug.LogWarning($"MovableSubManager: No movement strategy was enabled by default by the recipe. Defaulting to and enabling ''{_currentStrategy.GetType().Name}'.", this);
+            // 경고 제거: 코인처럼 의도적으로 기본 전략을 비활성화한 경우도 있으므로 경고가 불필요함
+            // Debug.LogWarning($"MovableSubManager: No movement strategy was enabled by default by the recipe. Defaulting to and enabling ''{_currentStrategy.GetType().Name}'.", this);
         }
         
         // 현재 전략만 활성 상태인지 확인합니다. 실수로 여러 개가 활성화된 경우 중요합니다.
