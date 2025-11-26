@@ -190,8 +190,8 @@ namespace PawnSurvivors.UI
             // 상점 화면이 없으면 자동 생성
             if (shopScreen == null)
             {
-                GameObject shopObj = new GameObject("ShopScreen");
-                shopScreen = shopObj.AddComponent<ShopScreen>().gameObject;
+                GameObject shopObj = new GameObject("BrotatoShopScreen");
+                shopScreen = shopObj.AddComponent<BrotatoShopScreen>().gameObject;
                 shopScreen.transform.SetParent(transform);
             }
             
