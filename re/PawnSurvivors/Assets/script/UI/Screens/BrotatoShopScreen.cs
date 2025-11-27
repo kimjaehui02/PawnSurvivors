@@ -40,9 +40,9 @@ namespace PawnSurvivors.UI
         private GameObject _itemsInventoryPanel;
         private TMP_Text _itemsTitleText;
         
-        // 하단 중앙: 무기 인벤토리
-        private GameObject _weaponsInventoryPanel;
-        private TMP_Text _weaponsTitleText;
+        // 하단 중앙: Pawn 인벤토리
+        private GameObject _pawnsInventoryPanel;
+        private TMP_Text _pawnsTitleText;
         
         // 하단 우측: 웨이브 정보
         private GameObject _waveInfoPanel;
@@ -171,11 +171,20 @@ namespace PawnSurvivors.UI
                 
                 var scaler = canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
                 scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                scaler.referenceResolution = new Vector2(640, 360);
+                scaler.referenceResolution = new Vector2(1920, 1080);
                 scaler.screenMatchMode = UnityEngine.UI.CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
                 scaler.matchWidthOrHeight = 0.5f;
                 
                 canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            }
+            else
+            {
+                // 기존 Canvas에 CanvasScaler가 있으면 업데이트
+                var scaler = _canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
+                if (scaler != null)
+                {
+                    scaler.referenceResolution = new Vector2(1920, 1080);
+                }
             }
         }
 
@@ -663,20 +672,20 @@ namespace PawnSurvivors.UI
             
             _itemsTitleText = CreatePanelTitle("아이템", _itemsInventoryPanel);
             
-            // 무기 인벤토리 (중앙)
-            _weaponsInventoryPanel = new GameObject("WeaponsInventoryPanel");
-            _weaponsInventoryPanel.transform.SetParent(_rootPanel.transform, false);
-            var weaponsRect = _weaponsInventoryPanel.AddComponent<RectTransform>();
-            weaponsRect.anchorMin = new Vector2(0.33f, 0f);
-            weaponsRect.anchorMax = new Vector2(0.66f, 0f);
-            weaponsRect.pivot = new Vector2(0f, 0f);
-            weaponsRect.anchoredPosition = new Vector2(10f, panelY);
-            weaponsRect.sizeDelta = new Vector2(-20f, panelHeight);
+            // Pawn 인벤토리 (중앙)
+            _pawnsInventoryPanel = new GameObject("PawnsInventoryPanel");
+            _pawnsInventoryPanel.transform.SetParent(_rootPanel.transform, false);
+            var pawnsRect = _pawnsInventoryPanel.AddComponent<RectTransform>();
+            pawnsRect.anchorMin = new Vector2(0.33f, 0f);
+            pawnsRect.anchorMax = new Vector2(0.66f, 0f);
+            pawnsRect.pivot = new Vector2(0f, 0f);
+            pawnsRect.anchoredPosition = new Vector2(10f, panelY);
+            pawnsRect.sizeDelta = new Vector2(-20f, panelHeight);
             
-            var weaponsBg = _weaponsInventoryPanel.AddComponent<Image>();
-            weaponsBg.color = new Color(0.12f, 0.12f, 0.12f, 1f);
+            var pawnsBg = _pawnsInventoryPanel.AddComponent<Image>();
+            pawnsBg.color = new Color(0.12f, 0.12f, 0.12f, 1f);
             
-            _weaponsTitleText = CreatePanelTitle("무기 (1/6)", _weaponsInventoryPanel);
+            _pawnsTitleText = CreatePanelTitle("Pawn (1/6)", _pawnsInventoryPanel);
             
             // 웨이브 정보 (우측)
             _waveInfoPanel = new GameObject("WaveInfoPanel");
@@ -762,8 +771,8 @@ namespace PawnSurvivors.UI
             UpdateGoldDisplay();
             UpdateTitle();
             UpdateStats();
+            UpdatePawnsInventory();
             // TODO: 아이템 슬롯 업데이트
-            // TODO: 인벤토리 업데이트
         }
 
         private void UpdateGoldDisplay()
@@ -790,34 +799,130 @@ namespace PawnSurvivors.UI
             var playerPawns = GameManager.Instance.PlayerController.playerPawns;
             if (playerPawns == null || playerPawns.Count == 0) return;
             
-            // 첫 번째 플레이어 Pawn의 데이터 사용 (또는 합산)
-            var firstPawn = playerPawns[0];
-            if (firstPawn == null) return;
+            // 모든 Pawn의 스탯 합산
+            float totalMaxHP = 0f;
+            float totalCurrentHP = 0f;
+            float totalDamage = 0f;
+            float totalFireRate = 0f;
+            int totalLevel = 0;
+            int validPawnCount = 0;
             
-            var pawnManager = firstPawn.GetComponent<PawnManager>();
-            if (pawnManager?.PawnData == null) return;
-            
-            var pawnData = pawnManager.PawnData;
-            
-            // 기본 통계 업데이트
-            if (_basicStatRows.Count > 0 && pawnData.healthData != null)
+            foreach (var pawnObj in playerPawns)
             {
-                // 현재 레벨
-                if (_basicStatRows.Count > 0)
+                if (pawnObj == null) continue;
+                
+                var pawnManager = pawnObj.GetComponent<PawnManager>();
+                if (pawnManager?.PawnData == null) continue;
+                
+                var pawnData = pawnManager.PawnData;
+                validPawnCount++;
+                
+                // HP 합산
+                if (pawnData.healthData != null)
                 {
-                    var levelUpManager = firstPawn.GetComponent<LevelUpSubManager>();
-                    int level = levelUpManager != null ? levelUpManager.GetCurrentLevel() : 0;
-                    _basicStatRows[0].valueText.text = level.ToString();
+                    totalMaxHP += pawnData.healthData.maxHealth;
+                    totalCurrentHP += pawnData.healthData.currentHealth;
                 }
                 
-                // 최대 HP
-                if (_basicStatRows.Count > 1)
+                // 대미지 합산
+                if (pawnData.combatData != null)
                 {
-                    _basicStatRows[1].valueText.text = pawnData.healthData.maxHealth.ToString("F0");
+                    totalDamage += pawnData.combatData.damage;
+                    totalFireRate += pawnData.combatData.fireRate;
+                }
+                
+                // 레벨 합산
+                var levelUpManager = pawnObj.GetComponent<LevelUpSubManager>();
+                if (levelUpManager != null)
+                {
+                    totalLevel += levelUpManager.GetCurrentLevel();
                 }
             }
             
-            // 나머지 통계는 "U"로 표시 (아직 구현 안 됨)
+            if (validPawnCount == 0) return;
+            
+            // 기본 통계 업데이트
+            if (_basicStatRows.Count > 0)
+            {
+                // 현재 레벨 (평균)
+                if (_basicStatRows.Count > 0)
+                {
+                    int avgLevel = validPawnCount > 0 ? totalLevel / validPawnCount : 0;
+                    _basicStatRows[0].valueText.text = avgLevel.ToString();
+                }
+                
+                // 최대 HP (합산)
+                if (_basicStatRows.Count > 1)
+                {
+                    _basicStatRows[1].valueText.text = totalMaxHP.ToString("F0");
+                }
+                
+                // HP 재생 (아직 구현 안 됨)
+                if (_basicStatRows.Count > 2)
+                {
+                    _basicStatRows[2].valueText.text = "U";
+                }
+                
+                // % 생명 훔침 (아직 구현 안 됨)
+                if (_basicStatRows.Count > 3)
+                {
+                    _basicStatRows[3].valueText.text = "U";
+                }
+                
+                // % 대미지 (아직 구현 안 됨)
+                if (_basicStatRows.Count > 4)
+                {
+                    _basicStatRows[4].valueText.text = "U";
+                }
+                
+                // 근거리 대미지 (아직 구현 안 됨)
+                if (_basicStatRows.Count > 5)
+                {
+                    _basicStatRows[5].valueText.text = "U";
+                }
+                
+                // 원거리 대미지 (합산)
+                if (_basicStatRows.Count > 6)
+                {
+                    _basicStatRows[6].valueText.text = totalDamage.ToString("F1");
+                }
+                
+                // 원소 대미지 (아직 구현 안 됨)
+                if (_basicStatRows.Count > 7)
+                {
+                    _basicStatRows[7].valueText.text = "U";
+                }
+                
+                // % 공격 속도 (평균)
+                if (_basicStatRows.Count > 8)
+                {
+                    float avgFireRate = validPawnCount > 0 ? totalFireRate / validPawnCount : 0f;
+                    _basicStatRows[8].valueText.text = avgFireRate.ToString("F1");
+                }
+                
+                // % 치명타율 (아직 구현 안 됨)
+                if (_basicStatRows.Count > 9)
+                {
+                    _basicStatRows[9].valueText.text = "U";
+                }
+            }
+            
+            // 2차 통계는 아직 구현 안 됨
+            foreach (var row in _secondaryStatRows)
+            {
+                row.valueText.text = "U";
+            }
+        }
+        
+        private void UpdatePawnsInventory()
+        {
+            if (_pawnsTitleText == null || GameManager.Instance?.PlayerController == null) return;
+            
+            var playerPawns = GameManager.Instance.PlayerController.playerPawns;
+            int currentCount = playerPawns != null ? playerPawns.Count : 0;
+            int maxCount = 6;
+            
+            _pawnsTitleText.text = $"Pawn ({currentCount}/{maxCount})";
         }
 
         // 이벤트 핸들러들
