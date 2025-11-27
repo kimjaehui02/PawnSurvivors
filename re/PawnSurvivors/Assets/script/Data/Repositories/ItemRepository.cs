@@ -33,9 +33,23 @@ namespace PawnSurvivors.Data.Repositories
             // 기존 아이템이 없으면 새로 저장
             if (!_sessionData.ownedItems.ContainsKey(itemData.itemId))
             {
-                // 깊은 복사 (JsonUtility 사용)
-                string json = JsonUtility.ToJson(itemData);
-                ItemData copiedData = JsonUtility.FromJson<ItemData>(json);
+                // 깊은 복사 (Dictionary는 JsonUtility로 직렬화되지 않으므로 수동 복사)
+                ItemData copiedData = new ItemData
+                {
+                    itemId = itemData.itemId,
+                    itemName = itemData.itemName,
+                    itemType = itemData.itemType,
+                    description = itemData.description,
+                    cost = itemData.cost,
+                    iconPath = itemData.iconPath,
+                    itemFunctionType = itemData.itemFunctionType
+                };
+                
+                // Dictionary 수동 복사
+                copiedData.statModifiers = new Dictionary<int, float>(itemData.statModifiers);
+                copiedData.statMultipliers = new Dictionary<int, float>(itemData.statMultipliers);
+                copiedData.upgradeModifiers = new Dictionary<int, int>(itemData.upgradeModifiers);
+                copiedData.functionParameters = new Dictionary<string, float>(itemData.functionParameters);
 
                 _sessionData.ownedItems[itemData.itemId] = copiedData;
                 _sessionData.itemStacks[itemData.itemId] = 1;

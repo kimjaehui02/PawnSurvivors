@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using PawnCore.Domain;
 using PawnSurvivors.Data;
 using PawnSurvivors.Domain;
@@ -25,7 +26,7 @@ namespace PawnSurvivors.Domain.Usecases
         // ========================================
 
         /// <summary>
-        /// 실제 데미지를 계산합니다. (기본값 + 아이템 효과)
+        /// 실제 데미지를 계산합니다. (기본값 + 아이템 효과) * 아이템 곱셈 효과
         /// </summary>
         public float GetEffectiveDamage(PawnData pawnData)
         {
@@ -33,12 +34,21 @@ namespace PawnSurvivors.Domain.Usecases
             
             float baseDamage = pawnData.combatData.damage;
             float itemBonus = CalculateItemStatBonus(pawnData, StatKey.Damage);
+            float itemMultiplier = CalculateItemStatMultiplier(pawnData, StatKey.Damage);
             
-            return baseDamage + itemBonus;
+            float result = (baseDamage + itemBonus) * itemMultiplier;
+            
+            // 임시 디버그 로그 (테스트용 - 문제 해결 후 제거)
+            if (Time.frameCount % 60 == 0) // 1초마다 한 번씩만 로그
+            {
+                Debug.Log($"[PawnStatCalculator] GetEffectiveDamage: base={baseDamage}, bonus={itemBonus}, multiplier={itemMultiplier}, result={result}, playerIndex={pawnData.playerIndex}");
+            }
+            
+            return result;
         }
 
         /// <summary>
-        /// 실제 최대 체력을 계산합니다. (기본값 + 아이템 효과)
+        /// 실제 최대 체력을 계산합니다. (기본값 + 아이템 효과) * 아이템 곱셈 효과
         /// </summary>
         public float GetEffectiveMaxHealth(PawnData pawnData)
         {
@@ -46,12 +56,13 @@ namespace PawnSurvivors.Domain.Usecases
             
             float baseHealth = pawnData.healthData.maxHealth;
             float itemBonus = CalculateItemStatBonus(pawnData, StatKey.MaxHealth);
+            float itemMultiplier = CalculateItemStatMultiplier(pawnData, StatKey.MaxHealth);
             
-            return baseHealth + itemBonus;
+            return (baseHealth + itemBonus) * itemMultiplier;
         }
 
         /// <summary>
-        /// 실제 이동 속도를 계산합니다. (기본값 + 아이템 효과)
+        /// 실제 이동 속도를 계산합니다. (기본값 + 아이템 효과) * 아이템 곱셈 효과
         /// </summary>
         public float GetEffectiveMoveSpeed(PawnData pawnData)
         {
@@ -59,12 +70,13 @@ namespace PawnSurvivors.Domain.Usecases
             
             float baseSpeed = pawnData.movableData.keyboardMovement.moveSpeed;
             float itemBonus = CalculateItemStatBonus(pawnData, StatKey.MoveSpeed);
+            float itemMultiplier = CalculateItemStatMultiplier(pawnData, StatKey.MoveSpeed);
             
-            return baseSpeed + itemBonus;
+            return (baseSpeed + itemBonus) * itemMultiplier;
         }
 
         /// <summary>
-        /// 실제 공격 속도를 계산합니다. (기본값 + 아이템 효과)
+        /// 실제 공격 속도를 계산합니다. (기본값 + 아이템 효과) * 아이템 곱셈 효과
         /// </summary>
         public float GetEffectiveFireRate(PawnData pawnData)
         {
@@ -72,12 +84,13 @@ namespace PawnSurvivors.Domain.Usecases
             
             float baseFireRate = pawnData.combatData.fireRate;
             float itemBonus = CalculateItemStatBonus(pawnData, StatKey.FireRate);
+            float itemMultiplier = CalculateItemStatMultiplier(pawnData, StatKey.FireRate);
             
-            return baseFireRate + itemBonus;
+            return (baseFireRate + itemBonus) * itemMultiplier;
         }
 
         /// <summary>
-        /// 실제 투사체 속도를 계산합니다. (기본값 + 아이템 효과)
+        /// 실제 투사체 속도를 계산합니다. (기본값 + 아이템 효과) * 아이템 곱셈 효과
         /// </summary>
         public float GetEffectiveProjectileSpeed(PawnData pawnData)
         {
@@ -85,8 +98,9 @@ namespace PawnSurvivors.Domain.Usecases
             
             float baseSpeed = pawnData.combatData.projectileSpeed;
             float itemBonus = CalculateItemStatBonus(pawnData, StatKey.ProjectileSpeed);
+            float itemMultiplier = CalculateItemStatMultiplier(pawnData, StatKey.ProjectileSpeed);
             
-            return baseSpeed + itemBonus;
+            return (baseSpeed + itemBonus) * itemMultiplier;
         }
 
         // ========================================
@@ -104,20 +118,49 @@ namespace PawnSurvivors.Domain.Usecases
 
             // 전역 아이템 효과 (스택 반영)
             var globalItems = _itemRepository.GetGlobalItems();
+            // 임시 디버그 로그 (테스트용)
+            if (Time.frameCount % 60 == 0 && pawnData.playerIndex == 0)
+            {
+                Debug.Log($"[PawnStatCalculator] CalculateItemStatBonus: globalItems count={globalItems.Count}, playerIndex={pawnData.playerIndex}, statKey={statKey}");
+            }
             foreach (var item in globalItems)
             {
                 int stackCount = _itemRepository.GetItemStackCount(item.itemId);
-                totalBonus += item.GetStatModifier(statKey) * stackCount;
+                float modifier = item.GetStatModifier(statKey);
+                totalBonus += modifier * stackCount;
+                if (Time.frameCount % 60 == 0 && pawnData.playerIndex == 0)
+                {
+                    Debug.Log($"[PawnStatCalculator] Global item: {item.itemId}, modifier={modifier}, stack={stackCount}, totalBonus={totalBonus}");
+                }
             }
 
             // 장착 아이템 효과 (스택 반영)
-            if (pawnData.playerIndex >= 0)
+            // playerIndex가 -1인 경우 (투사체 등), Owner의 playerIndex를 사용
+            int effectivePlayerIndex = pawnData.playerIndex;
+            if (effectivePlayerIndex < 0)
             {
-                var equippedItems = _itemRepository.GetEquippedItems(pawnData.playerIndex);
+                // 투사체의 경우 Owner의 playerIndex를 사용
+                // 이는 PawnManager에서 Owner를 통해 접근할 수 없으므로,
+                // CreationManager에서 이미 playerIndex를 설정해야 함
+                // 여기서는 playerIndex < 0이면 장착 아이템을 적용하지 않음
+            }
+            
+            if (effectivePlayerIndex >= 0)
+            {
+                var equippedItems = _itemRepository.GetEquippedItems(effectivePlayerIndex);
+                if (Time.frameCount % 60 == 0 && effectivePlayerIndex == 0)
+                {
+                    Debug.Log($"[PawnStatCalculator] CalculateItemStatBonus: equippedItems count={equippedItems.Count} for playerIndex={effectivePlayerIndex}");
+                }
                 foreach (var item in equippedItems)
                 {
                     int stackCount = _itemRepository.GetItemStackCount(item.itemId);
-                    totalBonus += item.GetStatModifier(statKey) * stackCount;
+                    float modifier = item.GetStatModifier(statKey);
+                    totalBonus += modifier * stackCount;
+                    if (Time.frameCount % 60 == 0 && effectivePlayerIndex == 0)
+                    {
+                        Debug.Log($"[PawnStatCalculator] Equipped item: {item.itemId}, modifier={modifier}, stack={stackCount}, totalBonus={totalBonus}");
+                    }
                 }
             }
 
@@ -153,6 +196,62 @@ namespace PawnSurvivors.Domain.Usecases
             }
 
             return totalBonus;
+        }
+
+        /// <summary>
+        /// 특정 스탯에 대한 아이템 곱셈 효과를 계산합니다.
+        /// 전역 아이템 + 장착 아이템의 곱셈 효과를 누적 곱합니다.
+        /// 스택 개수만큼 효과가 곱해집니다.
+        /// </summary>
+        private float CalculateItemStatMultiplier(PawnData pawnData, StatKey statKey)
+        {
+            float totalMultiplier = 1f;
+
+            // 전역 아이템 곱셈 효과 (스택 반영)
+            var globalItems = _itemRepository.GetGlobalItems();
+            foreach (var item in globalItems)
+            {
+                float multiplier = item.GetStatMultiplier(statKey);
+                if (multiplier != 1f) // 1이 아닌 경우만 곱하기
+                {
+                    int stackCount = _itemRepository.GetItemStackCount(item.itemId);
+                    // 곱셈은 스택마다 곱하기 (예: 2배 아이템 2개 = 2 * 2 = 4배)
+                    for (int i = 0; i < stackCount; i++)
+                    {
+                        totalMultiplier *= multiplier;
+                    }
+                    if (Time.frameCount % 60 == 0 && pawnData.playerIndex == 0)
+                    {
+                        Debug.Log($"[PawnStatCalculator] Global multiplier: {item.itemId}, multiplier={multiplier}, stack={stackCount}, totalMultiplier={totalMultiplier}");
+                    }
+                }
+            }
+
+            // 장착 아이템 곱셈 효과 (스택 반영)
+            int effectivePlayerIndex = pawnData.playerIndex;
+            if (effectivePlayerIndex >= 0)
+            {
+                var equippedItems = _itemRepository.GetEquippedItems(effectivePlayerIndex);
+                foreach (var item in equippedItems)
+                {
+                    float multiplier = item.GetStatMultiplier(statKey);
+                    if (multiplier != 1f) // 1이 아닌 경우만 곱하기
+                    {
+                        int stackCount = _itemRepository.GetItemStackCount(item.itemId);
+                        // 곱셈은 스택마다 곱하기
+                        for (int i = 0; i < stackCount; i++)
+                        {
+                            totalMultiplier *= multiplier;
+                        }
+                        if (Time.frameCount % 60 == 0 && effectivePlayerIndex == 0)
+                        {
+                            Debug.Log($"[PawnStatCalculator] Equipped multiplier: {item.itemId}, multiplier={multiplier}, stack={stackCount}, totalMultiplier={totalMultiplier}");
+                        }
+                    }
+                }
+            }
+
+            return totalMultiplier;
         }
     }
 }
