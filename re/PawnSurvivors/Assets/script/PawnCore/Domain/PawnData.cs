@@ -212,6 +212,39 @@ namespace PawnCore.Domain
         public float currentProgress = 0f;
     }
 
+    /// <summary>
+    /// 플레이어 Pawn의 영구 데이터입니다.
+    /// 라운드 간 유지되어야 하는 정보만 저장합니다.
+    /// (경험치, 레벨, 획득한 업그레이드 등)
+    /// </summary>
+    [Serializable]
+    public class PawnPersistentData
+    {
+        /// <summary>레시피 이름 (어떤 Pawn인지 식별)</summary>
+        public string recipeName;
+        
+        /// <summary>플레이어 인덱스 (같은 레시피의 여러 Pawn 구분)</summary>
+        public int playerIndex = -1;
+        
+        /// <summary>경험치 진행도 (라운드 간 유지)</summary>
+        public float experienceProgress = 0f;
+        
+        /// <summary>현재 레벨 (라운드 간 유지)</summary>
+        public int currentLevel = 0;
+        
+        /// <summary>
+        /// 획득한 업그레이드 (업그레이드 이름 -> 레벨)
+        /// 예: upgrades["AttackSpeed"] = 3
+        /// </summary>
+        public Dictionary<string, int> upgrades = new Dictionary<string, int>();
+        
+        /// <summary>
+        /// 영구적으로 변경된 스탯 (레시피 기본값에서 변경된 값)
+        /// 예: permanentStats["damage"] = 15.0f (기본 10에서 +5)
+        /// </summary>
+        public Dictionary<string, float> permanentStats = new Dictionary<string, float>();
+    }
+
     public enum ColliderType
     {
         None,

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using PawnCore.Domain;
 
 namespace PawnSurvivors.Data
 {
@@ -58,6 +59,17 @@ namespace PawnSurvivors.Data
         public Dictionary<string, HashSet<string>> flagSets = new Dictionary<string, HashSet<string>>();
         
         // ========================================
+        // 플레이어 Pawn 영구 데이터
+        // ========================================
+        
+        /// <summary>
+        /// 플레이어 Pawn의 영구 데이터입니다.
+        /// 키: recipeName + "_" + playerIndex (예: "Player_0", "PlayerButter_1")
+        /// 값: 라운드 간 유지되는 데이터 (경험치, 레벨, 업그레이드 등)
+        /// </summary>
+        public Dictionary<string, PawnPersistentData> playerPawnPersistentData = new Dictionary<string, PawnPersistentData>();
+        
+        // ========================================
         // 기본 메서드
         // ========================================
         
@@ -74,6 +86,7 @@ namespace PawnSurvivors.Data
             stringValues.Clear();
             counterMaps.Clear();
             flagSets.Clear();
+            // playerPawnPersistentData는 유지 (라운드 간 데이터이므로)
         }
         
         // ========================================
@@ -208,6 +221,19 @@ namespace PawnSurvivors.Data
         // ========================================
         // 유틸리티
         // ========================================
+        
+        // ========================================
+        // 플레이어 Pawn 영구 데이터 관리 (Repository를 통해서만 접근)
+        // ========================================
+        
+        /// <summary>
+        /// 영구 데이터 키 생성 (recipeName + "_" + playerIndex)
+        /// Repository에서 사용하기 위해 public으로 노출
+        /// </summary>
+        public string GetPawnPersistentDataKey(string recipeName, int playerIndex)
+        {
+            return $"{recipeName}_{playerIndex}";
+        }
         
         /// <summary>생존 시간 계산 (초)</summary>
         public float GetSurvivalTime()
