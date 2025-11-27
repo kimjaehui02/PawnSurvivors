@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using PawnCore.Domain;
 using PawnCore.Domain.Events;
+using PawnSurvivors.Domain.Usecases;
 
 /// <summary>
 /// 충돌 시 데미지를 가하는 SubManager입니다.
@@ -109,8 +110,15 @@ public class CollisionDamageSubManager : PawnSubManager
                 }
             }
 
+            // ✅ PawnStatCalculator를 사용하여 실제 데미지 계산
+            float effectiveDamage = _pawnData.combatData.damage; // 기본값
+            if (GameManager.Instance?.PawnStatCalculator != null)
+            {
+                effectiveDamage = GameManager.Instance.PawnStatCalculator.GetEffectiveDamage(_pawnData);
+            }
+            
             // 상대방에게 DamageEvent 발행
-            targetPawnManager.Publish(new DamageEvent(targetPawnManager, _pawnData.combatData.damage, gameObject));
+            targetPawnManager.Publish(new DamageEvent(targetPawnManager, effectiveDamage, gameObject));
             
             // Debug.Log($"[CollisionDamage] {gameObject.name} → {other.name}: {_pawnData.combatData.damage} damage");
 

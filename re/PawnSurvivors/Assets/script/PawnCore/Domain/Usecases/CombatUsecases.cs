@@ -35,7 +35,8 @@ public static class CombatUsecases
     /// <param name="gameTime">현재 게임 시간</param>
     /// <param name="owner">발사자 PawnManager (선택적)</param>
     /// <param name="projectileDamage">발사자의 데미지 (투사체에 전달)</param>
-    public static void HandleProjectileAttack(ref float nextFireTime, float fireRate, PawnRecipeData projectileRecipe, Transform firePoint, float gameTime, PawnManager owner = null, float projectileDamage = 0f)
+    /// <param name="projectileSpeed">투사체 속도 (0이면 레시피 기본값 사용)</param>
+    public static void HandleProjectileAttack(ref float nextFireTime, float fireRate, PawnRecipeData projectileRecipe, Transform firePoint, float gameTime, PawnManager owner = null, float projectileDamage = 0f, float projectileSpeed = 0f)
     {
         if (gameTime >= nextFireTime)
         {
@@ -68,14 +69,15 @@ public static class CombatUsecases
                 // Debug.Log("No target found. Projectile will fire in default direction (firePoint.up).");
             }
             
-            // 발사자의 투사체 속도 가져오기 (설정되어 있으면 사용, 없으면 0 = 레시피 기본값)
-            float projectileSpeed = 0f;
-            if (owner != null && owner.PawnData?.combatData != null && owner.PawnData.combatData.projectileSpeed > 0f)
+            // 투사체 속도 사용 (파라미터로 전달받은 값 사용, 0이면 레시피 기본값)
+            // 파라미터로 전달받은 projectileSpeed가 0이 아니면 사용, 0이면 owner의 기본값 확인
+            float finalProjectileSpeed = projectileSpeed;
+            if (finalProjectileSpeed <= 0f && owner != null && owner.PawnData?.combatData != null && owner.PawnData.combatData.projectileSpeed > 0f)
             {
-                projectileSpeed = owner.PawnData.combatData.projectileSpeed;
+                finalProjectileSpeed = owner.PawnData.combatData.projectileSpeed;
             }
             
-            GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction, owner, projectileDamage, projectileSpeed);
+            GameManager.Instance.CreationManager.CreatePawn(projectileRecipe, firePoint.position, firePoint.rotation, direction, owner, projectileDamage, finalProjectileSpeed);
         }
     }
 

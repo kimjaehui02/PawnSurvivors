@@ -3,6 +3,7 @@ using PawnCore.Domain;
 using PawnCore.Domain.Events;
 using PawnCore.Domain.Usecases;
 using PawnCore.Recipes.Json;
+using PawnSurvivors.Domain.Usecases;
 
 /// <summary>
 /// 발사체를 발사하는 SubManager입니다.
@@ -87,9 +88,18 @@ public class ProjectileShooterSubManager : PawnSubManager
         if (projectileRecipe != null)
         {
             float currentGameTime = GetGameTime(); // 게임 시간 사용 (정지 시 멈춤)
+            
+            // ✅ PawnStatCalculator를 사용하여 실제 스탯 계산
+            PawnStatCalculator statCalculator = GameManager.Instance?.PawnStatCalculator;
+            if (statCalculator == null) return;
+            
+            float effectiveFireRate = statCalculator.GetEffectiveFireRate(_pawnData);
+            float effectiveDamage = statCalculator.GetEffectiveDamage(_pawnData);
+            float effectiveProjectileSpeed = statCalculator.GetEffectiveProjectileSpeed(_pawnData);
+            
             // 발사자 정보와 데미지 전달 (탄환이 발사자를 추적할 수 있도록)
-            float projectileDamage = _pawnData.combatData.damage; // 발사자의 데미지
-            CombatUsecases.HandleProjectileAttack(ref _nextFireTime, _pawnData.combatData.fireRate, projectileRecipe, firePoint, currentGameTime, _pawnManager, projectileDamage);
+            // 투사체 속도도 전달 (0이면 레시피 기본값 사용)
+            CombatUsecases.HandleProjectileAttack(ref _nextFireTime, effectiveFireRate, projectileRecipe, firePoint, currentGameTime, _pawnManager, effectiveDamage, effectiveProjectileSpeed);
         }
     }
 }

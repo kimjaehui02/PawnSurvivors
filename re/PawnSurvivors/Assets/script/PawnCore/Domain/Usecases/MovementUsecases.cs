@@ -1,5 +1,6 @@
 using UnityEngine;
 using PawnCore.Domain;
+using PawnSurvivors.Domain.Usecases;
 
 public static class MovementUsecases
 {
@@ -7,8 +8,15 @@ public static class MovementUsecases
     {
         if (transform == null) return;
 
+        // ✅ PawnStatCalculator를 사용하여 실제 이동 속도 계산
+        float effectiveMoveSpeed = pawnData.movableData.keyboardMovement.moveSpeed; // 기본값
+        if (GameManager.Instance?.PawnStatCalculator != null)
+        {
+            effectiveMoveSpeed = GameManager.Instance.PawnStatCalculator.GetEffectiveMoveSpeed(pawnData);
+        }
+
         float deltaTime = GetGameDeltaTime();
-        Vector3 movement = pawnData.movableData.keyboardMovement.moveSpeed * deltaTime * (Vector3)inputDirection.normalized;
+        Vector3 movement = effectiveMoveSpeed * deltaTime * (Vector3)inputDirection.normalized;
         transform.position += movement;
     }
 

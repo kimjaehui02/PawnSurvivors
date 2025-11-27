@@ -1,6 +1,7 @@
 using UnityEngine;
 using PawnCore.Domain;
 using PawnCore.Domain.Events;
+using PawnSurvivors.Domain.Usecases;
 
 /// <summary>
 /// Pawn이 데미지를 받을 수 있도록 하는 SubManager입니다.
@@ -17,7 +18,15 @@ public class DamageableSubManager : PawnSubManager
         
         // HealthData 가져오기 또는 생성
         var healthData = _pawnData.GetOrCreateHealthData();
-        healthData.currentHealth = healthData.maxHealth;
+        
+        // ✅ PawnStatCalculator를 사용하여 실제 최대 체력 계산
+        float effectiveMaxHealth = healthData.maxHealth; // 기본값
+        if (GameManager.Instance?.PawnStatCalculator != null)
+        {
+            effectiveMaxHealth = GameManager.Instance.PawnStatCalculator.GetEffectiveMaxHealth(_pawnData);
+        }
+        
+        healthData.currentHealth = effectiveMaxHealth;
 
         // DamageEvent 구독 (일반 우선순위)
         // 무적 시스템(Highest)이 먼저 실행된 후 데미지를 처리합니다.

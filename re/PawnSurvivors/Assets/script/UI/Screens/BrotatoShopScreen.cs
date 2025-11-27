@@ -4,6 +4,7 @@ using TMPro;
 using System.Collections.Generic;
 using PawnSurvivors.Managers;
 using PawnCore.Domain;
+using PawnSurvivors.Domain.Usecases;
 
 namespace PawnSurvivors.UI
 {
@@ -810,6 +811,9 @@ namespace PawnSurvivors.UI
             int totalLevel = 0;
             int validPawnCount = 0;
             
+            // ✅ PawnStatCalculator 가져오기
+            PawnStatCalculator statCalculator = GameManager.Instance?.PawnStatCalculator;
+            
             foreach (var pawnObj in playerPawns)
             {
                 if (pawnObj == null) continue;
@@ -820,18 +824,28 @@ namespace PawnSurvivors.UI
                 var pawnData = pawnManager.PawnData;
                 validPawnCount++;
                 
-                // HP 합산
+                // ✅ HP 합산 (PawnStatCalculator 사용)
                 if (pawnData.healthData != null)
                 {
-                    totalMaxHP += pawnData.healthData.maxHealth;
+                    float effectiveMaxHP = statCalculator != null 
+                        ? statCalculator.GetEffectiveMaxHealth(pawnData) 
+                        : pawnData.healthData.maxHealth;
+                    totalMaxHP += effectiveMaxHP;
                     totalCurrentHP += pawnData.healthData.currentHealth;
                 }
                 
-                // 대미지 합산
+                // ✅ 대미지 합산 (PawnStatCalculator 사용)
                 if (pawnData.combatData != null)
                 {
-                    totalDamage += pawnData.combatData.damage;
-                    totalFireRate += pawnData.combatData.fireRate;
+                    float effectiveDamage = statCalculator != null 
+                        ? statCalculator.GetEffectiveDamage(pawnData) 
+                        : pawnData.combatData.damage;
+                    float effectiveFireRate = statCalculator != null 
+                        ? statCalculator.GetEffectiveFireRate(pawnData) 
+                        : pawnData.combatData.fireRate;
+                    
+                    totalDamage += effectiveDamage;
+                    totalFireRate += effectiveFireRate;
                 }
                 
                 // 레벨 합산
