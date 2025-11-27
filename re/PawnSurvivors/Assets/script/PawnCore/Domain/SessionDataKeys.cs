@@ -37,5 +37,56 @@ namespace PawnSurvivors.Domain
         // 기타
         DamageDealt,
     }
+
+    /// <summary>
+    /// 아이템 타입을 정의하는 enum입니다.
+    /// </summary>
+    public enum ItemType
+    {
+        /// <summary>모든 Pawn에 자동 적용되는 전역 아이템</summary>
+        Global,
+        
+        /// <summary>개별 Pawn에 장착하는 아이템</summary>
+        Equipped,
+    }
+
+    /// <summary>
+    /// 스탯 키를 정의하는 enum입니다.
+    /// 아이템의 statModifiers에서 사용됩니다.
+    /// </summary>
+    public enum StatKey
+    {
+        // 전투 관련
+        Damage,              // 데미지
+        MaxHealth,           // 최대 체력
+        FireRate,            // 공격 속도
+        ProjectileSpeed,     // 투사체 속도
+        
+        // 이동 관련
+        MoveSpeed,           // 이동 속도
+        
+        // 방어 관련
+        Armor,               // 방어력
+        Shield,              // 방어막
+        
+        // 기타
+        CritChance,          // 치명타 확률
+        CritDamage,          // 치명타 데미지
+        LifeSteal,           // 생명력 흡수
+        Regeneration,        // 재생력
+        Range,               // 사거리
+    }
+
+    /// <summary>
+    /// 업그레이드 키를 정의하는 enum입니다.
+    /// 아이템의 upgradeModifiers에서 사용됩니다.
+    /// </summary>
+    public enum UpgradeKey
+    {
+        AttackSpeed,         // 공격 속도 업그레이드
+        Damage,              // 데미지 업그레이드
+        Health,              // 체력 업그레이드
+        Speed,               // 이동 속도 업그레이드
+    }
 }
 

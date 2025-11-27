@@ -27,6 +27,11 @@ public class GameManager : MonoBehaviour
     private ISessionDataRepository SessionDataRepository { get; set; }
     
     /// <summary>
+    /// 아이템 Repository (Data 계층 내부용, UseCase에서만 사용)
+    /// </summary>
+    private IItemRepository ItemRepository { get; set; }
+    
+    /// <summary>
     /// UseCase 인스턴스들
     /// </summary>
     public DamageTrackingUseCase DamageTrackingUseCase { get; private set; }
@@ -36,6 +41,8 @@ public class GameManager : MonoBehaviour
     public CurrencyUseCase CurrencyUseCase { get; private set; }
     public StageManagementUseCase StageManagementUseCase { get; private set; }
     public PawnPersistenceUseCase PawnPersistenceUseCase { get; private set; }
+    public ItemManagementUseCase ItemManagementUseCase { get; private set; }
+    public PawnStatCalculator PawnStatCalculator { get; private set; }
     
     /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
@@ -86,6 +93,7 @@ public class GameManager : MonoBehaviour
         
         // Repository 초기화 (Data 계층 구현체)
         SessionDataRepository = new SessionDataRepository(_sessionData);
+        ItemRepository = new ItemRepository(_sessionData);
         
         // UseCase 초기화
         DamageTrackingUseCase = new DamageTrackingUseCase(SessionDataRepository);
@@ -95,6 +103,8 @@ public class GameManager : MonoBehaviour
         CurrencyUseCase = new CurrencyUseCase(SessionDataRepository);
         StageManagementUseCase = new StageManagementUseCase(SessionDataRepository);
         PawnPersistenceUseCase = new PawnPersistenceUseCase(_sessionData);
+        ItemManagementUseCase = new ItemManagementUseCase(ItemRepository, SessionDataRepository, CurrencyUseCase);
+        PawnStatCalculator = new PawnStatCalculator(ItemRepository);
 
         // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();
