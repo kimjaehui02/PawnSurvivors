@@ -814,7 +814,8 @@ namespace PawnSurvivors.UI
                 // 스테이지 종료 시 남은 적 모두 파괴
                 DestroyAllEnemies();
                 
-                GameManager.Instance.StageManager?.EndStage();
+                // GameManager를 통해 스테이지 종료 (UseCase 사용)
+                GameManager.Instance.EndStage();
                 
                 // 상점으로 이동 (일시정지는 ShowShopScreen()에서 처리)
                 if (UIManager.Instance != null)

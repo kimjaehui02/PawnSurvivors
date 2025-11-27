@@ -222,7 +222,7 @@ namespace PawnSurvivors.UI
             // 스테이지 종료
             if (GameManager.Instance?.StageManager != null)
             {
-                GameManager.Instance.StageManager.EndStage();
+                GameManager.Instance.EndStage();
             }
 
             ShowMainMenuScreen();

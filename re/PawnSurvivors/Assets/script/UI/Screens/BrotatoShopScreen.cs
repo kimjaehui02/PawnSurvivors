@@ -134,9 +134,6 @@ namespace PawnSurvivors.UI
             // 중앙 아이템 슬롯 생성
             CreateItemSlots();
             
-            // 우측 능력치 패널 생성
-            CreateStatsPanel();
-            
             // 하단 패널들 생성
             CreateBottomPanels();
             
@@ -212,12 +209,12 @@ namespace PawnSurvivors.UI
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(0f, 1f);
             titleRect.pivot = new Vector2(0f, 1f);
-            titleRect.anchoredPosition = new Vector2(20f, -20f);
-            titleRect.sizeDelta = new Vector2(300f, 40f);
+            titleRect.anchoredPosition = new Vector2(60f, -40f);
+            titleRect.sizeDelta = new Vector2(600f, 80f);
             
             _titleText = titleObj.AddComponent<TextMeshProUGUI>();
             _titleText.text = "상점 (웨이브 1)";
-            _titleText.fontSize = 32;
+            _titleText.fontSize = 56;
             _titleText.color = Color.white;
             _titleText.alignment = TextAlignmentOptions.Left;
             if (_koreanFont != null) _titleText.font = _koreanFont;
@@ -229,12 +226,12 @@ namespace PawnSurvivors.UI
             goldRect.anchorMin = new Vector2(0.5f, 1f);
             goldRect.anchorMax = new Vector2(0.5f, 1f);
             goldRect.pivot = new Vector2(0.5f, 1f);
-            goldRect.anchoredPosition = new Vector2(0f, -20f);
-            goldRect.sizeDelta = new Vector2(150f, 40f);
+            goldRect.anchoredPosition = new Vector2(0f, -40f);
+            goldRect.sizeDelta = new Vector2(300f, 80f);
             
             _goldText = goldObj.AddComponent<TextMeshProUGUI>();
             _goldText.text = "30";
-            _goldText.fontSize = 28;
+            _goldText.fontSize = 48;
             _goldText.color = Color.green;
             _goldText.alignment = TextAlignmentOptions.Center;
             if (_koreanFont != null) _goldText.font = _koreanFont;
@@ -246,8 +243,8 @@ namespace PawnSurvivors.UI
             goldIconRect.anchorMin = new Vector2(0.5f, 1f);
             goldIconRect.anchorMax = new Vector2(0.5f, 1f);
             goldIconRect.pivot = new Vector2(1f, 0.5f);
-            goldIconRect.anchoredPosition = new Vector2(-80f, -30f);
-            goldIconRect.sizeDelta = new Vector2(30f, 30f);
+            goldIconRect.anchoredPosition = new Vector2(-160f, -60f);
+            goldIconRect.sizeDelta = new Vector2(60f, 60f);
             var goldIcon = goldIconObj.AddComponent<Image>();
             goldIcon.color = Color.green;
             
@@ -258,8 +255,8 @@ namespace PawnSurvivors.UI
             resetRect.anchorMin = new Vector2(1f, 1f);
             resetRect.anchorMax = new Vector2(1f, 1f);
             resetRect.pivot = new Vector2(1f, 1f);
-            resetRect.anchoredPosition = new Vector2(-20f, -20f);
-            resetRect.sizeDelta = new Vector2(200f, 40f);
+            resetRect.anchoredPosition = new Vector2(-60f, -40f);
+            resetRect.sizeDelta = new Vector2(400f, 80f);
             
             _resetButton = resetObj.AddComponent<Button>();
             var resetImage = resetObj.AddComponent<Image>();
@@ -272,7 +269,7 @@ namespace PawnSurvivors.UI
             resetTextRect.anchorMax = Vector2.one;
             resetTextRect.sizeDelta = Vector2.zero;
             _resetButtonText.text = $"F 초기화 - {_resetCost}";
-            _resetButtonText.fontSize = 20;
+            _resetButtonText.fontSize = 36;
             _resetButtonText.color = Color.white;
             _resetButtonText.alignment = TextAlignmentOptions.Center;
             if (_koreanFont != null) _resetButtonText.font = _koreanFont;
@@ -283,10 +280,16 @@ namespace PawnSurvivors.UI
 
         private void CreateItemSlots()
         {
-            float slotWidth = 200f;
-            float slotHeight = 400f;
-            float spacing = 20f;
-            float startX = 50f;
+            // 4개 슬롯이 전체 너비를 사용하도록 계산
+            // 좌우 여백 120px씩, 슬롯 간 간격 40px
+            float totalWidth = 1920f;
+            float leftMargin = 120f;
+            float rightMargin = 120f;
+            float spacing = 40f;
+            float availableWidth = totalWidth - leftMargin - rightMargin;
+            float slotWidth = (availableWidth - (spacing * 3)) / 4f; // 4개 슬롯
+            float slotHeight = 700f;
+            float startX = leftMargin;
             float centerY = 0f;
             
             for (int i = 0; i < 4; i++)
@@ -314,8 +317,8 @@ namespace PawnSurvivors.UI
                 iconRect.anchorMin = new Vector2(0.5f, 1f);
                 iconRect.anchorMax = new Vector2(0.5f, 1f);
                 iconRect.pivot = new Vector2(0.5f, 1f);
-                iconRect.anchoredPosition = new Vector2(0f, -20f);
-                iconRect.sizeDelta = new Vector2(80f, 80f);
+                iconRect.anchoredPosition = new Vector2(0f, -40f);
+                iconRect.sizeDelta = new Vector2(140f, 140f);
                 slot.iconImage = iconObj.AddComponent<Image>();
                 slot.iconImage.color = Color.white;
                 
@@ -326,11 +329,11 @@ namespace PawnSurvivors.UI
                 nameRect.anchorMin = new Vector2(0f, 1f);
                 nameRect.anchorMax = new Vector2(1f, 1f);
                 nameRect.pivot = new Vector2(0f, 1f);
-                nameRect.anchoredPosition = new Vector2(10f, -110f);
-                nameRect.sizeDelta = new Vector2(-20f, 30f);
+                nameRect.anchoredPosition = new Vector2(20f, -200f);
+                nameRect.sizeDelta = new Vector2(-40f, 50f);
                 slot.nameText = nameObj.AddComponent<TextMeshProUGUI>();
                 slot.nameText.text = "아이템 이름";
-                slot.nameText.fontSize = 20;
+                slot.nameText.fontSize = 36;
                 slot.nameText.color = Color.white;
                 slot.nameText.alignment = TextAlignmentOptions.Left;
                 if (_koreanFont != null) slot.nameText.font = _koreanFont;
@@ -342,11 +345,11 @@ namespace PawnSurvivors.UI
                 typeRect.anchorMin = new Vector2(0f, 1f);
                 typeRect.anchorMax = new Vector2(1f, 1f);
                 typeRect.pivot = new Vector2(0f, 1f);
-                typeRect.anchoredPosition = new Vector2(10f, -140f);
-                typeRect.sizeDelta = new Vector2(-20f, 25f);
+                typeRect.anchoredPosition = new Vector2(20f, -250f);
+                typeRect.sizeDelta = new Vector2(-40f, 40f);
                 slot.typeText = typeObj.AddComponent<TextMeshProUGUI>();
                 slot.typeText.text = "타입";
-                slot.typeText.fontSize = 16;
+                slot.typeText.fontSize = 28;
                 slot.typeText.color = new Color(0.8f, 0.8f, 0.8f, 1f);
                 slot.typeText.alignment = TextAlignmentOptions.Left;
                 if (_koreanFont != null) slot.typeText.font = _koreanFont;
@@ -358,11 +361,11 @@ namespace PawnSurvivors.UI
                 descRect.anchorMin = new Vector2(0f, 0.5f);
                 descRect.anchorMax = new Vector2(1f, 1f);
                 descRect.pivot = new Vector2(0f, 1f);
-                descRect.anchoredPosition = new Vector2(10f, -170f);
-                descRect.sizeDelta = new Vector2(-20f, -180f);
+                descRect.anchoredPosition = new Vector2(20f, -300f);
+                descRect.sizeDelta = new Vector2(-40f, -300f);
                 slot.descriptionText = descObj.AddComponent<TextMeshProUGUI>();
                 slot.descriptionText.text = "설명";
-                slot.descriptionText.fontSize = 14;
+                slot.descriptionText.fontSize = 24;
                 slot.descriptionText.color = Color.white;
                 slot.descriptionText.alignment = TextAlignmentOptions.TopLeft;
                 slot.descriptionText.textWrappingMode = TextWrappingModes.Normal;
@@ -375,11 +378,11 @@ namespace PawnSurvivors.UI
                 costRect.anchorMin = new Vector2(0f, 0f);
                 costRect.anchorMax = new Vector2(0f, 0f);
                 costRect.pivot = new Vector2(0f, 0f);
-                costRect.anchoredPosition = new Vector2(10f, 10f);
-                costRect.sizeDelta = new Vector2(50f, 30f);
+                costRect.anchoredPosition = new Vector2(20f, 20f);
+                costRect.sizeDelta = new Vector2(100f, 50f);
                 slot.costText = costObj.AddComponent<TextMeshProUGUI>();
                 slot.costText.text = "1";
-                slot.costText.fontSize = 20;
+                slot.costText.fontSize = 36;
                 slot.costText.color = Color.green;
                 slot.costText.alignment = TextAlignmentOptions.Left;
                 if (_koreanFont != null) slot.costText.font = _koreanFont;
@@ -395,8 +398,8 @@ namespace PawnSurvivors.UI
                 lockRect.anchorMin = new Vector2(1f, 0f);
                 lockRect.anchorMax = new Vector2(1f, 0f);
                 lockRect.pivot = new Vector2(1f, 0f);
-                lockRect.anchoredPosition = new Vector2(-10f, 10f);
-                lockRect.sizeDelta = new Vector2(100f, 30f);
+                lockRect.anchoredPosition = new Vector2(-20f, 20f);
+                lockRect.sizeDelta = new Vector2(180f, 50f);
                 
                 slot.lockButton = lockObj.AddComponent<Button>();
                 var lockImage = lockObj.AddComponent<Image>();
@@ -409,7 +412,7 @@ namespace PawnSurvivors.UI
                 lockTextRect.anchorMax = Vector2.one;
                 lockTextRect.sizeDelta = Vector2.zero;
                 slot.lockButtonText.text = "E 잠금";
-                slot.lockButtonText.fontSize = 16;
+                slot.lockButtonText.fontSize = 28;
                 slot.lockButtonText.color = Color.white;
                 slot.lockButtonText.alignment = TextAlignmentOptions.Center;
                 if (_koreanFont != null) slot.lockButtonText.font = _koreanFont;
@@ -430,8 +433,8 @@ namespace PawnSurvivors.UI
             statsRect.anchorMin = new Vector2(1f, 0f);
             statsRect.anchorMax = new Vector2(1f, 1f);
             statsRect.pivot = new Vector2(1f, 0.5f);
-            statsRect.anchoredPosition = new Vector2(-20f, 0f);
-            statsRect.sizeDelta = new Vector2(250f, 0f);
+            statsRect.anchoredPosition = new Vector2(-60f, 0f);
+            statsRect.sizeDelta = new Vector2(450f, 0f);
             
             var statsBg = _statsPanel.AddComponent<Image>();
             statsBg.color = new Color(0.12f, 0.12f, 0.12f, 1f);
@@ -443,12 +446,12 @@ namespace PawnSurvivors.UI
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
             titleRect.pivot = new Vector2(0f, 1f);
-            titleRect.anchoredPosition = new Vector2(10f, -20f);
-            titleRect.sizeDelta = new Vector2(-20f, 30f);
+            titleRect.anchoredPosition = new Vector2(30f, -40f);
+            titleRect.sizeDelta = new Vector2(-60f, 60f);
             
             _statsTitleText = titleObj.AddComponent<TextMeshProUGUI>();
             _statsTitleText.text = "능력치";
-            _statsTitleText.fontSize = 24;
+            _statsTitleText.fontSize = 42;
             _statsTitleText.color = Color.white;
             _statsTitleText.alignment = TextAlignmentOptions.Left;
             if (_koreanFont != null) _statsTitleText.font = _koreanFont;
@@ -468,8 +471,8 @@ namespace PawnSurvivors.UI
             tabsRect.anchorMin = new Vector2(0f, 1f);
             tabsRect.anchorMax = new Vector2(1f, 1f);
             tabsRect.pivot = new Vector2(0f, 1f);
-            tabsRect.anchoredPosition = new Vector2(10f, -60f);
-            tabsRect.sizeDelta = new Vector2(-20f, 35f);
+            tabsRect.anchoredPosition = new Vector2(30f, -120f);
+            tabsRect.sizeDelta = new Vector2(-60f, 60f);
             
             // 기본적인 탭
             var basicTabObj = new GameObject("BasicTab");
@@ -490,7 +493,7 @@ namespace PawnSurvivors.UI
             basicTabTextRect.anchorMax = Vector2.one;
             basicTabTextRect.sizeDelta = Vector2.zero;
             basicTabText.text = "기본적인";
-            basicTabText.fontSize = 18;
+            basicTabText.fontSize = 32;
             basicTabText.color = Color.white;
             basicTabText.alignment = TextAlignmentOptions.Center;
             if (_koreanFont != null) basicTabText.font = _koreanFont;
@@ -518,7 +521,7 @@ namespace PawnSurvivors.UI
             secondaryTabTextRect.anchorMax = Vector2.one;
             secondaryTabTextRect.sizeDelta = Vector2.zero;
             secondaryTabText.text = "2차적인";
-            secondaryTabText.fontSize = 18;
+            secondaryTabText.fontSize = 32;
             secondaryTabText.color = Color.white;
             secondaryTabText.alignment = TextAlignmentOptions.Center;
             if (_koreanFont != null) secondaryTabText.font = _koreanFont;
@@ -537,12 +540,12 @@ namespace PawnSurvivors.UI
             basicContentRect.anchorMin = new Vector2(0f, 0f);
             basicContentRect.anchorMax = new Vector2(1f, 1f);
             basicContentRect.pivot = new Vector2(0f, 1f);
-            basicContentRect.anchoredPosition = new Vector2(10f, -100f);
-            basicContentRect.sizeDelta = new Vector2(-20f, -100f);
+            basicContentRect.anchoredPosition = new Vector2(30f, -200f);
+            basicContentRect.sizeDelta = new Vector2(-60f, -200f);
             
             var basicLayout = _basicStatsContent.AddComponent<VerticalLayoutGroup>();
-            basicLayout.spacing = 5f;
-            basicLayout.padding = new RectOffset(5, 5, 5, 5);
+            basicLayout.spacing = 10f;
+            basicLayout.padding = new RectOffset(10, 10, 10, 10);
             basicLayout.childControlHeight = false;
             basicLayout.childControlWidth = true;
             basicLayout.childForceExpandWidth = true;
@@ -554,12 +557,12 @@ namespace PawnSurvivors.UI
             secondaryContentRect.anchorMin = new Vector2(0f, 0f);
             secondaryContentRect.anchorMax = new Vector2(1f, 1f);
             secondaryContentRect.pivot = new Vector2(0f, 1f);
-            secondaryContentRect.anchoredPosition = new Vector2(10f, -100f);
-            secondaryContentRect.sizeDelta = new Vector2(-20f, -100f);
+            secondaryContentRect.anchoredPosition = new Vector2(30f, -200f);
+            secondaryContentRect.sizeDelta = new Vector2(-60f, -200f);
             
             var secondaryLayout = _secondaryStatsContent.AddComponent<VerticalLayoutGroup>();
-            secondaryLayout.spacing = 5f;
-            secondaryLayout.padding = new RectOffset(5, 5, 5, 5);
+            secondaryLayout.spacing = 10f;
+            secondaryLayout.padding = new RectOffset(10, 10, 10, 10);
             secondaryLayout.childControlHeight = false;
             secondaryLayout.childControlWidth = true;
             secondaryLayout.childForceExpandWidth = true;
@@ -603,7 +606,7 @@ namespace PawnSurvivors.UI
             row.rootObject = new GameObject($"StatRow_{statName}");
             row.rootObject.transform.SetParent(parent.transform, false);
             var rowRect = row.rootObject.AddComponent<RectTransform>();
-            rowRect.sizeDelta = new Vector2(0f, 25f);
+            rowRect.sizeDelta = new Vector2(0f, 45f);
             
             // 아이콘
             var iconObj = new GameObject("Icon");
@@ -613,7 +616,7 @@ namespace PawnSurvivors.UI
             iconRect.anchorMax = new Vector2(0f, 1f);
             iconRect.pivot = new Vector2(0f, 0.5f);
             iconRect.anchoredPosition = new Vector2(0f, 0f);
-            iconRect.sizeDelta = new Vector2(20f, 20f);
+            iconRect.sizeDelta = new Vector2(36f, 36f);
             row.iconImage = iconObj.AddComponent<Image>();
             row.iconImage.color = Color.gray;
             
@@ -624,11 +627,11 @@ namespace PawnSurvivors.UI
             nameRect.anchorMin = new Vector2(0f, 0f);
             nameRect.anchorMax = new Vector2(0.7f, 1f);
             nameRect.pivot = new Vector2(0f, 0.5f);
-            nameRect.anchoredPosition = new Vector2(25f, 0f);
+            nameRect.anchoredPosition = new Vector2(45f, 0f);
             nameRect.sizeDelta = Vector2.zero;
             row.nameText = nameObj.AddComponent<TextMeshProUGUI>();
             row.nameText.text = statName;
-            row.nameText.fontSize = 14;
+            row.nameText.fontSize = 26;
             row.nameText.color = Color.white;
             row.nameText.alignment = TextAlignmentOptions.Left;
             if (_koreanFont != null) row.nameText.font = _koreanFont;
@@ -644,7 +647,7 @@ namespace PawnSurvivors.UI
             valueRect.sizeDelta = Vector2.zero;
             row.valueText = valueObj.AddComponent<TextMeshProUGUI>();
             row.valueText.text = "U";
-            row.valueText.fontSize = 14;
+            row.valueText.fontSize = 26;
             row.valueText.color = Color.white;
             row.valueText.alignment = TextAlignmentOptions.Right;
             if (_koreanFont != null) row.valueText.font = _koreanFont;
@@ -654,8 +657,8 @@ namespace PawnSurvivors.UI
 
         private void CreateBottomPanels()
         {
-            float panelHeight = 120f;
-            float panelY = 20f;
+            float panelHeight = 220f;
+            float panelY = 40f;
             
             // 아이템 인벤토리 (좌측)
             _itemsInventoryPanel = new GameObject("ItemsInventoryPanel");
@@ -664,8 +667,8 @@ namespace PawnSurvivors.UI
             itemsRect.anchorMin = new Vector2(0f, 0f);
             itemsRect.anchorMax = new Vector2(0.33f, 0f);
             itemsRect.pivot = new Vector2(0f, 0f);
-            itemsRect.anchoredPosition = new Vector2(20f, panelY);
-            itemsRect.sizeDelta = new Vector2(-30f, panelHeight);
+            itemsRect.anchoredPosition = new Vector2(40f, panelY);
+            itemsRect.sizeDelta = new Vector2(-60f, panelHeight);
             
             var itemsBg = _itemsInventoryPanel.AddComponent<Image>();
             itemsBg.color = new Color(0.12f, 0.12f, 0.12f, 1f);
@@ -679,8 +682,8 @@ namespace PawnSurvivors.UI
             pawnsRect.anchorMin = new Vector2(0.33f, 0f);
             pawnsRect.anchorMax = new Vector2(0.66f, 0f);
             pawnsRect.pivot = new Vector2(0f, 0f);
-            pawnsRect.anchoredPosition = new Vector2(10f, panelY);
-            pawnsRect.sizeDelta = new Vector2(-20f, panelHeight);
+            pawnsRect.anchoredPosition = new Vector2(20f, panelY);
+            pawnsRect.sizeDelta = new Vector2(-40f, panelHeight);
             
             var pawnsBg = _pawnsInventoryPanel.AddComponent<Image>();
             pawnsBg.color = new Color(0.12f, 0.12f, 0.12f, 1f);
@@ -694,8 +697,8 @@ namespace PawnSurvivors.UI
             waveRect.anchorMin = new Vector2(0.66f, 0f);
             waveRect.anchorMax = new Vector2(1f, 0f);
             waveRect.pivot = new Vector2(0f, 0f);
-            waveRect.anchoredPosition = new Vector2(10f, panelY);
-            waveRect.sizeDelta = new Vector2(-20f, panelHeight);
+            waveRect.anchoredPosition = new Vector2(20f, panelY);
+            waveRect.sizeDelta = new Vector2(-40f, panelHeight);
             
             var waveBg = _waveInfoPanel.AddComponent<Image>();
             waveBg.color = new Color(0.12f, 0.12f, 0.12f, 1f);
@@ -706,10 +709,10 @@ namespace PawnSurvivors.UI
             waveMsgRect.anchorMin = new Vector2(0f, 0.5f);
             waveMsgRect.anchorMax = new Vector2(1f, 1f);
             waveMsgRect.pivot = new Vector2(0f, 1f);
-            waveMsgRect.anchoredPosition = new Vector2(10f, -30f);
-            waveMsgRect.sizeDelta = new Vector2(-20f, -40f);
+            waveMsgRect.anchoredPosition = new Vector2(20f, -60f);
+            waveMsgRect.sizeDelta = new Vector2(-40f, -80f);
             _waveMessageText.text = "웨이브 12에 엘리트가 나타납니다";
-            _waveMessageText.fontSize = 14;
+            _waveMessageText.fontSize = 26;
             _waveMessageText.color = Color.white;
             _waveMessageText.alignment = TextAlignmentOptions.Left;
             _waveMessageText.textWrappingMode = TextWrappingModes.Normal;
@@ -722,8 +725,8 @@ namespace PawnSurvivors.UI
             nextWaveRect.anchorMin = new Vector2(0f, 0f);
             nextWaveRect.anchorMax = new Vector2(1f, 0.5f);
             nextWaveRect.pivot = new Vector2(0f, 0f);
-            nextWaveRect.anchoredPosition = new Vector2(10f, 10f);
-            nextWaveRect.sizeDelta = new Vector2(-20f, -10f);
+            nextWaveRect.anchoredPosition = new Vector2(20f, 20f);
+            nextWaveRect.sizeDelta = new Vector2(-40f, -20f);
             
             _nextWaveButton = nextWaveObj.AddComponent<Button>();
             var nextWaveImage = nextWaveObj.AddComponent<Image>();
@@ -736,7 +739,7 @@ namespace PawnSurvivors.UI
             nextWaveTextRect.anchorMax = Vector2.one;
             nextWaveTextRect.sizeDelta = Vector2.zero;
             _nextWaveButtonText.text = "이동 (웨이브 2)";
-            _nextWaveButtonText.fontSize = 18;
+            _nextWaveButtonText.fontSize = 32;
             _nextWaveButtonText.color = Color.white;
             _nextWaveButtonText.alignment = TextAlignmentOptions.Center;
             if (_koreanFont != null) _nextWaveButtonText.font = _koreanFont;
@@ -753,12 +756,12 @@ namespace PawnSurvivors.UI
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
             titleRect.pivot = new Vector2(0f, 1f);
-            titleRect.anchoredPosition = new Vector2(10f, -10f);
-            titleRect.sizeDelta = new Vector2(-20f, 25f);
+            titleRect.anchoredPosition = new Vector2(20f, -20f);
+            titleRect.sizeDelta = new Vector2(-40f, 45f);
             
             var titleText = titleObj.AddComponent<TextMeshProUGUI>();
             titleText.text = title;
-            titleText.fontSize = 18;
+            titleText.fontSize = 32;
             titleText.color = Color.white;
             titleText.alignment = TextAlignmentOptions.Left;
             if (_koreanFont != null) titleText.font = _koreanFont;
@@ -770,9 +773,9 @@ namespace PawnSurvivors.UI
         {
             UpdateGoldDisplay();
             UpdateTitle();
-            UpdateStats();
             UpdatePawnsInventory();
             // TODO: 아이템 슬롯 업데이트
+            // 스탯은 다른 방식으로 확인 (스탯 패널 제거됨)
         }
 
         private void UpdateGoldDisplay()

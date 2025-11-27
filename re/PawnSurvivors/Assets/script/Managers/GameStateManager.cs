@@ -161,7 +161,7 @@ namespace PawnSurvivors.Managers
                     {
                         if (GameManager.Instance != null)
                         {
-                            string stageName = GameManager.Instance?.SessionManagementUseCase?.GetCurrentStageName() ?? "Stage1";
+                            string stageName = GameManager.Instance?.StageManagementUseCase?.GetCurrentStageName() ?? "Stage1";
                             bool resetSession = _previousState == GameState.MainMenu || _previousState == GameState.Title;
                             GameManager.Instance.StartStage(stageName, resetSession);
                         }
@@ -182,10 +182,10 @@ namespace PawnSurvivors.Managers
 
                 case GameState.Shop:
                     UIManager.Instance.ShowShopScreen();
-                    // 스테이지 종료 처리
-                    if (GameManager.Instance?.StageManager != null)
+                    // 스테이지 종료 처리 (GameManager를 통해 UseCase 사용)
+                    if (GameManager.Instance != null)
                     {
-                        GameManager.Instance.StageManager.EndStage();
+                        GameManager.Instance.EndStage();
                     }
                     // 상점으로 갈 때 게임 일시정지
                     if (GameManager.Instance?.LifecycleManager != null)
@@ -240,10 +240,10 @@ namespace PawnSurvivors.Managers
                 GameManager.Instance.CreationManager.DestroyAllPawns();
             }
 
-            // 스테이지 종료
-            if (GameManager.Instance.StageManager != null)
+            // 스테이지 종료 (GameManager를 통해 UseCase 사용)
+            if (GameManager.Instance != null)
             {
-                GameManager.Instance.StageManager.EndStage();
+                GameManager.Instance.EndStage();
             }
         }
 
@@ -282,7 +282,8 @@ namespace PawnSurvivors.Managers
         {
             if (GameManager.Instance != null)
             {
-                GameManager.Instance?.SessionManagementUseCase?.SetCurrentStageName(stageName);
+                // UseCase를 통해 스테이지 이름 설정 (리셋 없이)
+                GameManager.Instance?.StageManagementUseCase?.PrepareStageStart(stageName, shouldResetSession: false);
             }
             ChangeState(GameState.Stage);
         }

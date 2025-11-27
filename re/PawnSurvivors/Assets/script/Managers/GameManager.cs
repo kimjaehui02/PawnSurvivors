@@ -34,11 +34,41 @@ public class GameManager : MonoBehaviour
     public SurvivalTimeTrackingUseCase SurvivalTimeTrackingUseCase { get; private set; }
     public SessionManagementUseCase SessionManagementUseCase { get; private set; }
     public CurrencyUseCase CurrencyUseCase { get; private set; }
+    public StageManagementUseCase StageManagementUseCase { get; private set; }
     
     /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
     /// </summary>
     public PlayerController PlayerController { get; private set; }
+
+    /// <summary>
+    /// PlayerController를 생성하고 초기화합니다.
+    /// </summary>
+    public void CreatePlayerController()
+    {
+        if (PlayerController != null) return;
+
+        GameObject playerControllerObj = new GameObject("PlayerController");
+        PlayerController = playerControllerObj.AddComponent<PlayerController>();
+        
+        // 메인 카메라를 PlayerController의 자식으로 설정
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
+        {
+            mainCamera.transform.SetParent(PlayerController.transform);
+            mainCamera.transform.localPosition = new Vector3(0f, 0f, -10f); // 2D 게임용
+            Debug.Log("[GameManager] 메인 카메라가 PlayerController에 붙었습니다.");
+        }
+        
+        // ========== 초기 플레이어 생성 ==========
+        // 각 캐릭터 1개씩
+        AddPlayerPawn("Player");
+        AddPlayerPawn("PlayerButter");
+        AddPlayerPawn("PlayerOpal");
+        
+        Debug.Log("[GameManager] 총 3명의 플레이어 생성 완료 (Player x1, PlayerButter x1, PlayerOpal x1)");
+        // ========== 초기 플레이어 생성 끝 ==========
+    }
 
     private void Awake()
     {
@@ -62,6 +92,7 @@ public class GameManager : MonoBehaviour
         SurvivalTimeTrackingUseCase = new SurvivalTimeTrackingUseCase(SessionDataRepository, null); // LifecycleManager는 나중에 설정
         SessionManagementUseCase = new SessionManagementUseCase(SessionDataRepository);
         CurrencyUseCase = new CurrencyUseCase(SessionDataRepository);
+        StageManagementUseCase = new StageManagementUseCase(SessionDataRepository);
 
         // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();
@@ -77,6 +108,12 @@ public class GameManager : MonoBehaviour
         _stageLoader = new StageLoader();
         string stagesPath = Path.Combine(Application.streamingAssetsPath, "Stages");
         _stageLoader.LoadStages(stagesPath);
+
+        // StageManager 초기화 (의존성 주입)
+        if (StageManager != null)
+        {
+            StageManager.Initialize(CreationManager, _stageLoader, StageManagementUseCase);
+        }
 
         if (LifecycleManager == null)
         {
@@ -94,56 +131,19 @@ public class GameManager : MonoBehaviour
 
     /// <summary>
     /// 스테이지를 시작합니다.
+    /// StageManager에 모든 로직을 위임합니다.
     /// </summary>
     /// <param name="stageName">시작할 스테이지 이름 (기본값: DebugStage)</param>
     /// <param name="resetSession">세션 데이터를 리셋할지 여부 (기본값: true, 상점에서 올 때는 false)</param>
     public void StartStage(string stageName = "DebugStage", bool resetSession = true)
     {
-        // 세션 데이터 리셋 (새 게임 시작 시에만) - UseCase를 통해 접근
-        if (resetSession)
+        if (StageManager != null)
         {
-            SessionManagementUseCase.ResetSession();
-        }
-        SessionManagementUseCase.SetCurrentStageName(stageName);
-        
-        Debug.Log($"[GameManager] 스테이지 시작: {stageName} (세션 리셋: {resetSession})");
-        
-        // PlayerController가 없으면 생성 (상점에서 올 때는 기존 것 유지)
-        if (PlayerController == null)
-        {
-            GameObject playerControllerObj = new GameObject("PlayerController");
-            PlayerController = playerControllerObj.AddComponent<PlayerController>();
-            
-            // 메인 카메라를 PlayerController의 자식으로 설정
-            Camera mainCamera = Camera.main;
-            if (mainCamera != null)
-            {
-                mainCamera.transform.SetParent(PlayerController.transform);
-                mainCamera.transform.localPosition = new Vector3(0f, 0f, -10f); // 2D 게임용
-                Debug.Log("[GameManager] 메인 카메라가 PlayerController에 붙었습니다.");
-            }
-            
-            // ========== 초기 플레이어 생성 ==========
-            // 각 캐릭터 1개씩
-            AddPlayerPawn("Player");
-            AddPlayerPawn("PlayerButter");
-            AddPlayerPawn("PlayerOpal");
-            
-            Debug.Log("[GameManager] 총 3명의 플레이어 생성 완료 (Player x1, PlayerButter x1, PlayerOpal x1)");
-            // ========== 초기 플레이어 생성 끝 ==========
-        }
-
-        // 스테이지 로드 및 시작
-        StageData stageData = _stageLoader.GetStage(stageName);
-        if (stageData != null)
-        {
-            StageManager.Initialize(CreationManager, stageData);
-            StageManager.StartStage();
-            Debug.Log($"Stage '{stageName}' started.");
+            StageManager.StartStage(stageName, resetSession);
         }
         else
         {
-            Debug.LogError($"StageData for '{stageName}' not found! Cannot start stage.");
+            Debug.LogError("[GameManager] StageManager가 없습니다!");
         }
     }
 
@@ -202,8 +202,20 @@ public class GameManager : MonoBehaviour
     }
 
 
-    public void EndStage(string stageName)
+    /// <summary>
+    /// 스테이지를 종료합니다.
+    /// </summary>
+    public void EndStage()
     {
-        // StageManager.EndStage();
+        // UseCase를 통해 스테이지 종료 준비
+        StageManagementUseCase.PrepareStageEnd();
+        
+        // StageManager 종료 처리
+        if (StageManager != null)
+        {
+            StageManager.EndStage();
+        }
+        
+        Debug.Log("[GameManager] 스테이지 종료");
     }
 }

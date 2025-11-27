@@ -2,11 +2,16 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.IO;
 using PawnSurvivors.Managers;
+using PawnSurvivors.Domain.Usecases;
+using PawnSurvivors.Player;
 
 public class StageManager : MonoBehaviour
 {
     private CreationManager _creationManager;
+    private StageLoader _stageLoader;
+    private StageManagementUseCase _stageManagementUseCase;
     private StageData _currentStageData;
 
     private float _stageElapsedTime = 0f;
@@ -17,9 +22,64 @@ public class StageManager : MonoBehaviour
     private Dictionary<EnemyWave, float> _waveTimers = new Dictionary<EnemyWave, float>();
     private Dictionary<EnemyWave, bool> _waveSpawnedOnce = new Dictionary<EnemyWave, bool>();
 
-    public void Initialize(CreationManager creationManager, StageData stageData)
+    /// <summary>
+    /// StageManager를 초기화합니다. (의존성 주입)
+    /// </summary>
+    public void Initialize(CreationManager creationManager, StageLoader stageLoader, StageManagementUseCase stageManagementUseCase)
     {
         _creationManager = creationManager;
+        _stageLoader = stageLoader;
+        _stageManagementUseCase = stageManagementUseCase;
+    }
+
+
+    /// <summary>
+    /// 스테이지를 시작합니다. (전체 라이프사이클 담당)
+    /// </summary>
+    /// <param name="stageName">시작할 스테이지 이름</param>
+    /// <param name="resetSession">세션 데이터를 리셋할지 여부</param>
+    public void StartStage(string stageName, bool resetSession = true)
+    {
+        // UseCase를 통해 스테이지 시작 준비
+        if (_stageManagementUseCase != null)
+        {
+            _stageManagementUseCase.PrepareStageStart(stageName, resetSession);
+        }
+        
+        Debug.Log($"[StageManager] 스테이지 시작: {stageName} (세션 리셋: {resetSession})");
+        
+        // PlayerController가 없으면 생성 (상점에서 올 때는 기존 것 유지)
+        if (GameManager.Instance != null && GameManager.Instance.PlayerController == null)
+        {
+            GameManager.Instance.CreatePlayerController();
+        }
+
+        // 스테이지 로드 및 초기화
+        if (_stageLoader != null)
+        {
+            StageData stageData = _stageLoader.GetStage(stageName);
+            if (stageData != null)
+            {
+                InitializeStageData(stageData);
+                StartStageInternal();
+                Debug.Log($"Stage '{stageName}' started.");
+            }
+            else
+            {
+                Debug.LogError($"StageData for '{stageName}' not found! Cannot start stage.");
+            }
+        }
+        else
+        {
+            Debug.LogError("[StageManager] StageLoader가 초기화되지 않았습니다!");
+        }
+    }
+
+    /// <summary>
+    /// 스테이지 데이터로 초기화합니다.
+    /// </summary>
+    private void InitializeStageData(StageData stageData)
+    {
         _currentStageData = stageData;
 
         // stageData를 사용하여 변수 초기화
@@ -41,7 +101,10 @@ public class StageManager : MonoBehaviour
         _stageElapsedTime = 0f;
     }
 
-    public void StartStage()
+    /// <summary>
+    /// 스테이지 시작 내부 로직 (시간 리셋, ProjectileShooter 리셋 등)
+    /// </summary>
+    private void StartStageInternal()
     {
         Debug.Log($"Stage '{_currentStageData.stageName}' Started!");
         _stageElapsedTime = 0f;
