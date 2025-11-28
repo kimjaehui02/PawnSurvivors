@@ -117,6 +117,12 @@ public class CreationManager : MonoBehaviour
             }
         }
 
+        // FloatingEffectManager에 새로 생성된 Pawn 구독
+        if (GameManager.Instance?.FloatingEffectManager != null)
+        {
+            GameManager.Instance.FloatingEffectManager.SubscribeToPawnManager(pawnManager);
+        }
+
         // Debug.Log($"JSON 레시피에서 '{recipeData.pawnName}' 폰을 성공적으로 생성했습니다.");
         return pawnObject;
     }

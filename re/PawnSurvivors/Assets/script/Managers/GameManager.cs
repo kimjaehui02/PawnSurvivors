@@ -16,6 +16,8 @@ public class GameManager : MonoBehaviour
     public StageManager StageManager { get; private set; }
     public StageLoader _stageLoader;
     
+    public FloatingEffectManager FloatingEffectManager { get; private set; }
+    
     /// <summary>
     /// 현재 게임 세션의 런타임 데이터 (Data 계층 내부용, 외부 접근 불가)
     /// </summary>
@@ -177,6 +179,13 @@ public class GameManager : MonoBehaviour
 
         // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();
+        
+        // FloatingEffectManager 초기화
+        FloatingEffectManager = GetComponent<FloatingEffectManager>();
+        if (FloatingEffectManager == null)
+        {
+            FloatingEffectManager = gameObject.AddComponent<FloatingEffectManager>();
+        }
         CreationManager = GetComponent<CreationManager>();
         StageManager = GetComponent<StageManager>();
         

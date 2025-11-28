@@ -158,7 +158,17 @@ namespace PawnSurvivors.UI
             _canvas = GetComponentInParent<Canvas>();
             if (_canvas == null)
             {
-                _canvas = FindFirstObjectByType<Canvas>();
+                // ScreenSpaceOverlay 또는 ScreenSpaceCamera Canvas만 찾기 (World Space 제외)
+                Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+                foreach (var canvas in allCanvases)
+                {
+                    if (canvas.renderMode == RenderMode.ScreenSpaceOverlay || 
+                        canvas.renderMode == RenderMode.ScreenSpaceCamera)
+                    {
+                        _canvas = canvas;
+                        break;
+                    }
+                }
             }
             
             if (_canvas == null)
