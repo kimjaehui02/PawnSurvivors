@@ -35,7 +35,7 @@
           "bounceSpeed": 12,
           "movementThreshold": 0.1
         }
-      ]
+      ] 
     },
     {
       "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
