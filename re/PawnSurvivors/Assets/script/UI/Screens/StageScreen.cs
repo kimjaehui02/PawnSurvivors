@@ -225,7 +225,7 @@ namespace PawnSurvivors.UI
             
             // 각 캐릭터의 정보 업데이트
             int activeUICount = 0;
-            // bool shouldLogDetails = (Time.frameCount % 300 == 0); // 5초마다 상세 로그 (주석 처리)
+            bool shouldLogDetails = (Time.frameCount % 300 == 0); // 5초마다 상세 로그
             
             for (int i = 0; i < playerPawns.Count && i < _characterUIs.Count; i++)
             {
@@ -234,10 +234,10 @@ namespace PawnSurvivors.UI
                 
                 if (pawn == null)
                 {
-                    // if (shouldLogDetails)
-                    // {
-                    //     Debug.LogWarning($"[StageScreen] 캐릭터 {i}: Pawn이 null입니다.");
-                    // }
+                    if (shouldLogDetails)
+                    {
+                        Debug.LogWarning($"[StageScreen] 캐릭터 {i}: Pawn이 null입니다.");
+                    }
                     if (ui?.rootObject != null)
                     {
                         ui.rootObject.SetActive(false);
@@ -247,26 +247,26 @@ namespace PawnSurvivors.UI
                 
                 if (ui == null || ui.rootObject == null)
                 {
-                    // if (shouldLogDetails)
-                    // {
-                    //     Debug.LogWarning($"[StageScreen] 캐릭터 {i}: UI가 null입니다.");
-                    // }
+                    if (shouldLogDetails)
+                    {
+                        Debug.LogWarning($"[StageScreen] 캐릭터 {i}: UI가 null입니다.");
+                    }
                     continue;
                 }
                 
                 var pawnManager = pawn.GetComponent<PawnManager>();
                 var levelUpManager = pawn.GetComponent<LevelUpSubManager>();
                 
-                // if (shouldLogDetails)
-                // {
-                //     string pawnName = pawn.name;
-                //     string recipeName = pawnManager?.PawnData?.recipeName ?? "Unknown";
-                //     bool hasPawnManager = pawnManager != null;
-                //     bool hasLevelUpManager = levelUpManager != null;
-                //     
-                //     Debug.Log($"[StageScreen] 캐릭터 {i}: {pawnName} (Recipe: {recipeName}), " +
-                //              $"PawnManager: {hasPawnManager}, LevelUpManager: {hasLevelUpManager}");
-                // }
+                if (shouldLogDetails)
+                {
+                    string pawnName = pawn.name;
+                    string recipeName = pawnManager?.PawnData?.recipeName ?? "Unknown";
+                    bool hasPawnManager = pawnManager != null;
+                    bool hasLevelUpManager = levelUpManager != null;
+                    
+                    Debug.Log($"[StageScreen] 캐릭터 {i}: {pawnName} (Recipe: {recipeName}), " +
+                             $"PawnManager: {hasPawnManager}, LevelUpManager: {hasLevelUpManager}");
+                }
                 
                 if (pawnManager != null)
                 {
@@ -277,12 +277,7 @@ namespace PawnSurvivors.UI
                     if (pawnData?.healthData != null)
                     {
                         float currentHealth = pawnData.healthData.currentHealth;
-                        
-                        // ✅ PawnStatCalculator를 사용하여 계산된 최대 체력 사용
-                        var statCalculator = GameManager.Instance?.PawnStatCalculator;
-                        float maxHealth = statCalculator != null 
-                            ? statCalculator.GetEffectiveMaxHealth(pawnData) 
-                            : pawnData.healthData.maxHealth;
+                        float maxHealth = pawnData.healthData.maxHealth;
                         
                         // 체력 텍스트 업데이트
                         if (ui.healthText != null)
@@ -309,25 +304,41 @@ namespace PawnSurvivors.UI
                     }
                     
                     // 초당피해량 표시 (null-safe)
-                    // ✅ PawnStatCalculator를 사용하여 계산된 데미지와 공격 속도 사용
+                    // 투사체 레시피에서 데미지를 가져와서 계산
                     if (ui.dpsText != null)
                     {
-                        if (pawnData?.combatData != null)
+                        if (pawnData?.combatData != null && !string.IsNullOrEmpty(pawnData.combatData.projectileRecipeName))
                         {
-                            // ✅ PawnStatCalculator를 사용하여 실제 데미지와 공격 속도 계산
-                            var statCalculator = GameManager.Instance?.PawnStatCalculator;
-                            if (statCalculator != null)
+                            // 투사체 레시피 가져오기
+                            var projectileRecipe = GameManager.Instance?.CreationManager?.GetRecipe(pawnData.combatData.projectileRecipeName);
+                            if (projectileRecipe != null)
                             {
-                                float effectiveDamage = statCalculator.GetEffectiveDamage(pawnData);
-                                float effectiveFireRate = statCalculator.GetEffectiveFireRate(pawnData);
-                                float dps = effectiveDamage * effectiveFireRate;
+                                // 투사체 레시피에서 데미지 찾기 (CollisionDamageSubManagerSetupData)
+                                float projectileDamage = 0f;
+                                if (projectileRecipe.subManagerSetups != null)
+                                {
+                                    foreach (var setup in projectileRecipe.subManagerSetups)
+                                    {
+                                        if (setup is CollisionDamageSubManagerSetupData damageSetup)
+                                        {
+                                            projectileDamage = damageSetup.damage;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                // 발사자의 데미지가 설정되어 있으면 그것을 사용 (우선순위)
+                                if (pawnData.combatData.damage > 0f)
+                                {
+                                    projectileDamage = pawnData.combatData.damage;
+                                }
+                                
+                                float dps = projectileDamage * pawnData.combatData.fireRate;
                                 ui.dpsText.text = $"DPS: {dps:F1}";
                             }
                             else
                             {
-                                // Fallback: 기본값 사용
-                                float dps = pawnData.combatData.damage * pawnData.combatData.fireRate;
-                                ui.dpsText.text = $"DPS: {dps:F1}";
+                                ui.dpsText.text = "DPS: --";
                             }
                         }
                         else
@@ -351,11 +362,11 @@ namespace PawnSurvivors.UI
                         {
                             ui.progressText.text = progressText;
                             
-                            // 디버깅: 5초마다 UI 텍스트 로그 (주석 처리)
-                            // if (shouldLogDetails)
-                            // {
-                            //     Debug.Log($"[StageScreen] 캐릭터 {i} ({pawnName}) UI 텍스트: '{progressText}', 진행도: {progress:F2}");
-                            // }
+                            // 디버깅: 5초마다 UI 텍스트 로그
+                            if (shouldLogDetails)
+                            {
+                                Debug.Log($"[StageScreen] 캐릭터 {i} ({pawnName}) UI 텍스트: '{progressText}', 진행도: {progress:F2}");
+                            }
                         }
                         
                         if (ui.progressBar != null)
@@ -393,11 +404,11 @@ namespace PawnSurvivors.UI
                 }
             }
             
-            // 디버깅: 5초마다 요약 로그 (주석 처리)
-            // if (shouldLogDetails)
-            // {
-            //     Debug.Log($"[StageScreen] 레벨업 UI 업데이트: 총 {playerPawns.Count}명, 활성 UI {activeUICount}개");
-            // }
+            // 디버깅: 5초마다 요약 로그
+            if (shouldLogDetails)
+            {
+                Debug.Log($"[StageScreen] 레벨업 UI 업데이트: 총 {playerPawns.Count}명, 활성 UI {activeUICount}개");
+            }
         }
         
         /// <summary>
@@ -496,7 +507,7 @@ namespace PawnSurvivors.UI
                 }
             }
             
-            // Debug.Log($"[StageScreen] {count}개의 캐릭터 UI를 재생성했습니다.");
+            Debug.Log($"[StageScreen] {count}개의 캐릭터 UI를 재생성했습니다.");
         }
         
         /// <summary>

@@ -43,12 +43,6 @@ namespace PawnSurvivors.Data
         public Dictionary<int, int> upgradeModifiers = new Dictionary<int, int>();
         
         /// <summary>
-        /// 스탯 곱셈 수정자 (enum 기반, int로 직렬화)
-        /// 예: statMultipliers[StatKey.Damage] = 2.0f (데미지 2배)
-        /// </summary>
-        public Dictionary<int, float> statMultipliers = new Dictionary<int, float>();
-        
-        /// <summary>
         /// 아이템 기능 타입 (기능이 있는 아이템인 경우)
         /// 예: "OnKill", "OnHit", "OnDamageTaken" 등
         /// </summary>
@@ -85,18 +79,6 @@ namespace PawnSurvivors.Data
         public void SetUpgradeModifier(UpgradeKey key, int value)
         {
             upgradeModifiers[(int)key] = value;
-        }
-        
-        /// <summary>스탯 곱셈 수정자 가져오기</summary>
-        public float GetStatMultiplier(StatKey key)
-        {
-            return statMultipliers.ContainsKey((int)key) ? statMultipliers[(int)key] : 1f;
-        }
-        
-        /// <summary>스탯 곱셈 수정자 설정</summary>
-        public void SetStatMultiplier(StatKey key, float value)
-        {
-            statMultipliers[(int)key] = value;
         }
         
         /// <summary>

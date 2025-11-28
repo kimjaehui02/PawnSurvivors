@@ -110,29 +110,17 @@ public class CollisionDamageSubManager : PawnSubManager
                 }
             }
 
-            // ✅ 투사체의 경우 이미 발사자에서 계산된 데미지가 PawnData.combatData.damage에 설정되어 있음
-            // 플레이어 Pawn의 경우에만 PawnStatCalculator를 사용하여 아이템 효과를 반영
+            // ✅ PawnStatCalculator를 사용하여 실제 데미지 계산
             float effectiveDamage = _pawnData.combatData.damage; // 기본값
             if (GameManager.Instance?.PawnStatCalculator != null)
             {
-                // 투사체가 아닌 경우 (플레이어 Pawn 직접 공격 등)에만 재계산
-                // 투사체는 이미 발사자에서 계산된 데미지가 설정되어 있음
-                if (_pawnManager.Owner == null)
-                {
-                    // 소유자가 없는 경우 (직접 공격)에만 재계산
-                    effectiveDamage = GameManager.Instance.PawnStatCalculator.GetEffectiveDamage(_pawnData);
-                }
-                // 투사체의 경우 이미 계산된 데미지를 그대로 사용
+                effectiveDamage = GameManager.Instance.PawnStatCalculator.GetEffectiveDamage(_pawnData);
             }
             
             // 상대방에게 DamageEvent 발행
             targetPawnManager.Publish(new DamageEvent(targetPawnManager, effectiveDamage, gameObject));
             
-            // 임시 디버그 로그 (테스트용 - 문제 해결 후 제거)
-            if (Time.frameCount % 60 == 0) // 1초마다 한 번씩만 로그
-            {
-                Debug.Log($"[CollisionDamage] {gameObject.name} → {other.name}: base={_pawnData.combatData.damage}, effective={effectiveDamage}, owner={_pawnManager.Owner?.name}");
-            }
+            // Debug.Log($"[CollisionDamage] {gameObject.name} → {other.name}: {_pawnData.combatData.damage} damage");
 
             // destroyOnHit이 true일 경우에만 자신 파괴 (발사체의 경우)
             if (destroyOnHit)

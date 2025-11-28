@@ -68,7 +68,7 @@ public class CreationManager : MonoBehaviour
         
         // 소유자 설정 (탄환의 경우 발사자)
         pawnManager.Owner = owner;
-        
+
         // 발사자의 데미지가 제공되면 투사체의 데미지를 덮어쓰기
         if (overrideDamage > 0f && pawnManager.PawnData.combatData != null)
         {
@@ -105,17 +105,6 @@ public class CreationManager : MonoBehaviour
 
         // PawnData가 완전히 설정된 후 등록된 모든 SubManager를 초기화합니다.
         pawnManager.InitializeSubManagers();
-        
-        // 소유자의 playerIndex를 투사체에 전달 (아이템 효과 계산용)
-        // InitializeSubManagers() 이후에 설정하여 SubManager가 playerIndex를 덮어쓰지 않도록 함
-        if (owner != null && owner.PawnData != null)
-        {
-            if (owner.PawnData.playerIndex >= 0)
-            {
-                pawnManager.PawnData.playerIndex = owner.PawnData.playerIndex;
-                // Debug.Log($"[CreationManager] 투사체 {pawnObject.name}의 playerIndex를 {owner.PawnData.playerIndex}로 설정 (Owner: {owner.name})");
-            }
-        }
 
         // Debug.Log($"JSON 레시피에서 '{recipeData.pawnName}' 폰을 성공적으로 생성했습니다.");
         return pawnObject;
