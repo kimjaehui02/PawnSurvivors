@@ -45,6 +45,7 @@ public class GameManager : MonoBehaviour
     public PawnPersistenceUseCase PawnPersistenceUseCase { get; private set; }
     public ItemManagementUseCase ItemManagementUseCase { get; private set; }
     public PawnStatCalculator PawnStatCalculator { get; private set; }
+    public FloatingEffectUseCase FloatingEffectUseCase { get; private set; }
     
     /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
@@ -176,6 +177,7 @@ public class GameManager : MonoBehaviour
         PawnPersistenceUseCase = new PawnPersistenceUseCase(_sessionData);
         ItemManagementUseCase = new ItemManagementUseCase(ItemRepository, SessionDataRepository, CurrencyUseCase);
         PawnStatCalculator = new PawnStatCalculator(ItemRepository);
+        FloatingEffectUseCase = new FloatingEffectUseCase();
 
         // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();

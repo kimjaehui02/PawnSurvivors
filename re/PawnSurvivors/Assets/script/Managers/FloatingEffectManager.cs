@@ -2,6 +2,7 @@ using UnityEngine;
 using PawnCore.Domain;
 using PawnCore.Domain.Events;
 using PawnSurvivors.UI;
+using PawnSurvivors.Domain.Usecases;
 using System.Collections.Generic;
 using TMPro;
 
@@ -9,6 +10,7 @@ namespace PawnSurvivors.Managers
 {
     /// <summary>
     /// 범용 FloatingEffect 시스템을 관리하는 매니저입니다.
+    /// Presentation 계층의 일부로, UI 표시를 담당합니다.
     /// GameManager에 컴포넌트로 추가하세요.
     /// </summary>
     public class FloatingEffectManager : MonoBehaviour
@@ -32,9 +34,13 @@ namespace PawnSurvivors.Managers
 
         private Camera _mainCamera;
         private List<PawnManager> _subscribedPawns = new List<PawnManager>();
+        private FloatingEffectUseCase _floatingEffectUseCase;
 
         private void Awake()
         {
+            // UseCase 초기화
+            _floatingEffectUseCase = new FloatingEffectUseCase();
+            
             SetupWorldSpaceCanvas();
             InitializePool();
             
@@ -138,9 +144,20 @@ namespace PawnSurvivors.Managers
 
         private void HandlePawnDamaged(PawnDamagedEvent evt)
         {
-            if (evt.DamageApplied > 0)
+            // UseCase를 통해 비즈니스 로직 처리
+            FloatingEffectData effectData = _floatingEffectUseCase.CreateDamageTextFromEvent(
+                evt,
+                damageTextColor,
+                damageTextFontSize,
+                damageTextDisplayScale,
+                damageTextMoveDistance,
+                damageTextDuration
+            );
+
+            if (effectData != null)
             {
-                ShowDamageText(evt.Target.transform.position, evt.DamageApplied);
+                effectData.FontAsset = damageTextFont;
+                ShowFloatingEffect(effectData);
             }
         }
 
@@ -164,20 +181,28 @@ namespace PawnSurvivors.Managers
 
         /// <summary>
         /// 데미지 텍스트를 표시합니다.
+        /// (직접 호출용 - 이벤트 기반이 아닌 경우)
         /// </summary>
         public void ShowDamageText(Vector3 position, float damage)
         {
+            if (damage <= 0) return;
+
+            // UseCase를 통해 데이터 생성 (직접 호출용)
             FloatingEffectData data = FloatingEffectData.CreateDamageText(
-                position, 
-                damage, 
-                damageTextColor, 
-                damageTextFontSize, 
+                position,
+                damage,
+                damageTextColor,
+                damageTextFontSize,
                 damageTextDisplayScale,
-                damageTextMoveDistance, 
+                damageTextMoveDistance,
                 damageTextDuration
             );
-            data.FontAsset = damageTextFont;
-            ShowFloatingEffect(data);
+
+            if (data != null)
+            {
+                data.FontAsset = damageTextFont;
+                ShowFloatingEffect(data);
+            }
         }
 
         /// <summary>
@@ -186,14 +211,18 @@ namespace PawnSurvivors.Managers
         public void ShowParticleEffect(Vector3 position, string prefabPath = null, float duration = 1f)
         {
             string path = prefabPath ?? defaultParticlePrefabPath;
-            if (string.IsNullOrEmpty(path))
+            
+            // UseCase를 통해 데이터 생성
+            FloatingEffectData data = _floatingEffectUseCase.CreateParticleEffectData(position, path, duration);
+            
+            if (data != null)
+            {
+                ShowFloatingEffect(data);
+            }
+            else
             {
                 Debug.LogWarning("[FloatingEffectManager] 파티클 프리팹 경로가 지정되지 않았습니다.");
-                return;
             }
-            
-            FloatingEffectData data = FloatingEffectData.CreateParticleEffect(position, path, duration);
-            ShowFloatingEffect(data);
         }
     }
 }
