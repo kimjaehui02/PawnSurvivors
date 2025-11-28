@@ -57,7 +57,7 @@ public class DamageableSubManager : PawnSubManager
         // 이벤트가 취소되었으면 무시 (무적 등)
         if (evt.IsCancelled)
         {
-            Debug.Log($"{_pawnManager.name} damage was cancelled (invincibility, etc.)");
+            // Debug.Log($"{_pawnManager.name} damage was cancelled (invincibility, etc.)");
             return;
         }
 
@@ -100,7 +100,7 @@ public class DamageableSubManager : PawnSubManager
             newHealth,
             isFatal
         );
-        Debug.Log($"[DamageableSubManager] {_pawnManager.name} - PawnDamagedEvent 발행: Attacker={evt.Attacker?.name}, Damage={actualDamage}, Target={_pawnManager.name}");
+        // Debug.Log($"[DamageableSubManager] {_pawnManager.name} - PawnDamagedEvent 발행: Attacker={evt.Attacker?.name}, Damage={actualDamage}, Target={_pawnManager.name}");
         _pawnManager.Publish(damagedEvent);
 
         // 통계 기록은 UseCase를 통해 처리 (DamageTrackingUseCase가 PawnDamagedEvent를 구독하여 처리)
@@ -109,7 +109,7 @@ public class DamageableSubManager : PawnSubManager
         // 체력이 0 이하가 되면 사망 이벤트 발행
         if (isFatal)
         {
-            Debug.Log($"{_pawnManager.name} has run out of health and will be destroyed.");
+            // Debug.Log($"{_pawnManager.name} has run out of health and will be destroyed.");
             
             // SessionData에 처치 수 기록 (레벨업 시스템용) - UseCase를 통해 처리
             if (GameManager.Instance?.KillTrackingUseCase != null && evt.Attacker != null)
