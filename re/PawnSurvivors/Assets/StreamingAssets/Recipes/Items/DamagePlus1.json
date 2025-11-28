@@ -1,0 +1,16 @@
+{
+  "itemId": "DamagePlus1",
+  "itemName": "공격력 +1",
+  "itemType": 1,
+  "description": "모든 캐릭터의 공격력이 1 증가합니다.",
+  "cost": 50,
+  "iconPath": "",
+  "statModifiers": {
+    "0": 1.0
+  },
+  "statMultipliers": {},
+  "upgradeModifiers": {},
+  "itemFunctionType": "",
+  "functionParameters": {}
+}
+

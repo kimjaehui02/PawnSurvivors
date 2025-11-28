@@ -73,6 +73,13 @@
 -   **메모리 안전성:** 모든 SubManager가 `OnDisable()`에서 이벤트 구독 해지
 -   **명확한 책임 분리:** 각 SubManager가 자신의 역할에만 집중
 
+## 향후 개선 사항 (우선순위 낮음)
+
+### Repository와 Data Source 구조 개선
+- **현재 상태:** Loader들이 JSON을 직접 읽고, Repository는 GameSessionData를 참조하는 구조
+- **권장 구조:** Repository가 Data Source로부터 모델을 받는 구조로 개선
+- **상세 내용:** `Assets/script/Debug/Domain/TODO.md` 참고
+
 ## 2. LifecycleManager 개선
 
 ### 2.1. EarlyUpdate/LateUpdate 큐 시스템

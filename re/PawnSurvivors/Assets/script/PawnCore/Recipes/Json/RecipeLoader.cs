@@ -28,10 +28,25 @@ namespace PawnCore.Recipes.Json
 
             foreach (var file in fileInfo)
             {
-                string json = File.ReadAllText(file.FullName);
-                PawnRecipeData data = JsonConvert.DeserializeObject<PawnRecipeData>(json, settings);
-                recipes[data.pawnName] = data;
-                Debug.Log($"[RecipeLoader] 레시피 로드: {data.pawnName} (from {file.Name})");
+                try
+                {
+                    string json = File.ReadAllText(file.FullName);
+                    PawnRecipeData data = JsonConvert.DeserializeObject<PawnRecipeData>(json, settings);
+                    
+                    // pawnName이 null이거나 비어있으면 스킵 (ItemData 등 다른 형식의 JSON일 수 있음)
+                    if (data == null || string.IsNullOrEmpty(data.pawnName))
+                    {
+                        Debug.LogWarning($"[RecipeLoader] {file.Name} - pawnName이 없거나 유효하지 않습니다. 스킵합니다.");
+                        continue;
+                    }
+                    
+                    recipes[data.pawnName] = data;
+                    Debug.Log($"[RecipeLoader] 레시피 로드: {data.pawnName} (from {file.Name})");
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"[RecipeLoader] {file.Name} 로드 실패: {ex.Message}");
+                }
             }
             
             Debug.Log($"[RecipeLoader] 총 {recipes.Count}개의 레시피 로드 완료");
