@@ -1405,24 +1405,13 @@ namespace PawnSurvivors.UI
                 return;
             }
             
-            // 아이템 구매
-            bool buySuccess = GameManager.Instance.ItemManagementUseCase.BuyItem(_pendingItemPurchase);
-            
-            if (!buySuccess)
-            {
-                LogManager.LogWarning(LogCategory.UI, "아이템 구매 실패: 골드가 부족하거나 아이템이 유효하지 않습니다.");
-                HidePawnSelectionUI();
-                _pendingItemPurchase = null;
-                return;
-            }
-            
-            // Pawn에 장착
-            bool equipSuccess = GameManager.Instance.ItemManagementUseCase.EquipItemToPawn(
-                _pendingItemPurchase.itemId, 
+            // 원자적 작업: 구매 및 장착 (UseCase 레벨에서 처리)
+            bool success = GameManager.Instance.ItemManagementUseCase.BuyAndEquipItem(
+                _pendingItemPurchase, 
                 playerIndex
             );
             
-            if (equipSuccess)
+            if (success)
             {
                 LogManager.LogInfo(LogCategory.UI, 
                     $"아이템 구매 및 장착 성공: {_pendingItemPurchase.itemName} → Pawn {playerIndex}");
@@ -1445,7 +1434,9 @@ namespace PawnSurvivors.UI
             }
             else
             {
-                LogManager.LogWarning(LogCategory.UI, $"아이템 장착 실패: Pawn {playerIndex}");
+                LogManager.LogWarning(LogCategory.UI, 
+                    $"아이템 구매 및 장착 실패: {_pendingItemPurchase.itemName} → Pawn {playerIndex} " +
+                    "(골드 부족, 아이템 유효하지 않음, 또는 장착 실패)");
             }
             
             HidePawnSelectionUI();

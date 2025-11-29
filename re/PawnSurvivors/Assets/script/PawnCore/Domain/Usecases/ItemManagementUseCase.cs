@@ -129,6 +129,57 @@ namespace PawnSurvivors.Domain.Usecases
             return _itemRepository.IsItemEquippedToPawn(itemId, playerIndex);
         }
 
+        /// <summary>
+        /// 아이템을 구매하고 특정 Pawn에 장착합니다. (원자적 작업)
+        /// 구매와 장착이 모두 성공해야 하며, 장착 실패 시 구매도 롤백됩니다.
+        /// </summary>
+        /// <param name="itemData">아이템 데이터</param>
+        /// <param name="playerIndex">플레이어 인덱스</param>
+        /// <returns>구매 및 장착 성공 여부</returns>
+        public bool BuyAndEquipItem(ItemData itemData, int playerIndex)
+        {
+            // 1. 입력 검증
+            if (itemData == null || string.IsNullOrEmpty(itemData.itemId))
+            {
+                return false;
+            }
+
+            // 2. 장착 가능한 아이템인지 확인
+            if (itemData.itemType != ItemType.Equipped)
+            {
+                return false; // 장착 가능한 아이템이 아님
+            }
+
+            // 3. 골드 확인 (차감 전)
+            if (!_currencyUseCase.HasEnoughGold(itemData.cost))
+            {
+                return false; // 골드 부족
+            }
+
+            // 4. 골드 차감
+            if (!_currencyUseCase.SpendGold(itemData.cost))
+            {
+                return false; // 골드 소비 실패 (이미 확인했지만 안전장치)
+            }
+
+            // 5. 아이템 저장
+            _itemRepository.SaveItem(itemData);
+
+            // 6. 장착 시도
+            bool equipSuccess = EquipItemToPawn(itemData.itemId, playerIndex);
+            
+            if (!equipSuccess)
+            {
+                // 장착 실패 시 롤백: 아이템 제거 및 골드 환불
+                _itemRepository.RemoveItemStack(itemData.itemId, 1);
+                _currencyUseCase.AddGold(itemData.cost);
+                return false;
+            }
+
+            // 7. 성공
+            return true;
+        }
+
         // ========================================
         // 내부 메서드 (효과 적용)
         // ========================================
