@@ -13,10 +13,14 @@ namespace PawnSurvivors.Domain.Usecases
     public class ItemPoolUseCase
     {
         private readonly IItemPoolRepository _itemPoolRepository;
+        private readonly IItemRepository _itemRepository;
 
-        public ItemPoolUseCase(IItemPoolRepository itemPoolRepository)
+        public ItemPoolUseCase(
+            IItemPoolRepository itemPoolRepository,
+            IItemRepository itemRepository)
         {
             _itemPoolRepository = itemPoolRepository;
+            _itemRepository = itemRepository;
         }
 
         /// <summary>
@@ -24,12 +28,14 @@ namespace PawnSurvivors.Domain.Usecases
         /// </summary>
         /// <param name="count">선택할 아이템 개수</param>
         /// <param name="excludeOwned">보유한 아이템 제외 여부</param>
-        /// <param name="itemRepository">보유 아이템 확인용 (null이면 제외하지 않음)</param>
+        /// <param name="itemRepository">보유 아이템 확인용 (null이면 내부 Repository 사용)</param>
+        /// <param name="excludeItemIds">제외할 아이템 ID 목록 (잠긴 슬롯의 아이템 등)</param>
         /// <returns>선택된 아이템 목록</returns>
         public List<ItemData> GetRandomShopItems(
             int count,
             bool excludeOwned = false,
-            PawnSurvivors.Domain.Repositories.IItemRepository itemRepository = null)
+            IItemRepository itemRepository = null,
+            List<string> excludeItemIds = null)
         {
             // 모든 아이템 가져오기
             List<ItemData> allItems = _itemPoolRepository.GetAllItems();
@@ -40,9 +46,17 @@ namespace PawnSurvivors.Domain.Usecases
             }
 
             // 보유한 아이템 제외
-            if (excludeOwned && itemRepository != null)
+            var repositoryToUse = itemRepository ?? _itemRepository;
+            if (excludeOwned && repositoryToUse != null)
             {
-                allItems = allItems.Where(item => !itemRepository.HasItem(item.itemId)).ToList();
+                allItems = allItems.Where(item => !repositoryToUse.HasItem(item.itemId)).ToList();
+            }
+
+            // 특정 아이템 ID 제외 (잠긴 슬롯의 아이템 등)
+            if (excludeItemIds != null && excludeItemIds.Count > 0)
+            {
+                var excludeSet = new HashSet<string>(excludeItemIds);
+                allItems = allItems.Where(item => !excludeSet.Contains(item.itemId)).ToList();
             }
 
             // 랜덤 선택
@@ -66,13 +80,15 @@ namespace PawnSurvivors.Domain.Usecases
         /// <param name="itemType">아이템 타입</param>
         /// <param name="count">선택할 아이템 개수</param>
         /// <param name="excludeOwned">보유한 아이템 제외 여부</param>
-        /// <param name="itemRepository">보유 아이템 확인용</param>
+        /// <param name="itemRepository">보유 아이템 확인용 (null이면 내부 Repository 사용)</param>
+        /// <param name="excludeItemIds">제외할 아이템 ID 목록 (잠긴 슬롯의 아이템 등)</param>
         /// <returns>선택된 아이템 목록</returns>
         public List<ItemData> GetRandomShopItemsByType(
             ItemType itemType,
             int count,
             bool excludeOwned = false,
-            PawnSurvivors.Domain.Repositories.IItemRepository itemRepository = null)
+            IItemRepository itemRepository = null,
+            List<string> excludeItemIds = null)
         {
             // 특정 타입의 아이템만 가져오기
             List<ItemData> itemsByType = _itemPoolRepository.GetItemsByType(itemType);
@@ -83,9 +99,17 @@ namespace PawnSurvivors.Domain.Usecases
             }
 
             // 보유한 아이템 제외
-            if (excludeOwned && itemRepository != null)
+            var repositoryToUse = itemRepository ?? _itemRepository;
+            if (excludeOwned && repositoryToUse != null)
             {
-                itemsByType = itemsByType.Where(item => !itemRepository.HasItem(item.itemId)).ToList();
+                itemsByType = itemsByType.Where(item => !repositoryToUse.HasItem(item.itemId)).ToList();
+            }
+
+            // 특정 아이템 ID 제외 (잠긴 슬롯의 아이템 등)
+            if (excludeItemIds != null && excludeItemIds.Count > 0)
+            {
+                var excludeSet = new HashSet<string>(excludeItemIds);
+                itemsByType = itemsByType.Where(item => !excludeSet.Contains(item.itemId)).ToList();
             }
 
             // 랜덤 선택

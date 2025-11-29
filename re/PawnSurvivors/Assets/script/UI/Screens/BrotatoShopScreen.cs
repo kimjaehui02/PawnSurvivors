@@ -73,6 +73,7 @@ namespace PawnSurvivors.UI
             public Button lockButton;
             public TMP_Text lockButtonText;
             public bool isLocked = false;
+            public bool isPurchased = false; // 구매 완료 여부
             public int cost = 0;
             public ItemData itemData; // 아이템 데이터 저장
         }
@@ -831,23 +832,36 @@ namespace PawnSurvivors.UI
         
         /// <summary>
         /// 상점 아이템 슬롯을 새로고침합니다.
-        /// ItemPoolUseCase를 사용하여 중복 없는 랜덤 아이템을 가져옵니다.
+        /// ShopUseCase를 사용하여 중복 없는 랜덤 아이템을 가져옵니다.
+        /// 리롤 시 구매한 슬롯도 초기화됩니다.
         /// </summary>
         private void RefreshShopItems()
         {
-            if (GameManager.Instance?.ItemPoolUseCase == null)
+            if (GameManager.Instance?.ShopUseCase == null)
             {
-                LogManager.LogWarning(LogCategory.UI, "ItemPoolUseCase가 없어 상점 아이템을 가져올 수 없습니다.");
+                LogManager.LogWarning(LogCategory.UI, "ShopUseCase가 없어 상점 아이템을 가져올 수 없습니다.");
                 return;
             }
             
-            // 잠금되지 않은 슬롯만 새로고침
+            // 잠금되지 않은 슬롯만 새로고침 (구매한 슬롯도 포함)
             var unlockedSlots = new List<int>();
+            var lockedItemIds = new List<string>(); // 잠긴 슬롯의 아이템 ID 수집
+            
             for (int i = 0; i < _itemSlots.Count; i++)
             {
                 if (!_itemSlots[i].isLocked)
                 {
                     unlockedSlots.Add(i);
+                    // 리롤 시 구매 상태 초기화
+                    _itemSlots[i].isPurchased = false;
+                }
+                else if (_itemSlots[i].itemData != null && !string.IsNullOrEmpty(_itemSlots[i].itemData.itemId))
+                {
+                    // 잠긴 슬롯의 아이템 ID 수집 (중복 방지)
+                    if (!lockedItemIds.Contains(_itemSlots[i].itemData.itemId))
+                    {
+                        lockedItemIds.Add(_itemSlots[i].itemData.itemId);
+                    }
                 }
             }
             
@@ -857,12 +871,11 @@ namespace PawnSurvivors.UI
                 return;
             }
             
-            // ItemPoolUseCase를 통해 중복 없는 랜덤 아이템 가져오기
-            var itemRepository = GameManager.Instance.ItemRepository;
-            var randomItems = GameManager.Instance.ItemPoolUseCase.GetRandomShopItems(
+            // ShopUseCase를 통해 중복 없는 랜덤 아이템 가져오기 (잠긴 아이템 제외)
+            var randomItems = GameManager.Instance.ShopUseCase.GetShopItems(
                 unlockedSlots.Count,
                 excludeOwned: false, // 보유 아이템 제외 여부 (필요시 변경)
-                itemRepository
+                excludeItemIds: lockedItemIds.Count > 0 ? lockedItemIds : null // 잠긴 슬롯의 아이템 제외
             );
             
             // 슬롯에 아이템 할당
@@ -911,19 +924,31 @@ namespace PawnSurvivors.UI
         {
             if (slot.buyButton == null || slot.itemData == null) return;
             
-            if (GameManager.Instance?.CurrencyUseCase == null)
+            // 구매한 슬롯은 항상 비활성화
+            if (slot.isPurchased)
+            {
+                slot.buyButton.interactable = false;
+                if (slot.costText != null)
+                {
+                    slot.costText.color = Color.gray;
+                }
+                return;
+            }
+            
+            if (GameManager.Instance?.ItemManagementUseCase == null)
             {
                 slot.buyButton.interactable = false;
                 return;
             }
             
-            bool hasEnoughGold = GameManager.Instance.CurrencyUseCase.HasEnoughGold(slot.itemData.cost);
-            slot.buyButton.interactable = hasEnoughGold;
+            // UseCase를 통해 구매 가능 여부 확인
+            bool canBuy = GameManager.Instance.ItemManagementUseCase.CanBuyItem(slot.itemData);
+            slot.buyButton.interactable = canBuy;
             
             // 골드 부족 시 비용 텍스트 색상 변경
             if (slot.costText != null)
             {
-                slot.costText.color = hasEnoughGold ? Color.green : Color.red;
+                slot.costText.color = canBuy ? Color.green : Color.red;
             }
         }
 
@@ -1102,13 +1127,84 @@ namespace PawnSurvivors.UI
         // 이벤트 핸들러들
         private void OnResetButtonClicked()
         {
-            if (GameManager.Instance?.CurrencyUseCase == null) return;
+            if (GameManager.Instance?.ShopUseCase == null) return;
             
-            if (GameManager.Instance.CurrencyUseCase.SpendGold(_resetCost))
+            // 잠금되지 않은 슬롯 개수 계산 및 잠긴 아이템 ID 수집
+            int unlockedSlotCount = 0;
+            var lockedItemIds = new List<string>();
+            
+            for (int i = 0; i < _itemSlots.Count; i++)
             {
-                // 상점 초기화 로직
+                if (!_itemSlots[i].isLocked)
+                {
+                    unlockedSlotCount++;
+                }
+                else if (_itemSlots[i].itemData != null && !string.IsNullOrEmpty(_itemSlots[i].itemData.itemId))
+                {
+                    // 잠긴 슬롯의 아이템 ID 수집 (중복 방지)
+                    if (!lockedItemIds.Contains(_itemSlots[i].itemData.itemId))
+                    {
+                        lockedItemIds.Add(_itemSlots[i].itemData.itemId);
+                    }
+                }
+            }
+            
+            // ShopUseCase를 통해 리롤 (골드 차감 및 새 아이템 가져오기, 잠긴 아이템 제외)
+            var newItems = GameManager.Instance.ShopUseCase.RerollShop(
+                _resetCost, 
+                unlockedSlotCount, 
+                excludeOwned: false,
+                excludeItemIds: lockedItemIds.Count > 0 ? lockedItemIds : null
+            );
+            
+            if (newItems != null)
+            {
                 LogManager.LogInfo(LogCategory.UI, $"상점 초기화 (비용: {_resetCost})");
-                RefreshShopItems(); // 아이템 슬롯 새로고침
+                
+                // 잠금되지 않은 슬롯에 새 아이템 할당
+                int itemIndex = 0;
+                for (int i = 0; i < _itemSlots.Count && itemIndex < newItems.Count; i++)
+                {
+                    if (!_itemSlots[i].isLocked)
+                    {
+                        var slot = _itemSlots[i];
+                        var item = newItems[itemIndex];
+                        
+                        // 아이템 데이터 저장
+                        slot.itemData = item;
+                        slot.cost = item.cost;
+                        slot.isPurchased = false; // 리롤 시 구매 상태 초기화
+                        
+                        // UI 업데이트
+                        if (slot.nameText != null)
+                        {
+                            slot.nameText.text = item.itemName ?? "알 수 없음";
+                        }
+                        
+                        if (slot.typeText != null)
+                        {
+                            slot.typeText.text = item.itemType == ItemType.Global ? "전역" : "장착";
+                        }
+                        
+                        if (slot.descriptionText != null)
+                        {
+                            slot.descriptionText.text = item.description ?? "";
+                        }
+                        
+                        if (slot.costText != null)
+                        {
+                            slot.costText.text = item.cost.ToString();
+                        }
+                        
+                        // 버튼 활성화/비활성화 (골드에 따라)
+                        UpdateSlotButtonState(slot);
+                        
+                        itemIndex++;
+                    }
+                }
+                
+                // 골드 표시 업데이트
+                UpdateGoldDisplay();
             }
             else
             {
@@ -1133,16 +1229,10 @@ namespace PawnSurvivors.UI
                 return;
             }
             
-            // 골드 확인 (구매 전에 먼저 체크)
-            if (GameManager.Instance?.CurrencyUseCase == null)
+            // UseCase를 통해 구매 가능 여부 확인 (골드 체크 포함)
+            if (!GameManager.Instance.ItemManagementUseCase.CanBuyItem(slot.itemData))
             {
-                LogManager.LogError(LogCategory.UI, "CurrencyUseCase가 없습니다.");
-                return;
-            }
-            
-            if (!GameManager.Instance.CurrencyUseCase.HasEnoughGold(slot.itemData.cost))
-            {
-                LogManager.LogWarning(LogCategory.UI, $"골드가 부족합니다. (필요: {slot.itemData.cost}, 보유: {GameManager.Instance.CurrencyUseCase.GetGold()})");
+                LogManager.LogWarning(LogCategory.UI, $"골드가 부족하거나 아이템이 유효하지 않습니다.");
                 return;
             }
             
@@ -1182,11 +1272,13 @@ namespace PawnSurvivors.UI
             {
                 LogManager.LogInfo(LogCategory.UI, $"아이템 구매 성공: {itemData.itemName} (비용: {slot.cost})");
                 
-                // 구매한 슬롯은 새 아이템으로 교체 (잠금되지 않은 경우)
-                if (!slot.isLocked)
-                {
-                    RefreshShopItems();
-                }
+                // 구매한 슬롯 표시
+                slot.isPurchased = true;
+                UpdateSlotButtonState(slot);
+                
+                // 구매한 슬롯은 새 아이템으로 교체하지 않음 (리롤 전까지 유지)
+                // 잠금되지 않은 다른 슬롯만 새로고침
+                // RefreshShopItems(); // 구매한 슬롯은 제외되므로 호출해도 됨
                 
                 // 골드 표시 업데이트
                 UpdateGoldDisplay();
@@ -1463,15 +1555,13 @@ namespace PawnSurvivors.UI
                 LogManager.LogInfo(LogCategory.UI, 
                     $"아이템 구매 및 장착 성공: {_pendingItemPurchase.itemName} → Pawn {playerIndex}");
                 
-                // 구매한 슬롯 찾아서 새 아이템으로 교체
+                // 구매한 슬롯 찾아서 구매 완료 표시
                 foreach (var slot in _itemSlots)
                 {
                     if (slot.itemData != null && slot.itemData.itemId == _pendingItemPurchase.itemId)
                     {
-                        if (!slot.isLocked)
-                        {
-                            RefreshShopItems();
-                        }
+                        slot.isPurchased = true;
+                        UpdateSlotButtonState(slot);
                         break;
                     }
                 }

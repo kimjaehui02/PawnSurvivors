@@ -28,7 +28,8 @@ namespace PawnSurvivors.Debugging.Presentation
         [SerializeField] private string jsonItemsPath = "";
 
         private ItemPoolUseCase _itemPoolUseCase;
-        private IItemPoolRepository _repository;
+        private IItemPoolRepository _itemPoolRepository;
+        private IItemRepository _itemRepository; // Mock ItemRepository
 
         private void Start()
         {
@@ -45,6 +46,9 @@ namespace PawnSurvivors.Debugging.Presentation
         /// </summary>
         private void InitializeDomainLayer()
         {
+            // Mock ItemRepository 생성 (디버깅용)
+            _itemRepository = new MockItemRepository();
+            
             if (useJsonDataSource)
             {
                 // JSON 데이터 소스 사용
@@ -62,17 +66,17 @@ namespace PawnSurvivors.Debugging.Presentation
                     LogManager.LogInfo(LogCategory.Debug, "디버깅 JSON 데이터 소스로 초기화 완료");
                 }
                 
-                _repository = new JsonItemPoolRepository(jsonDataSource);
+                _itemPoolRepository = new JsonItemPoolRepository(jsonDataSource);
             }
             else
             {
                 // Mock Repository 사용
-                _repository = new MockItemPoolRepository();
+                _itemPoolRepository = new MockItemPoolRepository();
                 LogManager.LogInfo(LogCategory.Debug, "Mock 데이터로 초기화 완료");
             }
             
             // UseCase 생성 (Domain 계층만)
-            _itemPoolUseCase = new ItemPoolUseCase(_repository);
+            _itemPoolUseCase = new ItemPoolUseCase(_itemPoolRepository, _itemRepository);
             
             LogManager.LogInfo(LogCategory.Debug, "Domain 계층 초기화 완료");
         }

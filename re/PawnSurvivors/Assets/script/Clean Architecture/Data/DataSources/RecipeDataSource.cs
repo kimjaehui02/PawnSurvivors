@@ -17,6 +17,7 @@ namespace PawnSurvivors.Data.DataSources
 
         /// <summary>
         /// 지정된 디렉토리에서 모든 Pawn 레시피 JSON 파일을 로드합니다.
+        /// Players/, Enemies/, Projectiles/ 폴더만 읽습니다.
         /// </summary>
         /// <param name="directoryPath">레시피 디렉토리 경로</param>
         public void LoadRecipes(string directoryPath)
@@ -27,23 +28,44 @@ namespace PawnSurvivors.Data.DataSources
                 return;
             }
 
-            var info = new DirectoryInfo(directoryPath);
-            // 하위 폴더까지 재귀적으로 검색 (Players/, Enemies/, Projectiles/ 등)
-            var fileInfo = info.GetFiles("*.json", SearchOption.AllDirectories);
+            // Pawn 레시피가 있는 폴더만 읽기 (Items 폴더 제외)
+            string[] recipeFolders = { "Players", "Enemies", "Projectiles" };
+            var allFiles = new List<FileInfo>();
+
+            foreach (var folderName in recipeFolders)
+            {
+                string folderPath = Path.Combine(directoryPath, folderName);
+                if (Directory.Exists(folderPath))
+                {
+                    var folderInfo = new DirectoryInfo(folderPath);
+                    var files = folderInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly);
+                    allFiles.AddRange(files);
+                }
+                else
+                {
+                    LogManager.LogWarning(LogCategory.Recipe, $"레시피 폴더를 찾을 수 없습니다: {folderPath}");
+                }
+            }
+
+            if (allFiles.Count == 0)
+            {
+                LogManager.LogWarning(LogCategory.Recipe, "로드할 레시피 파일이 없습니다.");
+                return;
+            }
 
             var settings = new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects
             };
 
-            foreach (var file in fileInfo)
+            foreach (var file in allFiles)
             {
                 try
                 {
                     string json = File.ReadAllText(file.FullName);
                     PawnRecipeData data = JsonConvert.DeserializeObject<PawnRecipeData>(json, settings);
                     
-                    // pawnName이 null이거나 비어있으면 스킵 (ItemData 등 다른 형식의 JSON일 수 있음)
+                    // pawnName이 null이거나 비어있으면 스킵
                     if (data == null || string.IsNullOrEmpty(data.pawnName))
                     {
                         LogManager.LogWarning(LogCategory.Recipe, $"{file.Name} - pawnName이 없거나 유효하지 않습니다. 스킵합니다.");

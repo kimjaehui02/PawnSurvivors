@@ -1,0 +1,16 @@
+{
+  "itemId": "EquippedHealthPlus5",
+  "itemName": "장착형 체력 +5",
+  "itemType": 1,
+  "description": "장착한 캐릭터의 최대 체력이 5 증가합니다.",
+  "cost": 70,
+  "iconPath": "",
+  "statModifiers": {
+    "1": 5.0
+  },
+  "statMultipliers": {},
+  "upgradeModifiers": {},
+  "itemFunctionType": "",
+  "functionParameters": {}
+}
+

@@ -47,6 +47,7 @@ public class GameManager : MonoBehaviour
     public PawnStatCalculator PawnStatCalculator { get; private set; }
     public FloatingEffectUseCase FloatingEffectUseCase { get; private set; }
     public ItemPoolUseCase ItemPoolUseCase { get; private set; }
+    public ShopUseCase ShopUseCase { get; private set; }
     
     /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
@@ -220,7 +221,10 @@ public class GameManager : MonoBehaviour
         
         // ItemPoolUseCase 초기화
         var itemPoolRepository = new PawnSurvivors.Data.Repositories.ItemPoolRepository(_itemPoolDataSource);
-        ItemPoolUseCase = new ItemPoolUseCase(itemPoolRepository);
+        ItemPoolUseCase = new ItemPoolUseCase(itemPoolRepository, ItemRepository);
+        
+        // ShopUseCase 초기화
+        ShopUseCase = new ShopUseCase(ItemPoolUseCase, ItemRepository, CurrencyUseCase);
 
         // StageManager 초기화 (의존성 주입)
         if (StageManager != null)

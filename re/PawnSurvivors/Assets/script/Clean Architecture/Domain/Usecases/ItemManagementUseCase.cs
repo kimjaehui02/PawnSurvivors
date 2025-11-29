@@ -26,6 +26,21 @@ namespace PawnSurvivors.Domain.Usecases
         }
 
         /// <summary>
+        /// 아이템을 구매할 수 있는지 확인합니다. (골드 체크만)
+        /// </summary>
+        /// <param name="itemData">아이템 데이터</param>
+        /// <returns>구매 가능 여부</returns>
+        public bool CanBuyItem(ItemData itemData)
+        {
+            if (itemData == null || string.IsNullOrEmpty(itemData.itemId))
+            {
+                return false;
+            }
+
+            return _currencyUseCase.HasEnoughGold(itemData.cost);
+        }
+
+        /// <summary>
         /// 상점에서 아이템을 구매합니다.
         /// </summary>
         /// <param name="itemData">아이템 데이터</param>
