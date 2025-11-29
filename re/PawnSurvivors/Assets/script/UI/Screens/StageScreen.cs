@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using PawnCore.Recipes.Json;
 using PawnSurvivors.Managers;
+using PawnSurvivors.Domain.Usecases;
+using PawnSurvivors.Data;
+using PawnSurvivors.Domain;
 
 namespace PawnSurvivors.UI
 {
@@ -40,9 +43,16 @@ namespace PawnSurvivors.UI
             public TMP_Text dpsText;
             public TMP_Text progressText;
             public Slider progressBar;
+            // 아이템 표시 UI
+            public GameObject equippedItemsContainer; // 장착 아이템 컨테이너
+            public List<GameObject> equippedItemIcons = new List<GameObject>(); // 장착 아이템 아이콘들
         }
         
         private List<CharacterLevelUI> _characterUIs = new List<CharacterLevelUI>();
+        
+        // 전역 아이템 표시 UI
+        private GameObject _globalItemsContainer;
+        private List<GameObject> _globalItemIcons;
         #endregion
 
 
@@ -272,6 +282,7 @@ namespace PawnSurvivors.UI
                 {
                     string pawnName = pawnManager.PawnData?.recipeName ?? pawnManager.name;
                     var pawnData = pawnManager.PawnData;
+                    int playerIndex = pawnData?.playerIndex ?? -1;
                     
                     // 체력 표시 및 체력바 업데이트 (null-safe)
                     if (pawnData?.healthData != null)
@@ -382,6 +393,9 @@ namespace PawnSurvivors.UI
                         }
                     }
                     
+                    // 장착 아이템 표시 업데이트
+                    UpdateEquippedItemsUI(ui, playerIndex);
+                    
                     // UI 활성화 (레벨업 시스템이 있든 없든 표시)
                     ui.rootObject.SetActive(true);
                     activeUICount++;
@@ -392,6 +406,9 @@ namespace PawnSurvivors.UI
                     ui.rootObject.SetActive(false);
                 }
             }
+            
+            // 전역 아이템 표시 업데이트
+            UpdateGlobalItemsUI();
             
             // 디버깅: 5초마다 요약 로그 (주석 처리)
             // if (shouldLogDetails)
@@ -770,7 +787,343 @@ namespace PawnSurvivors.UI
             progressTextRect.anchoredPosition = new Vector2(0f, 25f); // 진행도 바 중앙
             progressTextRect.sizeDelta = new Vector2(-30f, 20f);
             
+            // 장착 아이템 컨테이너 생성 (체력바 옆, 우측)
+            var equippedItemsObj = new GameObject("EquippedItems");
+            var equippedItemsRect = equippedItemsObj.AddComponent<RectTransform>();
+            equippedItemsObj.transform.SetParent(ui.rootObject.transform, false);
+            ui.equippedItemsContainer = equippedItemsObj;
+            
+            // equippedItemIcons 리스트 초기화
+            if (ui.equippedItemIcons == null)
+            {
+                ui.equippedItemIcons = new List<GameObject>();
+            }
+            
+            // 체력바 옆에 배치 (체력바는 0~0.5, 아이템은 0.5~1)
+            equippedItemsRect.anchorMin = new Vector2(0.5f, 1f);
+            equippedItemsRect.anchorMax = new Vector2(1f, 1f);
+            equippedItemsRect.pivot = new Vector2(0f, 1f);
+            equippedItemsRect.anchoredPosition = new Vector2(15f, -45f);
+            equippedItemsRect.sizeDelta = new Vector2(-15f, 20f);
+            
+            // HorizontalLayoutGroup 추가 (아이템들을 가로로 배치)
+            var horizontalLayout = equippedItemsObj.AddComponent<HorizontalLayoutGroup>();
+            horizontalLayout.spacing = 5f;
+            horizontalLayout.childControlWidth = false;
+            horizontalLayout.childControlHeight = false;
+            horizontalLayout.childForceExpandWidth = false;
+            horizontalLayout.childForceExpandHeight = false;
+            
             return ui;
+        }
+        
+        /// <summary>
+        /// 특정 Pawn의 장착 아이템 UI를 업데이트합니다.
+        /// </summary>
+        private void UpdateEquippedItemsUI(CharacterLevelUI ui, int playerIndex)
+        {
+            if (ui == null || ui.rootObject == null || playerIndex < 0)
+            {
+                return;
+            }
+            
+            // equippedItemsContainer가 없으면 생성
+            if (ui.equippedItemsContainer == null)
+            {
+                // 장착 아이템 컨테이너 생성 (체력바 옆, 우측)
+                var equippedItemsObj = new GameObject("EquippedItems");
+                var equippedItemsRect = equippedItemsObj.AddComponent<RectTransform>();
+                equippedItemsObj.transform.SetParent(ui.rootObject.transform, false);
+                ui.equippedItemsContainer = equippedItemsObj;
+                
+                // 체력바 옆에 배치 (체력바는 0~0.5, 아이템은 0.5~1)
+                equippedItemsRect.anchorMin = new Vector2(0.5f, 1f);
+                equippedItemsRect.anchorMax = new Vector2(1f, 1f);
+                equippedItemsRect.pivot = new Vector2(0f, 1f);
+                equippedItemsRect.anchoredPosition = new Vector2(15f, -45f);
+                equippedItemsRect.sizeDelta = new Vector2(-15f, 20f);
+                
+                // HorizontalLayoutGroup 추가 (아이템들을 가로로 배치)
+                var horizontalLayout = equippedItemsObj.AddComponent<HorizontalLayoutGroup>();
+                horizontalLayout.spacing = 5f;
+                horizontalLayout.childControlWidth = false;
+                horizontalLayout.childControlHeight = false;
+                horizontalLayout.childForceExpandWidth = false;
+                horizontalLayout.childForceExpandHeight = false;
+            }
+            
+            // equippedItemIcons가 null이면 초기화
+            if (ui.equippedItemIcons == null)
+            {
+                ui.equippedItemIcons = new List<GameObject>();
+            }
+            
+            // 기존 아이콘 제거
+            foreach (var icon in ui.equippedItemIcons)
+            {
+                if (icon != null)
+                {
+                    Destroy(icon);
+                }
+            }
+            ui.equippedItemIcons.Clear();
+            
+            // ItemManagementUseCase에서 장착 아이템 가져오기
+            if (GameManager.Instance?.ItemManagementUseCase == null)
+            {
+                return;
+            }
+            
+            var equippedItems = GameManager.Instance.ItemManagementUseCase.GetEquippedItems(playerIndex);
+            
+            if (equippedItems == null)
+            {
+                return;
+            }
+            
+            // 아이템 아이콘 생성
+            foreach (var item in equippedItems)
+            {
+                if (item == null || string.IsNullOrEmpty(item.itemId))
+                {
+                    continue;
+                }
+                
+                if (ui.equippedItemsContainer == null || ui.equippedItemsContainer.transform == null)
+                {
+                    continue;
+                }
+                
+                var iconObj = new GameObject($"ItemIcon_{item.itemId}");
+                if (iconObj == null)
+                {
+                    continue;
+                }
+                
+                var iconTransform = iconObj.transform;
+                if (iconTransform == null || ui.equippedItemsContainer == null || ui.equippedItemsContainer.transform == null)
+                {
+                    Destroy(iconObj);
+                    continue;
+                }
+                
+                iconTransform.SetParent(ui.equippedItemsContainer.transform, false);
+                var iconRect = iconObj.AddComponent<RectTransform>();
+                if (iconRect == null)
+                {
+                    Destroy(iconObj);
+                    continue;
+                }
+                iconRect.sizeDelta = new Vector2(18f, 18f);
+                
+                var iconImage = iconObj.AddComponent<Image>();
+                if (iconImage != null)
+                {
+                    iconImage.color = new Color(0.8f, 0.8f, 0.2f, 1f); // 노란색 (임시, 나중에 실제 아이콘으로 교체)
+                }
+                
+                // 툴팁용 텍스트 (자식 GameObject로 생성 - Image와 TextMeshProUGUI는 같은 GameObject에 둘 수 없음)
+                var textObj = new GameObject("ItemNameText");
+                textObj.transform.SetParent(iconObj.transform, false);
+                var textRect = textObj.AddComponent<RectTransform>();
+                textRect.anchorMin = Vector2.zero;
+                textRect.anchorMax = Vector2.one;
+                textRect.sizeDelta = Vector2.zero;
+                textRect.anchoredPosition = Vector2.zero;
+                
+                var tooltipText = textObj.AddComponent<TextMeshProUGUI>();
+                if (tooltipText != null)
+                {
+                    string itemDisplayName = !string.IsNullOrEmpty(item.itemName) ? item.itemName : (item.itemId ?? "Unknown");
+                    tooltipText.text = itemDisplayName;
+                    tooltipText.fontSize = 10;
+                    tooltipText.color = Color.white;
+                    tooltipText.alignment = TextAlignmentOptions.Center;
+                    tooltipText.raycastTarget = false;
+                    
+                    // 한글 폰트 적용
+                    if (koreanFontAsset != null)
+                    {
+                        tooltipText.font = koreanFontAsset;
+                    }
+                }
+                
+                ui.equippedItemIcons.Add(iconObj);
+            }
+        }
+        
+        /// <summary>
+        /// 전역 아이템 UI를 생성합니다.
+        /// </summary>
+        private void EnsureGlobalItemsContainer()
+        {
+            if (_globalItemsContainer != null) return;
+            
+            if (levelUpContainer == null)
+            {
+                EnsureLevelUpContainer();
+            }
+            
+            if (levelUpContainer == null) return;
+            
+            // 전역 아이템 컨테이너 생성 (LevelUpContainer 아래에 배치)
+            var globalItemsObj = new GameObject("GlobalItemsContainer");
+            var globalItemsRect = globalItemsObj.AddComponent<RectTransform>();
+            globalItemsObj.transform.SetParent(levelUpContainer.parent, false);
+            _globalItemsContainer = globalItemsObj;
+            
+            // LevelUpContainer 아래에 배치
+            globalItemsRect.anchorMin = new Vector2(0f, 1f);
+            globalItemsRect.anchorMax = new Vector2(0f, 1f);
+            globalItemsRect.pivot = new Vector2(0f, 1f);
+            globalItemsRect.anchoredPosition = new Vector2(20f, -620f); // LevelUpContainer 아래
+            globalItemsRect.sizeDelta = new Vector2(500f, 100f);
+            
+            // 배경
+            var bg = globalItemsObj.AddComponent<Image>();
+            bg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
+            
+            // 제목
+            var titleObj = new GameObject("Title");
+            var titleRect = titleObj.AddComponent<RectTransform>();
+            titleObj.transform.SetParent(globalItemsObj.transform, false);
+            titleRect.anchorMin = new Vector2(0f, 1f);
+            titleRect.anchorMax = new Vector2(1f, 1f);
+            titleRect.pivot = new Vector2(0f, 1f);
+            titleRect.anchoredPosition = new Vector2(10f, -10f);
+            titleRect.sizeDelta = new Vector2(-20f, 30f);
+            
+            var titleText = titleObj.AddComponent<TextMeshProUGUI>();
+            titleText.text = "전역 아이템";
+            titleText.fontSize = 20;
+            titleText.color = Color.white;
+            titleText.alignment = TextAlignmentOptions.Left;
+            
+            if (koreanFontAsset != null)
+            {
+                titleText.font = koreanFontAsset;
+            }
+            
+            // HorizontalLayoutGroup 추가
+            var horizontalLayout = globalItemsObj.AddComponent<HorizontalLayoutGroup>();
+            horizontalLayout.spacing = 10f;
+            horizontalLayout.padding = new RectOffset(10, 10, 40, 10); // 상단 패딩 40 (제목 공간)
+            horizontalLayout.childControlWidth = false;
+            horizontalLayout.childControlHeight = false;
+            horizontalLayout.childForceExpandWidth = false;
+            horizontalLayout.childForceExpandHeight = false;
+        }
+        
+        /// <summary>
+        /// 전역 아이템 UI를 업데이트합니다.
+        /// </summary>
+        private void UpdateGlobalItemsUI()
+        {
+            EnsureGlobalItemsContainer();
+            
+            if (_globalItemsContainer == null)
+            {
+                return;
+            }
+            
+            // _globalItemIcons가 null이면 초기화
+            if (_globalItemIcons == null)
+            {
+                _globalItemIcons = new List<GameObject>();
+            }
+            
+            // 기존 아이콘 제거
+            foreach (var icon in _globalItemIcons)
+            {
+                if (icon != null)
+                {
+                    Destroy(icon);
+                }
+            }
+            _globalItemIcons.Clear();
+            
+            // ItemManagementUseCase에서 전역 아이템 가져오기
+            if (GameManager.Instance?.ItemManagementUseCase == null)
+            {
+                return;
+            }
+            
+            var globalItems = GameManager.Instance.ItemManagementUseCase.GetGlobalItems();
+            
+            if (globalItems == null)
+            {
+                return;
+            }
+            
+            // 아이템 아이콘 생성
+            foreach (var item in globalItems)
+            {
+                if (item == null || string.IsNullOrEmpty(item.itemId))
+                {
+                    continue;
+                }
+                
+                if (_globalItemsContainer == null || _globalItemsContainer.transform == null)
+                {
+                    continue;
+                }
+                
+                var iconObj = new GameObject($"GlobalItemIcon_{item.itemId}");
+                if (iconObj == null)
+                {
+                    continue;
+                }
+                
+                var iconTransform = iconObj.transform;
+                if (iconTransform == null)
+                {
+                    Destroy(iconObj);
+                    continue;
+                }
+                
+                iconTransform.SetParent(_globalItemsContainer.transform, false);
+                var iconRect = iconObj.AddComponent<RectTransform>();
+                if (iconRect == null)
+                {
+                    Destroy(iconObj);
+                    continue;
+                }
+                iconRect.sizeDelta = new Vector2(30f, 30f);
+                
+                var iconImage = iconObj.AddComponent<Image>();
+                if (iconImage != null)
+                {
+                    iconImage.color = new Color(0.2f, 0.8f, 0.2f, 1f); // 초록색 (임시, 나중에 실제 아이콘으로 교체)
+                }
+                
+                // 툴팁용 텍스트 (자식 GameObject로 생성 - Image와 TextMeshProUGUI는 같은 GameObject에 둘 수 없음)
+                var textObj = new GameObject("ItemNameText");
+                textObj.transform.SetParent(iconObj.transform, false);
+                var textRect = textObj.AddComponent<RectTransform>();
+                textRect.anchorMin = Vector2.zero;
+                textRect.anchorMax = Vector2.one;
+                textRect.sizeDelta = Vector2.zero;
+                textRect.anchoredPosition = Vector2.zero;
+                
+                var tooltipText = textObj.AddComponent<TextMeshProUGUI>();
+                if (tooltipText != null)
+                {
+                    string itemDisplayName = !string.IsNullOrEmpty(item.itemName) ? item.itemName : (item.itemId ?? "Unknown");
+                    tooltipText.text = itemDisplayName;
+                    tooltipText.fontSize = 12;
+                    tooltipText.color = Color.white;
+                    tooltipText.alignment = TextAlignmentOptions.Center;
+                    tooltipText.raycastTarget = false;
+                    
+                    // 한글 폰트 적용
+                    if (koreanFontAsset != null)
+                    {
+                        tooltipText.font = koreanFontAsset;
+                    }
+                }
+                
+                _globalItemIcons.Add(iconObj);
+            }
         }
         
         #endregion
