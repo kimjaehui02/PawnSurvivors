@@ -214,7 +214,7 @@ public class StageManager : MonoBehaviour
             return;
         }
 
-        PawnCore.Recipes.Json.PawnRecipeData enemyRecipe = _creationManager.GetRecipe(selectedEnemyRecipe);
+        PawnSurvivors.Data.Recipes.PawnRecipeData enemyRecipe = _creationManager.GetRecipe(selectedEnemyRecipe);
         if (enemyRecipe != null)
         {
             Vector3 spawnPosition = GetCircularSpawnPosition();

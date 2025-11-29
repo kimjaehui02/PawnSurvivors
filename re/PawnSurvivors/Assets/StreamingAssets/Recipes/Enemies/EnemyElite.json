@@ -2,26 +2,26 @@
   "pawnName": "EnemyElite",
   "subManagerSetups": [
     {
-      "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.CollisionDamageSubManagerSetupData, Assembly-CSharp",
       "damage": 10,
       "destroyOnHit": false
     },
     {
-      "$type": "PawnCore.Recipes.Json.DamageableSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.DamageableSubManagerSetupData, Assembly-CSharp",
       "maxHealth": 150
     },
     {
-      "$type": "PawnCore.Recipes.Json.HitFlashSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.HitFlashSubManagerSetupData, Assembly-CSharp",
       "flashDuration": 0.1
     },
     {
-      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.VisualSubManagerSetupData, Assembly-CSharp",
       "visualSpriteName": "Temporary/Circle",
       "visualColor": {"r": 0.9, "g": 0.5, "b": 0.1, "a": 1},
       "shadowPreset": "EnemyShadow",
       "strategySetups": [
         {
-          "$type": "PawnCore.Recipes.Json.BounceAnimationStrategySetupData, Assembly-CSharp",
+          "$type": "PawnSurvivors.Data.Recipes.BounceAnimationStrategySetupData, Assembly-CSharp",
           "isEnabledByDefault": true,
           "bounceHeight": 0.15,
           "bounceSpeed": 10,
@@ -30,10 +30,10 @@
       ]
     },
     {
-      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.MovableSubManagerSetupData, Assembly-CSharp",
       "strategySetups": [
         {
-          "$type": "PawnCore.Recipes.Json.HomingStrategySetupData, Assembly-CSharp",
+          "$type": "PawnSurvivors.Data.Recipes.HomingStrategySetupData, Assembly-CSharp",
           "isEnabledByDefault": true,
           "speed": 4,
           "targetTag": "Player",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
       "colliderType": "Circle2D",
       "isTrigger": true,
       "rigidbodyType": "Kinematic",
@@ -52,7 +52,7 @@
       "physicsTag": "Enemy"
     },
     {
-      "$type": "PawnCore.Recipes.Json.SpawnOnDeathSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.SpawnOnDeathSubManagerSetupData, Assembly-CSharp",
       "spawnRecipeNames": ["Coin"],
       "spawnChances": [1.0],
       "spawnCounts": [2]

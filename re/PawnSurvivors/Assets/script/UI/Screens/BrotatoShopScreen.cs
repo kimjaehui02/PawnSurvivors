@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using PawnSurvivors.Managers;
-using PawnCore.Domain;
 using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Usecases;
 using PawnSurvivors.Data;
@@ -897,9 +896,35 @@ namespace PawnSurvivors.UI
                 {
                     slot.costText.text = item.cost.ToString();
                 }
+                
+                // 버튼 활성화/비활성화 (골드에 따라)
+                UpdateSlotButtonState(slot);
             }
             
             LogManager.LogInfo(LogCategory.UI, $"상점 아이템 {unlockedSlots.Count}개 새로고침 완료");
+        }
+        
+        /// <summary>
+        /// 슬롯의 버튼 상태를 골드에 따라 업데이트합니다.
+        /// </summary>
+        private void UpdateSlotButtonState(ShopItemSlot slot)
+        {
+            if (slot.buyButton == null || slot.itemData == null) return;
+            
+            if (GameManager.Instance?.CurrencyUseCase == null)
+            {
+                slot.buyButton.interactable = false;
+                return;
+            }
+            
+            bool hasEnoughGold = GameManager.Instance.CurrencyUseCase.HasEnoughGold(slot.itemData.cost);
+            slot.buyButton.interactable = hasEnoughGold;
+            
+            // 골드 부족 시 비용 텍스트 색상 변경
+            if (slot.costText != null)
+            {
+                slot.costText.color = hasEnoughGold ? Color.green : Color.red;
+            }
         }
 
         private void UpdateGoldDisplay()
@@ -908,6 +933,15 @@ namespace PawnSurvivors.UI
             
             int gold = GameManager.Instance.CurrencyUseCase.GetGold();
             _goldText.text = gold.ToString();
+            
+            // 모든 슬롯의 버튼 상태 업데이트
+            foreach (var slot in _itemSlots)
+            {
+                if (slot != null && slot.itemData != null)
+                {
+                    UpdateSlotButtonState(slot);
+                }
+            }
         }
 
         private void UpdateTitle()
@@ -1096,6 +1130,19 @@ namespace PawnSurvivors.UI
             if (GameManager.Instance?.ItemManagementUseCase == null)
             {
                 LogManager.LogError(LogCategory.UI, "ItemManagementUseCase가 없습니다.");
+                return;
+            }
+            
+            // 골드 확인 (구매 전에 먼저 체크)
+            if (GameManager.Instance?.CurrencyUseCase == null)
+            {
+                LogManager.LogError(LogCategory.UI, "CurrencyUseCase가 없습니다.");
+                return;
+            }
+            
+            if (!GameManager.Instance.CurrencyUseCase.HasEnoughGold(slot.itemData.cost))
+            {
+                LogManager.LogWarning(LogCategory.UI, $"골드가 부족합니다. (필요: {slot.itemData.cost}, 보유: {GameManager.Instance.CurrencyUseCase.GetGold()})");
                 return;
             }
             

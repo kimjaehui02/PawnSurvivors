@@ -3,32 +3,32 @@
   "visualPrefab": "Prefabs/Circle",
   "subManagerSetups": [
     {
-      "$type": "PawnCore.Recipes.Json.DamageableSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.DamageableSubManagerSetupData, Assembly-CSharp",
       "maxHealth": 100
     },
     {
-      "$type": "PawnCore.Recipes.Json.InvincibilitySubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.InvincibilitySubManagerSetupData, Assembly-CSharp",
       "invincibilityDuration": 1.0,
       "blinkSpeed": 5.0
     },
     {
-      "$type": "PawnCore.Recipes.Json.PlayerAttackInputSubManagerSetupData, Assembly-CSharp"
+      "$type": "PawnSurvivors.Data.Recipes.PlayerAttackInputSubManagerSetupData, Assembly-CSharp"
     },
     {
-      "$type": "PawnCore.Recipes.Json.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
       "projectileRecipeName": "Bullet",
       "fireRate": 1,
       "damage": 3
     },
     {
-      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.VisualSubManagerSetupData, Assembly-CSharp",
       "visualSpriteName": "Sprites/player/오팔",
       "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1},
       "visualSpriteIndex": -1,
       "shadowPreset": "PlayerShadow",
       "strategySetups": [
         {
-          "$type": "PawnCore.Recipes.Json.BounceAnimationStrategySetupData, Assembly-CSharp",
+          "$type": "PawnSurvivors.Data.Recipes.BounceAnimationStrategySetupData, Assembly-CSharp",
           "isEnabledByDefault": true,
           "bounceHeight": 0.15,
           "bounceSpeed": 12,
@@ -37,7 +37,7 @@
       ]
     },
     {
-      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
       "colliderType": "Circle2D",
       "isTrigger": true,
       "rigidbodyType": "Kinematic",
@@ -46,10 +46,10 @@
       "physicsTag": "Player"
     },
     {
-      "$type": "PawnCore.Recipes.Json.LevelUpSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.LevelUpSubManagerSetupData, Assembly-CSharp",
       "strategySetups": [
         {
-          "$type": "PawnCore.Recipes.Json.DamageDealtStrategySetup, Assembly-CSharp",
+          "$type": "PawnSurvivors.Data.Recipes.DamageDealtStrategySetup, Assembly-CSharp",
           "targetLevel": 2,
           "conditionDescription": "500 데미지 입히기",
           "rewardDescription": "체력 +20, 데미지 1.5배",

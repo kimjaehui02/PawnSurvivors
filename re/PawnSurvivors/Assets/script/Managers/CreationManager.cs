@@ -1,8 +1,8 @@
 using UnityEngine;
-using PawnCore.Recipes.Json;
+using PawnSurvivors.Data.Recipes;
 using System.IO;
 using System.Linq;
-using PawnCore.Domain;
+using PawnSurvivors.Domain;
 using PawnSurvivors.Managers;
 using PawnSurvivors.Data.DataSources;
 

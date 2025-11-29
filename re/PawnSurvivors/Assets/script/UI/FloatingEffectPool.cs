@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using PawnCore.Domain;
+using PawnSurvivors.Domain;
 using TMPro;
 using PawnSurvivors.Managers;
 

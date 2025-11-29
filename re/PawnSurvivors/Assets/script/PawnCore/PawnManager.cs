@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using PawnCore.Domain;
-using PawnCore.Domain.Events;
+using PawnSurvivors.Domain;
+using PawnSurvivors.Domain.Events;
 
 /// <summary>
 /// 게임 내 개체(Pawn)의 핵심 허브 역할을 하는 중앙 관리자 클래스입니다.

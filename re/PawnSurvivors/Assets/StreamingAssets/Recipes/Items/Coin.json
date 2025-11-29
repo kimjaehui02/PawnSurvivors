@@ -2,19 +2,19 @@
   "pawnName": "Coin",
   "subManagerSetups": [
     {
-      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.VisualSubManagerSetupData, Assembly-CSharp",
       "visualSpriteName": "Temporary/Circle",
       "visualColor": {"r": 1, "g": 0.84, "b": 0, "a": 1},
       "visualScale": {"x": 0.3, "y": 0.3, "z": 1},
       "strategySetups": [
         {
-          "$type": "PawnCore.Recipes.Json.IdleAnimationStrategySetupData, Assembly-CSharp",
+          "$type": "PawnSurvivors.Data.Recipes.IdleAnimationStrategySetupData, Assembly-CSharp",
           "isEnabledByDefault": true
         }
       ]
     },
     {
-      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
       "colliderType": "Circle2D",
       "isTrigger": true,
       "rigidbodyType": "Kinematic",
@@ -23,10 +23,10 @@
       "physicsTag": "Untagged"
     },
     {
-      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.MovableSubManagerSetupData, Assembly-CSharp",
       "strategySetups": [
         {
-          "$type": "PawnCore.Recipes.Json.HomingStrategySetupData, Assembly-CSharp",
+          "$type": "PawnSurvivors.Data.Recipes.HomingStrategySetupData, Assembly-CSharp",
           "isEnabledByDefault": false,
           "speed": 8.0,
           "targetTag": "Player",
@@ -36,7 +36,7 @@
       ]
     },
     {
-      "$type": "PawnCore.Recipes.Json.CoinPickupSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.CoinPickupSubManagerSetupData, Assembly-CSharp",
       "goldAmount": 100,
       "magnetRange": 5
     }

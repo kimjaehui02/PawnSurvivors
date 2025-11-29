@@ -1,6 +1,6 @@
 using UnityEngine;
-using PawnCore.Domain;
-using PawnCore.Domain.Events;
+using PawnSurvivors.Domain;
+using PawnSurvivors.Domain.Events;
 using PawnSurvivors.UI;
 using PawnSurvivors.Domain.Usecases;
 using System.Collections.Generic;

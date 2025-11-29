@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using PawnCore.Domain;
+using PawnSurvivors.Domain;
+using PawnSurvivors.Presentation.SubManagers.Visual;
+using PawnSurvivors.Presentation.SubManagers.Physics;
+using PawnSurvivors.Presentation.SubManagers.Movement;
 
-namespace PawnCore.Recipes.Json
+namespace PawnSurvivors.Data.Recipes
 {
     [Serializable]
     public class PawnRecipeData
@@ -184,7 +187,7 @@ namespace PawnCore.Recipes.Json
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
         {
-            var visualSubManager = pawnObject.AddComponent<PawnCore.Presentation.SubManagers.Visual.VisualSubManager>();
+            var visualSubManager = pawnObject.AddComponent<VisualSubManager>();
             
             // 각 애니메이션 전략 컴포넌트 추가
             if (strategySetups != null)
@@ -249,9 +252,9 @@ namespace PawnCore.Recipes.Json
     [Serializable]
     public class PhysicsSubManagerSetupData : SubManagerSetupData
     {
-        public PawnCore.Domain.ColliderType colliderType = PawnCore.Domain.ColliderType.None;
+        public ColliderType colliderType = ColliderType.None;
         public bool isTrigger = false;
-        public PawnCore.Domain.RigidbodyType rigidbodyType = PawnCore.Domain.RigidbodyType.None;
+        public RigidbodyType rigidbodyType = RigidbodyType.None;
         public float gravityScale = 1f;
         public string physicsLayerName = "Default";
         public string physicsTag = "Untagged";
@@ -270,7 +273,7 @@ namespace PawnCore.Recipes.Json
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
         {
-            return pawnObject.AddComponent<PawnCore.Presentation.SubManagers.Physics.PhysicsSubManager>();
+            return pawnObject.AddComponent<PhysicsSubManager>();
         }
     }
 
@@ -410,8 +413,8 @@ namespace PawnCore.Recipes.Json
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
         {
-            PawnCore.Presentation.SubManagers.Visual.HitFlashSubManager subManager = 
-                pawnObject.AddComponent<PawnCore.Presentation.SubManagers.Visual.HitFlashSubManager>();
+            HitFlashSubManager subManager = 
+                pawnObject.AddComponent<HitFlashSubManager>();
             subManager.flashDuration = flashDuration;
             return subManager;
         }
@@ -437,8 +440,8 @@ namespace PawnCore.Recipes.Json
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
         {
-            PawnCore.Presentation.SubManagers.Movement.SeparationSubManager subManager = 
-                pawnObject.AddComponent<PawnCore.Presentation.SubManagers.Movement.SeparationSubManager>();
+            SeparationSubManager subManager = 
+                pawnObject.AddComponent<SeparationSubManager>();
             subManager.separationRadius = separationRadius;
             subManager.separationStrength = separationStrength;
             subManager.checkFrequency = checkFrequency;

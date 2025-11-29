@@ -2,15 +2,15 @@
   "pawnName": "EnemyBullet",
   "subManagerSetups": [
     {
-      "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.CollisionDamageSubManagerSetupData, Assembly-CSharp",
       "damage": 2,
       "destroyOnHit": true
     },
     {
-      "$type": "PawnCore.Recipes.Json.MovableSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.MovableSubManagerSetupData, Assembly-CSharp",
       "strategySetups": [
         {
-          "$type": "PawnCore.Recipes.Json.DirectionalStrategySetupData, Assembly-CSharp",
+          "$type": "PawnSurvivors.Data.Recipes.DirectionalStrategySetupData, Assembly-CSharp",
           "isEnabledByDefault": true,
           "speed": 5,
           "lifetime": 5,
@@ -23,19 +23,19 @@
       ]
     },
     {
-      "$type": "PawnCore.Recipes.Json.VisualSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.VisualSubManagerSetupData, Assembly-CSharp",
       "visualSpriteName": "Sprites/투사체/투사체",
       "visualColor": {"r": 1, "g": 1, "b": 1, "a": 1},
       "visualSpriteIndex": -1,
       "strategySetups": [
         {
-          "$type": "PawnCore.Recipes.Json.IdleAnimationStrategySetupData, Assembly-CSharp",
+          "$type": "PawnSurvivors.Data.Recipes.IdleAnimationStrategySetupData, Assembly-CSharp",
           "isEnabledByDefault": true
         }
       ]
     },
     {
-      "$type": "PawnCore.Recipes.Json.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
       "colliderType": "Circle2D",
       "isTrigger": true,
       "rigidbodyType": "Kinematic",

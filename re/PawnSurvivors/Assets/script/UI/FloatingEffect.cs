@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using TMPro;
-using PawnCore.Domain;
+using PawnSurvivors.Domain;
 using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.UI

@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections.Generic;
 using System.Linq;
-using PawnCore.Recipes.Json;
+using PawnSurvivors.Data.Recipes;
 using PawnSurvivors.Managers;
 using PawnSurvivors.Domain.Usecases;
 using PawnSurvivors.Data;
