@@ -1272,8 +1272,13 @@ namespace PawnSurvivors.UI
             {
                 LogManager.LogInfo(LogCategory.UI, $"아이템 구매 성공: {itemData.itemName} (비용: {slot.cost})");
                 
-                // 구매한 슬롯 표시
+                // 구매한 슬롯 표시 및 잠금 해제
                 slot.isPurchased = true;
+                slot.isLocked = false; // 구매 시 잠금 해제
+                if (slot.lockButtonText != null)
+                {
+                    slot.lockButtonText.text = "E 잠금";
+                }
                 UpdateSlotButtonState(slot);
                 
                 // 구매한 슬롯은 새 아이템으로 교체하지 않음 (리롤 전까지 유지)
@@ -1294,6 +1299,14 @@ namespace PawnSurvivors.UI
             if (slotIndex < 0 || slotIndex >= _itemSlots.Count) return;
             
             var slot = _itemSlots[slotIndex];
+            
+            // 구매된 아이템은 잠글 수 없음
+            if (slot.isPurchased)
+            {
+                LogManager.LogWarning(LogCategory.UI, "구매된 아이템은 잠글 수 없습니다.");
+                return;
+            }
+            
             slot.isLocked = !slot.isLocked;
             
             if (slot.isLocked)
@@ -1555,12 +1568,17 @@ namespace PawnSurvivors.UI
                 LogManager.LogInfo(LogCategory.UI, 
                     $"아이템 구매 및 장착 성공: {_pendingItemPurchase.itemName} → Pawn {playerIndex}");
                 
-                // 구매한 슬롯 찾아서 구매 완료 표시
+                // 구매한 슬롯 찾아서 구매 완료 표시 및 잠금 해제
                 foreach (var slot in _itemSlots)
                 {
                     if (slot.itemData != null && slot.itemData.itemId == _pendingItemPurchase.itemId)
                     {
                         slot.isPurchased = true;
+                        slot.isLocked = false; // 구매 시 잠금 해제
+                        if (slot.lockButtonText != null)
+                        {
+                            slot.lockButtonText.text = "E 잠금";
+                        }
                         UpdateSlotButtonState(slot);
                         break;
                     }

@@ -86,7 +86,16 @@ namespace PawnSurvivors.Domain.Usecases
             float itemBonus = CalculateItemStatBonus(pawnData, StatKey.FireRate);
             float itemMultiplier = CalculateItemStatMultiplier(pawnData, StatKey.FireRate);
             
-            return (baseFireRate + itemBonus) * itemMultiplier;
+            float result = (baseFireRate + itemBonus) * itemMultiplier;
+            
+            // 디버그 로그 (문제 해결용)
+            if (Time.frameCount % 60 == 0)
+            {
+                LogManager.LogDebug(LogCategory.System, 
+                    $"[공격속도] playerIndex={pawnData.playerIndex}, base={baseFireRate}, bonus={itemBonus}, multiplier={itemMultiplier}, result={result}");
+            }
+            
+            return result;
         }
 
         /// <summary>
@@ -143,24 +152,26 @@ namespace PawnSurvivors.Domain.Usecases
                 // 이는 PawnManager에서 Owner를 통해 접근할 수 없으므로,
                 // CreationManager에서 이미 playerIndex를 설정해야 함
                 // 여기서는 playerIndex < 0이면 장착 아이템을 적용하지 않음
+                return totalBonus; // 장착 아이템 적용 안 함
             }
             
-            if (effectivePlayerIndex >= 0)
+            var equippedItems = _itemRepository.GetEquippedItems(effectivePlayerIndex);
+            if (Time.frameCount % 60 == 0)
             {
-                var equippedItems = _itemRepository.GetEquippedItems(effectivePlayerIndex);
-                if (Time.frameCount % 60 == 0 && effectivePlayerIndex == 0)
+                LogManager.LogDebug(LogCategory.System, $"[장착아이템] playerIndex={effectivePlayerIndex}, statKey={statKey}, 아이템개수={equippedItems.Count}");
+            }
+            // 같은 아이템이 여러 번 장착된 경우를 처리하기 위해 그룹화
+            var itemGroups = equippedItems.GroupBy(item => item.itemId);
+            foreach (var group in itemGroups)
+            {
+                var item = group.First();
+                // 해당 캐릭터에 장착된 같은 아이템의 개수 (스택)
+                int stackCount = group.Count();
+                float modifier = item.GetStatModifier(statKey);
+                totalBonus += modifier * stackCount;
+                if (Time.frameCount % 60 == 0)
                 {
-                    LogManager.LogDebug(LogCategory.System, $"CalculateItemStatBonus: equippedItems count={equippedItems.Count} for playerIndex={effectivePlayerIndex}");
-                }
-                foreach (var item in equippedItems)
-                {
-                    int stackCount = _itemRepository.GetItemStackCount(item.itemId);
-                    float modifier = item.GetStatModifier(statKey);
-                    totalBonus += modifier * stackCount;
-                    if (Time.frameCount % 60 == 0 && effectivePlayerIndex == 0)
-                    {
-                        LogManager.LogDebug(LogCategory.System, $"Equipped item: {item.itemId}, modifier={modifier}, stack={stackCount}, totalBonus={totalBonus}");
-                    }
+                    LogManager.LogDebug(LogCategory.System, $"[장착아이템] playerIndex={effectivePlayerIndex}, 아이템={item.itemId}, modifier={modifier}, stack={stackCount}, totalBonus={totalBonus}");
                 }
             }
 
@@ -188,9 +199,13 @@ namespace PawnSurvivors.Domain.Usecases
             if (pawnData.playerIndex >= 0)
             {
                 var equippedItems = _itemRepository.GetEquippedItems(pawnData.playerIndex);
-                foreach (var item in equippedItems)
+                // 같은 아이템이 여러 번 장착된 경우를 처리하기 위해 그룹화
+                var itemGroups = equippedItems.GroupBy(item => item.itemId);
+                foreach (var group in itemGroups)
                 {
-                    int stackCount = _itemRepository.GetItemStackCount(item.itemId);
+                    var item = group.First();
+                    // 해당 캐릭터에 장착된 같은 아이템의 개수 (스택)
+                    int stackCount = group.Count();
                     totalBonus += item.GetUpgradeModifier(upgradeKey) * stackCount;
                 }
             }
@@ -229,24 +244,35 @@ namespace PawnSurvivors.Domain.Usecases
 
             // 장착 아이템 곱셈 효과 (스택 반영)
             int effectivePlayerIndex = pawnData.playerIndex;
-            if (effectivePlayerIndex >= 0)
+            if (effectivePlayerIndex < 0)
             {
-                var equippedItems = _itemRepository.GetEquippedItems(effectivePlayerIndex);
-                foreach (var item in equippedItems)
+                // 투사체 등은 장착 아이템 적용 안 함
+                return totalMultiplier;
+            }
+            
+            var equippedItems = _itemRepository.GetEquippedItems(effectivePlayerIndex);
+            if (Time.frameCount % 60 == 0)
+            {
+                LogManager.LogDebug(LogCategory.System, $"[장착아이템곱셈] playerIndex={effectivePlayerIndex}, statKey={statKey}, 아이템개수={equippedItems.Count}");
+            }
+            // 같은 아이템이 여러 번 장착된 경우를 처리하기 위해 그룹화
+            var itemGroups = equippedItems.GroupBy(item => item.itemId);
+            foreach (var group in itemGroups)
+            {
+                var item = group.First();
+                float multiplier = item.GetStatMultiplier(statKey);
+                if (multiplier != 1f) // 1이 아닌 경우만 곱하기
                 {
-                    float multiplier = item.GetStatMultiplier(statKey);
-                    if (multiplier != 1f) // 1이 아닌 경우만 곱하기
+                    // 해당 캐릭터에 장착된 같은 아이템의 개수 (스택)
+                    int stackCount = group.Count();
+                    // 곱셈은 스택마다 곱하기 (예: 1.2배 아이템 2개 = 1.2 * 1.2 = 1.44배)
+                    for (int i = 0; i < stackCount; i++)
                     {
-                        int stackCount = _itemRepository.GetItemStackCount(item.itemId);
-                        // 곱셈은 스택마다 곱하기
-                        for (int i = 0; i < stackCount; i++)
-                        {
-                            totalMultiplier *= multiplier;
-                        }
-                        if (Time.frameCount % 60 == 0 && effectivePlayerIndex == 0)
-                        {
-                            LogManager.LogDebug(LogCategory.System, $"Equipped multiplier: {item.itemId}, multiplier={multiplier}, stack={stackCount}, totalMultiplier={totalMultiplier}");
-                        }
+                        totalMultiplier *= multiplier;
+                    }
+                    if (Time.frameCount % 60 == 0)
+                    {
+                        LogManager.LogDebug(LogCategory.System, $"[장착아이템곱셈] playerIndex={effectivePlayerIndex}, 아이템={item.itemId}, multiplier={multiplier}, stack={stackCount}, totalMultiplier={totalMultiplier}");
                     }
                 }
             }

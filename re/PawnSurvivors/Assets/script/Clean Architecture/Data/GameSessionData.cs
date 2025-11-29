@@ -74,30 +74,10 @@ namespace PawnSurvivors.Data
         // ========================================
         
         /// <summary>
-        /// 보유한 아이템 데이터입니다.
-        /// 키: itemId
-        /// 값: ItemData 전체
+        /// 아이템 세션 데이터입니다.
+        /// PawnPersistentData와 유사한 구조로 아이템 관련 데이터를 구조화합니다.
         /// </summary>
-        public Dictionary<string, ItemData> ownedItems = new Dictionary<string, ItemData>();
-        
-        /// <summary>
-        /// 전역 아이템 ID 목록입니다. (모든 Pawn에 적용)
-        /// </summary>
-        public HashSet<string> globalItemIds = new HashSet<string>();
-        
-        /// <summary>
-        /// 장착 아이템 목록입니다. (개별 Pawn에 장착)
-        /// 첫 번째 키: playerIndex
-        /// 값: 해당 Pawn에 장착된 아이템 ID 목록
-        /// </summary>
-        public Dictionary<int, HashSet<string>> equippedItemIds = new Dictionary<int, HashSet<string>>();
-        
-        /// <summary>
-        /// 아이템 스택 개수입니다.
-        /// 키: itemId
-        /// 값: 해당 아이템의 보유 개수 (스택)
-        /// </summary>
-        public Dictionary<string, int> itemStacks = new Dictionary<string, int>();
+        public ItemSessionData itemSessionData = new ItemSessionData();
         
         // ========================================
         // 기본 메서드
@@ -117,7 +97,7 @@ namespace PawnSurvivors.Data
             counterMaps.Clear();
             flagSets.Clear();
             // playerPawnPersistentData는 유지 (라운드 간 데이터이므로)
-            // ownedItems, globalItemIds, equippedItemIds, itemStacks는 유지 (스테이지 간 아이템 유지)
+            // itemSessionData는 유지 (스테이지 간 아이템 유지)
         }
         
         // ========================================

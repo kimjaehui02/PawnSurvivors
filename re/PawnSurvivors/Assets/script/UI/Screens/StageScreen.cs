@@ -339,6 +339,14 @@ namespace PawnSurvivors.UI
                                 float effectiveDamage = statCalculator.GetEffectiveDamage(pawnData);
                                 float effectiveFireRate = statCalculator.GetEffectiveFireRate(pawnData);
                                 float dps = effectiveDamage * effectiveFireRate;
+                                
+                                // 디버그 로그 (문제 해결용)
+                                if (Time.frameCount % 60 == 0)
+                                {
+                                    LogManager.LogDebug(LogCategory.UI, 
+                                        $"[DPS] playerIndex={playerIndex}, damage={effectiveDamage}, fireRate={effectiveFireRate}, dps={dps}, baseDamage={pawnData.combatData.damage}, baseFireRate={pawnData.combatData.fireRate}");
+                                }
+                                
                                 ui.dpsText.text = $"DPS: {dps:F1}";
                             }
                             else
@@ -806,11 +814,11 @@ namespace PawnSurvivors.UI
                 ui.equippedItemIcons = new List<GameObject>();
             }
             
-            // 체력바 옆에 배치 (체력바는 0~0.5, 아이템은 0.5~1)
+            // Pawn 이름과 같은 줄에 배치 (이름은 0~0.5, 아이템은 0.5~1)
             equippedItemsRect.anchorMin = new Vector2(0.5f, 1f);
             equippedItemsRect.anchorMax = new Vector2(1f, 1f);
             equippedItemsRect.pivot = new Vector2(0f, 1f);
-            equippedItemsRect.anchoredPosition = new Vector2(15f, -45f);
+            equippedItemsRect.anchoredPosition = new Vector2(15f, -15f); // 이름과 같은 높이
             equippedItemsRect.sizeDelta = new Vector2(-15f, 20f);
             
             // HorizontalLayoutGroup 추가 (아이템들을 가로로 배치)

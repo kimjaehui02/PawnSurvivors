@@ -31,7 +31,7 @@ namespace PawnSurvivors.Data.Repositories
             }
 
             // 기존 아이템이 없으면 새로 저장
-            if (!_sessionData.ownedItems.ContainsKey(itemData.itemId))
+            if (!_sessionData.itemSessionData.ownedItems.ContainsKey(itemData.itemId))
             {
                 // 깊은 복사 (Dictionary는 JsonUtility로 직렬화되지 않으므로 수동 복사)
                 ItemData copiedData = new ItemData
@@ -51,14 +51,8 @@ namespace PawnSurvivors.Data.Repositories
                 copiedData.upgradeModifiers = new Dictionary<int, int>(itemData.upgradeModifiers);
                 copiedData.functionParameters = new Dictionary<string, float>(itemData.functionParameters);
 
-                _sessionData.ownedItems[itemData.itemId] = copiedData;
-                _sessionData.itemStacks[itemData.itemId] = 1;
-
-                // 전역 아이템인 경우 globalItemIds에 추가
-                if (itemData.itemType == PawnSurvivors.Domain.ItemType.Global)
-                {
-                    _sessionData.globalItemIds.Add(itemData.itemId);
-                }
+                _sessionData.itemSessionData.ownedItems[itemData.itemId] = copiedData;
+                _sessionData.itemSessionData.itemStacks[itemData.itemId] = 1;
             }
             else
             {
@@ -72,24 +66,24 @@ namespace PawnSurvivors.Data.Repositories
         /// </summary>
         public void EquipItemToPawn(string itemId, int playerIndex)
         {
-            if (!_sessionData.ownedItems.ContainsKey(itemId))
+            if (!_sessionData.itemSessionData.ownedItems.ContainsKey(itemId))
             {
                 return; // 아이템을 보유하지 않음
             }
 
-            var itemData = _sessionData.ownedItems[itemId];
+            var itemData = _sessionData.itemSessionData.ownedItems[itemId];
             if (itemData.itemType != PawnSurvivors.Domain.ItemType.Equipped)
             {
                 return; // 장착 가능한 아이템이 아님
             }
 
-            // equippedItemIds에 추가
-            if (!_sessionData.equippedItemIds.ContainsKey(playerIndex))
+            // equippedItemIds에 추가 (List로 변경하여 같은 아이템 중복 장착 가능)
+            if (!_sessionData.itemSessionData.equippedItemIds.ContainsKey(playerIndex))
             {
-                _sessionData.equippedItemIds[playerIndex] = new HashSet<string>();
+                _sessionData.itemSessionData.equippedItemIds[playerIndex] = new List<string>();
             }
 
-            _sessionData.equippedItemIds[playerIndex].Add(itemId);
+            _sessionData.itemSessionData.equippedItemIds[playerIndex].Add(itemId);
         }
 
         /// <summary>
@@ -97,22 +91,22 @@ namespace PawnSurvivors.Data.Repositories
         /// </summary>
         public void UnequipItemFromPawn(string itemId, int playerIndex)
         {
-            if (!_sessionData.equippedItemIds.ContainsKey(playerIndex))
+            if (!_sessionData.itemSessionData.equippedItemIds.ContainsKey(playerIndex))
             {
                 return;
             }
 
-            _sessionData.equippedItemIds[playerIndex].Remove(itemId);
+            _sessionData.itemSessionData.equippedItemIds[playerIndex].Remove(itemId);
         }
 
         /// <summary>
         /// 전역 아이템 목록을 가져옵니다.
+        /// globalItemIds를 제거하고 ownedItems에서 직접 필터링합니다.
         /// </summary>
         public List<ItemData> GetGlobalItems()
         {
-            return _sessionData.globalItemIds
-                .Where(itemId => _sessionData.ownedItems.ContainsKey(itemId))
-                .Select(itemId => _sessionData.ownedItems[itemId])
+            return _sessionData.itemSessionData.ownedItems.Values
+                .Where(item => item.itemType == PawnSurvivors.Domain.ItemType.Global)
                 .ToList();
         }
 
@@ -121,14 +115,15 @@ namespace PawnSurvivors.Data.Repositories
         /// </summary>
         public List<ItemData> GetEquippedItems(int playerIndex)
         {
-            if (!_sessionData.equippedItemIds.ContainsKey(playerIndex))
+            if (!_sessionData.itemSessionData.equippedItemIds.ContainsKey(playerIndex))
             {
                 return new List<ItemData>();
             }
 
-            return _sessionData.equippedItemIds[playerIndex]
-                .Where(itemId => _sessionData.ownedItems.ContainsKey(itemId))
-                .Select(itemId => _sessionData.ownedItems[itemId])
+            // List에서 중복을 제거하지 않고 그대로 반환 (같은 아이템 여러 번 장착 가능)
+            return _sessionData.itemSessionData.equippedItemIds[playerIndex]
+                .Where(itemId => _sessionData.itemSessionData.ownedItems.ContainsKey(itemId))
+                .Select(itemId => _sessionData.itemSessionData.ownedItems[itemId])
                 .ToList();
         }
 
@@ -137,8 +132,8 @@ namespace PawnSurvivors.Data.Repositories
         /// </summary>
         public ItemData GetItemData(string itemId)
         {
-            return _sessionData.ownedItems.ContainsKey(itemId) 
-                ? _sessionData.ownedItems[itemId] 
+            return _sessionData.itemSessionData.ownedItems.ContainsKey(itemId) 
+                ? _sessionData.itemSessionData.ownedItems[itemId] 
                 : null;
         }
 
@@ -147,7 +142,7 @@ namespace PawnSurvivors.Data.Repositories
         /// </summary>
         public bool HasItem(string itemId)
         {
-            return _sessionData.ownedItems.ContainsKey(itemId);
+            return _sessionData.itemSessionData.ownedItems.ContainsKey(itemId);
         }
 
         /// <summary>
@@ -155,12 +150,12 @@ namespace PawnSurvivors.Data.Repositories
         /// </summary>
         public bool IsItemEquippedToPawn(string itemId, int playerIndex)
         {
-            if (!_sessionData.equippedItemIds.ContainsKey(playerIndex))
+            if (!_sessionData.itemSessionData.equippedItemIds.ContainsKey(playerIndex))
             {
                 return false;
             }
 
-            return _sessionData.equippedItemIds[playerIndex].Contains(itemId);
+            return _sessionData.itemSessionData.equippedItemIds[playerIndex].Contains(itemId);
         }
 
         /// <summary>
@@ -168,10 +163,9 @@ namespace PawnSurvivors.Data.Repositories
         /// </summary>
         public void ClearAllItems()
         {
-            _sessionData.ownedItems.Clear();
-            _sessionData.globalItemIds.Clear();
-            _sessionData.equippedItemIds.Clear();
-            _sessionData.itemStacks.Clear();
+            _sessionData.itemSessionData.ownedItems.Clear();
+            _sessionData.itemSessionData.equippedItemIds.Clear();
+            _sessionData.itemSessionData.itemStacks.Clear();
         }
 
         /// <summary>
@@ -184,12 +178,12 @@ namespace PawnSurvivors.Data.Repositories
                 return;
             }
 
-            if (!_sessionData.itemStacks.ContainsKey(itemId))
+            if (!_sessionData.itemSessionData.itemStacks.ContainsKey(itemId))
             {
-                _sessionData.itemStacks[itemId] = 0;
+                _sessionData.itemSessionData.itemStacks[itemId] = 0;
             }
 
-            _sessionData.itemStacks[itemId] += amount;
+            _sessionData.itemSessionData.itemStacks[itemId] += amount;
         }
 
         /// <summary>
@@ -197,8 +191,8 @@ namespace PawnSurvivors.Data.Repositories
         /// </summary>
         public int GetItemStackCount(string itemId)
         {
-            return _sessionData.itemStacks.ContainsKey(itemId) 
-                ? _sessionData.itemStacks[itemId] 
+            return _sessionData.itemSessionData.itemStacks.ContainsKey(itemId) 
+                ? _sessionData.itemSessionData.itemStacks[itemId] 
                 : 0;
         }
 
@@ -212,30 +206,29 @@ namespace PawnSurvivors.Data.Repositories
                 return false;
             }
 
-            if (!_sessionData.itemStacks.ContainsKey(itemId))
+            if (!_sessionData.itemSessionData.itemStacks.ContainsKey(itemId))
             {
                 return false;
             }
 
-            int currentStack = _sessionData.itemStacks[itemId];
+            int currentStack = _sessionData.itemSessionData.itemStacks[itemId];
             if (currentStack <= amount)
             {
                 // 스택이 모두 제거되면 아이템도 제거
-                _sessionData.itemStacks.Remove(itemId);
-                _sessionData.ownedItems.Remove(itemId);
-                _sessionData.globalItemIds.Remove(itemId);
+                _sessionData.itemSessionData.itemStacks.Remove(itemId);
+                _sessionData.itemSessionData.ownedItems.Remove(itemId);
                 
-                // 모든 Pawn에서 장착 해제
-                foreach (var equippedSet in _sessionData.equippedItemIds.Values)
+                // 모든 Pawn에서 장착 해제 (List에서 모든 항목 제거)
+                foreach (var equippedList in _sessionData.itemSessionData.equippedItemIds.Values)
                 {
-                    equippedSet.Remove(itemId);
+                    equippedList.RemoveAll(id => id == itemId);
                 }
                 
                 return true;
             }
             else
             {
-                _sessionData.itemStacks[itemId] -= amount;
+                _sessionData.itemSessionData.itemStacks[itemId] -= amount;
                 return true;
             }
         }
