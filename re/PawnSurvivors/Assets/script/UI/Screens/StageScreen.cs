@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +54,11 @@ namespace PawnSurvivors.UI
         // 전역 아이템 표시 UI
         private GameObject _globalItemsContainer;
         private List<GameObject> _globalItemIcons;
+        
+        // 툴팁 UI
+        private GameObject _tooltipPanel;
+        private TMP_Text _tooltipText;
+        private GameObject _currentHoveredIcon; // 현재 마우스가 올라간 아이콘
         #endregion
 
 
@@ -82,6 +88,7 @@ namespace PawnSurvivors.UI
         private void Update()
         {
             UpdateStageTime();
+            UpdateTooltipPosition(); // 툴팁 위치를 마우스에 따라 실시간 업데이트
             UpdateHealth();
             UpdateLevelUpProgress();
             // HandleInput() 제거: UIManager에서 ESC 처리
@@ -920,32 +927,24 @@ namespace PawnSurvivors.UI
                 if (iconImage != null)
                 {
                     iconImage.color = new Color(0.8f, 0.8f, 0.2f, 1f); // 노란색 (임시, 나중에 실제 아이콘으로 교체)
+                    iconImage.raycastTarget = true; // 마우스 이벤트를 받기 위해 필요
                 }
                 
-                // 툴팁용 텍스트 (자식 GameObject로 생성 - Image와 TextMeshProUGUI는 같은 GameObject에 둘 수 없음)
-                var textObj = new GameObject("ItemNameText");
-                textObj.transform.SetParent(iconObj.transform, false);
-                var textRect = textObj.AddComponent<RectTransform>();
-                textRect.anchorMin = Vector2.zero;
-                textRect.anchorMax = Vector2.one;
-                textRect.sizeDelta = Vector2.zero;
-                textRect.anchoredPosition = Vector2.zero;
-                
-                var tooltipText = textObj.AddComponent<TextMeshProUGUI>();
-                if (tooltipText != null)
+                // 마우스 오버 이벤트 추가
+                var eventTrigger = iconObj.AddComponent<EventTrigger>();
+                if (eventTrigger != null)
                 {
-                    string itemDisplayName = !string.IsNullOrEmpty(item.itemName) ? item.itemName : (item.itemId ?? "Unknown");
-                    tooltipText.text = itemDisplayName;
-                    tooltipText.fontSize = 10;
-                    tooltipText.color = Color.white;
-                    tooltipText.alignment = TextAlignmentOptions.Center;
-                    tooltipText.raycastTarget = false;
+                    // PointerEnter 이벤트
+                    var pointerEnter = new EventTrigger.Entry();
+                    pointerEnter.eventID = EventTriggerType.PointerEnter;
+                    pointerEnter.callback.AddListener((data) => { OnItemIconPointerEnter(item, iconObj); });
+                    eventTrigger.triggers.Add(pointerEnter);
                     
-                    // 한글 폰트 적용
-                    if (koreanFontAsset != null)
-                    {
-                        tooltipText.font = koreanFontAsset;
-                    }
+                    // PointerExit 이벤트
+                    var pointerExit = new EventTrigger.Entry();
+                    pointerExit.eventID = EventTriggerType.PointerExit;
+                    pointerExit.callback.AddListener((data) => { OnItemIconPointerExit(iconObj); });
+                    eventTrigger.triggers.Add(pointerExit);
                 }
                 
                 ui.equippedItemIcons.Add(iconObj);
@@ -1094,32 +1093,24 @@ namespace PawnSurvivors.UI
                 if (iconImage != null)
                 {
                     iconImage.color = new Color(0.2f, 0.8f, 0.2f, 1f); // 초록색 (임시, 나중에 실제 아이콘으로 교체)
+                    iconImage.raycastTarget = true; // 마우스 이벤트를 받기 위해 필요
                 }
                 
-                // 툴팁용 텍스트 (자식 GameObject로 생성 - Image와 TextMeshProUGUI는 같은 GameObject에 둘 수 없음)
-                var textObj = new GameObject("ItemNameText");
-                textObj.transform.SetParent(iconObj.transform, false);
-                var textRect = textObj.AddComponent<RectTransform>();
-                textRect.anchorMin = Vector2.zero;
-                textRect.anchorMax = Vector2.one;
-                textRect.sizeDelta = Vector2.zero;
-                textRect.anchoredPosition = Vector2.zero;
-                
-                var tooltipText = textObj.AddComponent<TextMeshProUGUI>();
-                if (tooltipText != null)
+                // 마우스 오버 이벤트 추가
+                var eventTrigger = iconObj.AddComponent<EventTrigger>();
+                if (eventTrigger != null)
                 {
-                    string itemDisplayName = !string.IsNullOrEmpty(item.itemName) ? item.itemName : (item.itemId ?? "Unknown");
-                    tooltipText.text = itemDisplayName;
-                    tooltipText.fontSize = 12;
-                    tooltipText.color = Color.white;
-                    tooltipText.alignment = TextAlignmentOptions.Center;
-                    tooltipText.raycastTarget = false;
+                    // PointerEnter 이벤트
+                    var pointerEnter = new EventTrigger.Entry();
+                    pointerEnter.eventID = EventTriggerType.PointerEnter;
+                    pointerEnter.callback.AddListener((data) => { OnItemIconPointerEnter(item, iconObj); });
+                    eventTrigger.triggers.Add(pointerEnter);
                     
-                    // 한글 폰트 적용
-                    if (koreanFontAsset != null)
-                    {
-                        tooltipText.font = koreanFontAsset;
-                    }
+                    // PointerExit 이벤트
+                    var pointerExit = new EventTrigger.Entry();
+                    pointerExit.eventID = EventTriggerType.PointerExit;
+                    pointerExit.callback.AddListener((data) => { OnItemIconPointerExit(iconObj); });
+                    eventTrigger.triggers.Add(pointerExit);
                 }
                 
                 _globalItemIcons.Add(iconObj);
@@ -1136,6 +1127,185 @@ namespace PawnSurvivors.UI
                 UIManager.Instance.ShowPauseMenu();
             }
         }
+        #endregion
+        
+        #region Tooltip Methods
+        
+        /// <summary>
+        /// 툴팁 UI를 생성합니다.
+        /// </summary>
+        private void EnsureTooltipPanel()
+        {
+            if (_tooltipPanel != null) return;
+            
+            // Canvas 찾기
+            Canvas canvas = GetComponentInParent<Canvas>();
+            if (canvas == null)
+            {
+                canvas = FindFirstObjectByType<Canvas>();
+            }
+            
+            if (canvas == null) return;
+            
+            // 툴팁 패널 생성
+            _tooltipPanel = new GameObject("ItemTooltip");
+            var tooltipRect = _tooltipPanel.AddComponent<RectTransform>();
+            _tooltipPanel.transform.SetParent(canvas.transform, false);
+            
+            // 배경
+            var bg = _tooltipPanel.AddComponent<Image>();
+            bg.color = new Color(0.1f, 0.1f, 0.1f, 0.95f);
+            bg.raycastTarget = false; // 툴팁이 마우스 이벤트를 차단하지 않도록
+            
+            // 텍스트
+            var textObj = new GameObject("TooltipText");
+            textObj.transform.SetParent(_tooltipPanel.transform, false);
+            var textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.sizeDelta = new Vector2(-20f, -20f);
+            textRect.anchoredPosition = Vector2.zero;
+            
+            _tooltipText = textObj.AddComponent<TextMeshProUGUI>();
+            if (_tooltipText != null)
+            {
+                _tooltipText.fontSize = 14;
+                _tooltipText.color = Color.white;
+                _tooltipText.alignment = TextAlignmentOptions.Left;
+                _tooltipText.raycastTarget = false;
+                
+                if (koreanFontAsset != null)
+                {
+                    _tooltipText.font = koreanFontAsset;
+                }
+            }
+            
+            // 초기에는 숨김
+            _tooltipPanel.SetActive(false);
+        }
+        
+        /// <summary>
+        /// 아이템 아이콘에 마우스를 올렸을 때 호출됩니다.
+        /// </summary>
+        private void OnItemIconPointerEnter(ItemData item, GameObject iconObj)
+        {
+            if (item == null || iconObj == null) return;
+            
+            EnsureTooltipPanel();
+            if (_tooltipPanel == null || _tooltipText == null) return;
+            
+            // 현재 호버된 아이콘 추적
+            _currentHoveredIcon = iconObj;
+            
+            // 툴팁 텍스트 구성
+            string tooltipContent = "";
+            if (!string.IsNullOrEmpty(item.itemName))
+            {
+                tooltipContent += $"<b>{item.itemName}</b>\n";
+            }
+            else if (!string.IsNullOrEmpty(item.itemId))
+            {
+                tooltipContent += $"<b>{item.itemId}</b>\n";
+            }
+            
+            if (!string.IsNullOrEmpty(item.description))
+            {
+                tooltipContent += $"\n{item.description}";
+            }
+            
+            if (item.cost > 0)
+            {
+                tooltipContent += $"\n\n<color=yellow>가격: {item.cost}</color>";
+            }
+            
+            _tooltipText.text = tooltipContent;
+            
+            // 툴팁 크기 조정
+            _tooltipText.ForceMeshUpdate();
+            var textSize = _tooltipText.GetPreferredValues();
+            var tooltipRect = _tooltipPanel.GetComponent<RectTransform>();
+            tooltipRect.sizeDelta = new Vector2(textSize.x + 20f, textSize.y + 20f);
+            
+            // 마우스 위치에 따라 툴팁 위치 조정
+            UpdateTooltipPosition();
+            
+            _tooltipPanel.SetActive(true);
+        }
+        
+        /// <summary>
+        /// 아이템 아이콘에서 마우스가 벗어났을 때 호출됩니다.
+        /// </summary>
+        private void OnItemIconPointerExit(GameObject iconObj)
+        {
+            // 나간 아이콘이 현재 호버된 아이콘과 같으면 툴팁 숨김
+            if (_currentHoveredIcon == iconObj)
+            {
+                _currentHoveredIcon = null;
+                if (_tooltipPanel != null)
+                {
+                    _tooltipPanel.SetActive(false);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 툴팁 위치를 마우스 위치에 맞춰 업데이트합니다.
+        /// </summary>
+        private void UpdateTooltipPosition()
+        {
+            if (_tooltipPanel == null || !_tooltipPanel.activeSelf) return;
+            
+            // 마우스가 실제로 아이템 아이콘 위에 있는지 확인
+            if (_currentHoveredIcon == null)
+            {
+                // 호버된 아이콘이 없으면 툴팁 숨김
+                _tooltipPanel.SetActive(false);
+                return;
+            }
+            
+            // EventSystem을 사용하여 마우스 아래에 있는 UI 요소 확인
+            PointerEventData pointerData = new PointerEventData(EventSystem.current);
+            pointerData.position = Input.mousePosition;
+            
+            var results = new System.Collections.Generic.List<RaycastResult>();
+            EventSystem.current.RaycastAll(pointerData, results);
+            
+            // 마우스 아래에 현재 호버된 아이콘이 있는지 확인
+            bool isOverIcon = false;
+            foreach (var result in results)
+            {
+                if (result.gameObject == _currentHoveredIcon || 
+                    result.gameObject.transform.IsChildOf(_currentHoveredIcon.transform))
+                {
+                    isOverIcon = true;
+                    break;
+                }
+            }
+            
+            if (!isOverIcon)
+            {
+                // 아이콘 위에 없으면 툴팁 숨김
+                _currentHoveredIcon = null;
+                _tooltipPanel.SetActive(false);
+                return;
+            }
+            
+            Vector2 mousePos = Input.mousePosition;
+            Canvas canvas = _tooltipPanel.GetComponentInParent<Canvas>();
+            if (canvas != null)
+            {
+                RectTransform tooltipRect = _tooltipPanel.GetComponent<RectTransform>();
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    canvas.transform as RectTransform,
+                    mousePos,
+                    canvas.worldCamera,
+                    out Vector2 localPoint
+                );
+                
+                tooltipRect.anchoredPosition = new Vector2(localPoint.x + 20f, localPoint.y - 20f);
+            }
+        }
+        
         #endregion
 
         #region Usecase methods

@@ -56,6 +56,10 @@ namespace PawnSurvivors.UI
         private bool _uiCreated = false;
         private int _currentWave = 1;
         private int _resetCost = 1;
+        
+        // Pawn 선택 UI
+        private GameObject _pawnSelectionPanel;
+        private ItemData _pendingItemPurchase; // 구매 대기 중인 아이템
 
         // 아이템 슬롯 데이터 구조
         private class ShopItemSlot
@@ -1095,12 +1099,41 @@ namespace PawnSurvivors.UI
                 return;
             }
             
-            // ItemManagementUseCase를 통해 아이템 구매
-            bool success = GameManager.Instance.ItemManagementUseCase.BuyItem(slot.itemData);
+            // 단일장착 아이템인 경우 Pawn 선택 UI 표시
+            if (slot.itemData.itemType == ItemType.Equipped)
+            {
+                // Pawn 목록 확인
+                if (GameManager.Instance?.PlayerController == null || 
+                    GameManager.Instance.PlayerController.playerPawns == null ||
+                    GameManager.Instance.PlayerController.playerPawns.Count == 0)
+                {
+                    LogManager.LogWarning(LogCategory.UI, "장착할 Pawn이 없습니다.");
+                    return;
+                }
+                
+                // 구매 대기 중인 아이템 저장
+                _pendingItemPurchase = slot.itemData;
+                
+                // Pawn 선택 UI 표시
+                ShowPawnSelectionUI();
+            }
+            else
+            {
+                // 전역 아이템은 바로 구매
+                BuyItemDirectly(slot.itemData, slot);
+            }
+        }
+        
+        /// <summary>
+        /// 아이템을 바로 구매합니다 (전역 아이템용).
+        /// </summary>
+        private void BuyItemDirectly(ItemData itemData, ShopItemSlot slot)
+        {
+            bool success = GameManager.Instance.ItemManagementUseCase.BuyItem(itemData);
             
             if (success)
             {
-                LogManager.LogInfo(LogCategory.UI, $"아이템 구매 성공: {slot.itemData.itemName} (비용: {slot.cost})");
+                LogManager.LogInfo(LogCategory.UI, $"아이템 구매 성공: {itemData.itemName} (비용: {slot.cost})");
                 
                 // 구매한 슬롯은 새 아이템으로 교체 (잠금되지 않은 경우)
                 if (!slot.isLocked)
@@ -1164,6 +1197,282 @@ namespace PawnSurvivors.UI
                 GameManager.Instance.StartStage("Stage1", resetSession: false);
             }
         }
+        
+        #region Pawn Selection UI
+        
+        /// <summary>
+        /// Pawn 선택 UI를 표시합니다.
+        /// </summary>
+        private void ShowPawnSelectionUI()
+        {
+            if (_pendingItemPurchase == null)
+            {
+                LogManager.LogWarning(LogCategory.UI, "구매 대기 중인 아이템이 없습니다.");
+                return;
+            }
+            
+            if (GameManager.Instance?.PlayerController == null ||
+                GameManager.Instance.PlayerController.playerPawns == null ||
+                GameManager.Instance.PlayerController.playerPawns.Count == 0)
+            {
+                LogManager.LogWarning(LogCategory.UI, "선택할 Pawn이 없습니다.");
+                return;
+            }
+            
+            EnsurePawnSelectionPanel();
+            if (_pawnSelectionPanel == null) return;
+            
+            _pawnSelectionPanel.SetActive(true);
+        }
+        
+        /// <summary>
+        /// Pawn 선택 패널을 생성합니다.
+        /// </summary>
+        private void EnsurePawnSelectionPanel()
+        {
+            if (_pawnSelectionPanel != null) return;
+            
+            if (_canvas == null)
+            {
+                LogManager.LogError(LogCategory.UI, "Canvas가 없어 Pawn 선택 UI를 생성할 수 없습니다.");
+                return;
+            }
+            
+            // 패널 생성
+            _pawnSelectionPanel = new GameObject("PawnSelectionPanel");
+            var panelRect = _pawnSelectionPanel.AddComponent<RectTransform>();
+            _pawnSelectionPanel.transform.SetParent(_canvas.transform, false);
+            
+            // 전체 화면 덮기
+            panelRect.anchorMin = Vector2.zero;
+            panelRect.anchorMax = Vector2.one;
+            panelRect.sizeDelta = Vector2.zero;
+            panelRect.anchoredPosition = Vector2.zero;
+            
+            // 배경 (반투명 검은색)
+            var bg = _pawnSelectionPanel.AddComponent<Image>();
+            bg.color = new Color(0f, 0f, 0f, 0.7f);
+            
+            // 중앙 컨테이너
+            var containerObj = new GameObject("Container");
+            var containerRect = containerObj.AddComponent<RectTransform>();
+            containerObj.transform.SetParent(_pawnSelectionPanel.transform, false);
+            containerRect.anchorMin = new Vector2(0.5f, 0.5f);
+            containerRect.anchorMax = new Vector2(0.5f, 0.5f);
+            containerRect.pivot = new Vector2(0.5f, 0.5f);
+            containerRect.anchoredPosition = Vector2.zero;
+            containerRect.sizeDelta = new Vector2(600f, 400f);
+            
+            var containerBg = containerObj.AddComponent<Image>();
+            containerBg.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+            
+            // 제목
+            var titleObj = new GameObject("Title");
+            var titleRect = titleObj.AddComponent<RectTransform>();
+            titleObj.transform.SetParent(containerObj.transform, false);
+            titleRect.anchorMin = new Vector2(0f, 1f);
+            titleRect.anchorMax = new Vector2(1f, 1f);
+            titleRect.pivot = new Vector2(0.5f, 1f);
+            titleRect.anchoredPosition = new Vector2(0f, -20f);
+            titleRect.sizeDelta = new Vector2(-40f, 60f);
+            
+            var titleText = titleObj.AddComponent<TextMeshProUGUI>();
+            titleText.text = "장착할 Pawn을 선택하세요";
+            titleText.fontSize = 28;
+            titleText.color = Color.white;
+            titleText.alignment = TextAlignmentOptions.Center;
+            if (_koreanFont != null) titleText.font = _koreanFont;
+            
+            // Pawn 버튼 컨테이너
+            var buttonsContainerObj = new GameObject("ButtonsContainer");
+            var buttonsContainerRect = buttonsContainerObj.AddComponent<RectTransform>();
+            buttonsContainerObj.transform.SetParent(containerObj.transform, false);
+            buttonsContainerRect.anchorMin = new Vector2(0f, 0f);
+            buttonsContainerRect.anchorMax = new Vector2(1f, 1f);
+            buttonsContainerRect.pivot = new Vector2(0.5f, 0.5f);
+            buttonsContainerRect.anchoredPosition = new Vector2(0f, -40f);
+            buttonsContainerRect.sizeDelta = new Vector2(-40f, -100f);
+            
+            var verticalLayout = buttonsContainerObj.AddComponent<VerticalLayoutGroup>();
+            verticalLayout.spacing = 15f;
+            verticalLayout.padding = new RectOffset(20, 20, 20, 20);
+            verticalLayout.childControlWidth = true;
+            verticalLayout.childControlHeight = false;
+            verticalLayout.childForceExpandWidth = true;
+            verticalLayout.childForceExpandHeight = false;
+            
+            // Pawn 버튼 생성
+            var playerPawns = GameManager.Instance.PlayerController.playerPawns;
+            for (int i = 0; i < playerPawns.Count; i++)
+            {
+                var pawn = playerPawns[i];
+                if (pawn == null) continue;
+                
+                var pawnManager = pawn.GetComponent<PawnManager>();
+                if (pawnManager == null || pawnManager.PawnData == null) continue;
+                
+                int playerIndex = pawnManager.PawnData.playerIndex;
+                string pawnName = !string.IsNullOrEmpty(pawnManager.PawnData.recipeName) 
+                    ? pawnManager.PawnData.recipeName 
+                    : pawn.name;
+                
+                // 버튼 생성
+                var buttonObj = new GameObject($"PawnButton_{i}");
+                var buttonRect = buttonObj.AddComponent<RectTransform>();
+                buttonObj.transform.SetParent(buttonsContainerObj.transform, false);
+                buttonRect.sizeDelta = new Vector2(0f, 60f);
+                
+                var button = buttonObj.AddComponent<Button>();
+                var buttonBg = buttonObj.AddComponent<Image>();
+                buttonBg.color = new Color(0.3f, 0.3f, 0.3f, 1f);
+                button.targetGraphic = buttonBg;
+                
+                // 버튼 텍스트
+                var buttonTextObj = new GameObject("Text");
+                var buttonTextRect = buttonTextObj.AddComponent<RectTransform>();
+                buttonTextObj.transform.SetParent(buttonObj.transform, false);
+                buttonTextRect.anchorMin = Vector2.zero;
+                buttonTextRect.anchorMax = Vector2.one;
+                buttonTextRect.sizeDelta = Vector2.zero;
+                buttonTextRect.anchoredPosition = Vector2.zero;
+                
+                var buttonText = buttonTextObj.AddComponent<TextMeshProUGUI>();
+                buttonText.text = pawnName;
+                buttonText.fontSize = 24;
+                buttonText.color = Color.white;
+                buttonText.alignment = TextAlignmentOptions.Center;
+                buttonText.raycastTarget = false;
+                if (_koreanFont != null) buttonText.font = _koreanFont;
+                
+                // 클릭 이벤트
+                int capturedIndex = playerIndex; // 클로저 캡처 문제 해결
+                button.onClick.AddListener(() => OnPawnSelected(capturedIndex));
+            }
+            
+            // 취소 버튼
+            var cancelButtonObj = new GameObject("CancelButton");
+            var cancelButtonRect = cancelButtonObj.AddComponent<RectTransform>();
+            cancelButtonObj.transform.SetParent(containerObj.transform, false);
+            cancelButtonRect.anchorMin = new Vector2(0.5f, 0f);
+            cancelButtonRect.anchorMax = new Vector2(0.5f, 0f);
+            cancelButtonRect.pivot = new Vector2(0.5f, 0f);
+            cancelButtonRect.anchoredPosition = new Vector2(0f, 20f);
+            cancelButtonRect.sizeDelta = new Vector2(200f, 50f);
+            
+            var cancelButton = cancelButtonObj.AddComponent<Button>();
+            var cancelBg = cancelButtonObj.AddComponent<Image>();
+            cancelBg.color = new Color(0.5f, 0.2f, 0.2f, 1f);
+            cancelButton.targetGraphic = cancelBg;
+            
+            var cancelTextObj = new GameObject("Text");
+            var cancelTextRect = cancelTextObj.AddComponent<RectTransform>();
+            cancelTextObj.transform.SetParent(cancelButtonObj.transform, false);
+            cancelTextRect.anchorMin = Vector2.zero;
+            cancelTextRect.anchorMax = Vector2.one;
+            cancelTextRect.sizeDelta = Vector2.zero;
+            cancelTextRect.anchoredPosition = Vector2.zero;
+            
+            var cancelText = cancelTextObj.AddComponent<TextMeshProUGUI>();
+            cancelText.text = "취소";
+            cancelText.fontSize = 20;
+            cancelText.color = Color.white;
+            cancelText.alignment = TextAlignmentOptions.Center;
+            cancelText.raycastTarget = false;
+            if (_koreanFont != null) cancelText.font = _koreanFont;
+            
+            cancelButton.onClick.AddListener(() => OnPawnSelectionCancelled());
+            
+            // 초기에는 숨김
+            _pawnSelectionPanel.SetActive(false);
+        }
+        
+        /// <summary>
+        /// Pawn이 선택되었을 때 호출됩니다.
+        /// </summary>
+        private void OnPawnSelected(int playerIndex)
+        {
+            if (_pendingItemPurchase == null)
+            {
+                LogManager.LogWarning(LogCategory.UI, "구매 대기 중인 아이템이 없습니다.");
+                HidePawnSelectionUI();
+                return;
+            }
+            
+            if (GameManager.Instance?.ItemManagementUseCase == null)
+            {
+                LogManager.LogError(LogCategory.UI, "ItemManagementUseCase가 없습니다.");
+                HidePawnSelectionUI();
+                return;
+            }
+            
+            // 아이템 구매
+            bool buySuccess = GameManager.Instance.ItemManagementUseCase.BuyItem(_pendingItemPurchase);
+            
+            if (!buySuccess)
+            {
+                LogManager.LogWarning(LogCategory.UI, "아이템 구매 실패: 골드가 부족하거나 아이템이 유효하지 않습니다.");
+                HidePawnSelectionUI();
+                _pendingItemPurchase = null;
+                return;
+            }
+            
+            // Pawn에 장착
+            bool equipSuccess = GameManager.Instance.ItemManagementUseCase.EquipItemToPawn(
+                _pendingItemPurchase.itemId, 
+                playerIndex
+            );
+            
+            if (equipSuccess)
+            {
+                LogManager.LogInfo(LogCategory.UI, 
+                    $"아이템 구매 및 장착 성공: {_pendingItemPurchase.itemName} → Pawn {playerIndex}");
+                
+                // 구매한 슬롯 찾아서 새 아이템으로 교체
+                foreach (var slot in _itemSlots)
+                {
+                    if (slot.itemData != null && slot.itemData.itemId == _pendingItemPurchase.itemId)
+                    {
+                        if (!slot.isLocked)
+                        {
+                            RefreshShopItems();
+                        }
+                        break;
+                    }
+                }
+                
+                // 골드 표시 업데이트
+                UpdateGoldDisplay();
+            }
+            else
+            {
+                LogManager.LogWarning(LogCategory.UI, $"아이템 장착 실패: Pawn {playerIndex}");
+            }
+            
+            HidePawnSelectionUI();
+            _pendingItemPurchase = null;
+        }
+        
+        /// <summary>
+        /// Pawn 선택이 취소되었을 때 호출됩니다.
+        /// </summary>
+        private void OnPawnSelectionCancelled()
+        {
+            HidePawnSelectionUI();
+            _pendingItemPurchase = null;
+        }
+        
+        /// <summary>
+        /// Pawn 선택 UI를 숨깁니다.
+        /// </summary>
+        private void HidePawnSelectionUI()
+        {
+            if (_pawnSelectionPanel != null)
+            {
+                _pawnSelectionPanel.SetActive(false);
+            }
+        }
+        
+        #endregion
     }
 }
 

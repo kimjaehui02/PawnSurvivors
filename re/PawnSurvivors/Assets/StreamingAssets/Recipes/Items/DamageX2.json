@@ -1,7 +1,7 @@
 {
   "itemId": "DamageX2",
   "itemName": "공격력 2배",
-  "itemType": 0,
+  "itemType": 1,
   "description": "장착한 캐릭터의 공격력이 2배가 됩니다.",
   "cost": 100,
   "iconPath": "",
