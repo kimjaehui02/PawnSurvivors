@@ -36,13 +36,13 @@ namespace PawnSurvivors.UI
         {
             if (data == null)
             {
-                Debug.LogError("[FloatingEffect] FloatingEffectData가 null입니다.");
+                LogManager.LogError(LogCategory.UI, "FloatingEffectData가 null입니다.");
                 return;
             }
 
             if (gameObject == null)
             {
-                Debug.LogError("[FloatingEffect] gameObject가 null입니다.");
+                LogManager.LogError(LogCategory.UI, "gameObject가 null입니다.");
                 return;
             }
 
@@ -106,7 +106,7 @@ namespace PawnSurvivors.UI
 
             if (_textMeshPro == null)
             {
-                Debug.LogError("[FloatingEffect] TextMeshProUGUI 컴포넌트를 생성할 수 없습니다.");
+                LogManager.LogError(LogCategory.UI, "TextMeshProUGUI 컴포넌트를 생성할 수 없습니다.");
                 return;
             }
 

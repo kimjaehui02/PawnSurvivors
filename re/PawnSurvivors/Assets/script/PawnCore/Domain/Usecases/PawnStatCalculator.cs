@@ -5,6 +5,7 @@ using PawnCore.Domain;
 using PawnSurvivors.Data;
 using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Repositories;
+using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.Domain.Usecases
 {
@@ -41,7 +42,7 @@ namespace PawnSurvivors.Domain.Usecases
             // 임시 디버그 로그 (테스트용 - 문제 해결 후 제거)
             if (Time.frameCount % 60 == 0) // 1초마다 한 번씩만 로그
             {
-                Debug.Log($"[PawnStatCalculator] GetEffectiveDamage: base={baseDamage}, bonus={itemBonus}, multiplier={itemMultiplier}, result={result}, playerIndex={pawnData.playerIndex}");
+                LogManager.LogDebug(LogCategory.System, $"GetEffectiveDamage: base={baseDamage}, bonus={itemBonus}, multiplier={itemMultiplier}, result={result}, playerIndex={pawnData.playerIndex}");
             }
             
             return result;
@@ -121,7 +122,7 @@ namespace PawnSurvivors.Domain.Usecases
             // 임시 디버그 로그 (테스트용)
             if (Time.frameCount % 60 == 0 && pawnData.playerIndex == 0)
             {
-                Debug.Log($"[PawnStatCalculator] CalculateItemStatBonus: globalItems count={globalItems.Count}, playerIndex={pawnData.playerIndex}, statKey={statKey}");
+                LogManager.LogDebug(LogCategory.System, $"CalculateItemStatBonus: globalItems count={globalItems.Count}, playerIndex={pawnData.playerIndex}, statKey={statKey}");
             }
             foreach (var item in globalItems)
             {
@@ -130,7 +131,7 @@ namespace PawnSurvivors.Domain.Usecases
                 totalBonus += modifier * stackCount;
                 if (Time.frameCount % 60 == 0 && pawnData.playerIndex == 0)
                 {
-                    Debug.Log($"[PawnStatCalculator] Global item: {item.itemId}, modifier={modifier}, stack={stackCount}, totalBonus={totalBonus}");
+                    LogManager.LogDebug(LogCategory.System, $"Global item: {item.itemId}, modifier={modifier}, stack={stackCount}, totalBonus={totalBonus}");
                 }
             }
 
@@ -150,7 +151,7 @@ namespace PawnSurvivors.Domain.Usecases
                 var equippedItems = _itemRepository.GetEquippedItems(effectivePlayerIndex);
                 if (Time.frameCount % 60 == 0 && effectivePlayerIndex == 0)
                 {
-                    Debug.Log($"[PawnStatCalculator] CalculateItemStatBonus: equippedItems count={equippedItems.Count} for playerIndex={effectivePlayerIndex}");
+                    LogManager.LogDebug(LogCategory.System, $"CalculateItemStatBonus: equippedItems count={equippedItems.Count} for playerIndex={effectivePlayerIndex}");
                 }
                 foreach (var item in equippedItems)
                 {
@@ -159,7 +160,7 @@ namespace PawnSurvivors.Domain.Usecases
                     totalBonus += modifier * stackCount;
                     if (Time.frameCount % 60 == 0 && effectivePlayerIndex == 0)
                     {
-                        Debug.Log($"[PawnStatCalculator] Equipped item: {item.itemId}, modifier={modifier}, stack={stackCount}, totalBonus={totalBonus}");
+                        LogManager.LogDebug(LogCategory.System, $"Equipped item: {item.itemId}, modifier={modifier}, stack={stackCount}, totalBonus={totalBonus}");
                     }
                 }
             }
@@ -222,7 +223,7 @@ namespace PawnSurvivors.Domain.Usecases
                     }
                     if (Time.frameCount % 60 == 0 && pawnData.playerIndex == 0)
                     {
-                        Debug.Log($"[PawnStatCalculator] Global multiplier: {item.itemId}, multiplier={multiplier}, stack={stackCount}, totalMultiplier={totalMultiplier}");
+                        LogManager.LogDebug(LogCategory.System, $"Global multiplier: {item.itemId}, multiplier={multiplier}, stack={stackCount}, totalMultiplier={totalMultiplier}");
                     }
                 }
             }
@@ -245,7 +246,7 @@ namespace PawnSurvivors.Domain.Usecases
                         }
                         if (Time.frameCount % 60 == 0 && effectivePlayerIndex == 0)
                         {
-                            Debug.Log($"[PawnStatCalculator] Equipped multiplier: {item.itemId}, multiplier={multiplier}, stack={stackCount}, totalMultiplier={totalMultiplier}");
+                            LogManager.LogDebug(LogCategory.System, $"Equipped multiplier: {item.itemId}, multiplier={multiplier}, stack={stackCount}, totalMultiplier={totalMultiplier}");
                         }
                     }
                 }

@@ -4,7 +4,9 @@ using TMPro;
 using System.Collections.Generic;
 using PawnSurvivors.Managers;
 using PawnCore.Domain;
+using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Usecases;
+using PawnSurvivors.Data;
 
 namespace PawnSurvivors.UI
 {
@@ -69,6 +71,7 @@ namespace PawnSurvivors.UI
             public TMP_Text lockButtonText;
             public bool isLocked = false;
             public int cost = 0;
+            public ItemData itemData; // 아이템 데이터 저장
         }
 
         // 통계 행 데이터 구조
@@ -120,6 +123,27 @@ namespace PawnSurvivors.UI
 
         private void CreateShopUI()
         {
+            // 기존 UI가 있으면 정리
+            if (_itemSlots != null && _itemSlots.Count > 0)
+            {
+                foreach (var slot in _itemSlots)
+                {
+                    if (slot.buyButton != null)
+                    {
+                        slot.buyButton.onClick.RemoveAllListeners();
+                    }
+                    if (slot.lockButton != null)
+                    {
+                        slot.lockButton.onClick.RemoveAllListeners();
+                    }
+                    if (slot.rootObject != null)
+                    {
+                        Destroy(slot.rootObject);
+                    }
+                }
+                _itemSlots.Clear();
+            }
+            
             // 폰트 로드
             LoadKoreanFont();
             
@@ -301,20 +325,21 @@ namespace PawnSurvivors.UI
             float slotWidth = (availableWidth - (spacing * 3)) / 4f; // 4개 슬롯
             float slotHeight = 700f;
             float startX = leftMargin;
-            float centerY = 0f;
+            float centerY = 65f; // 위로 65만큼 올림
             
             for (int i = 0; i < 4; i++)
             {
+                int slotIndex = i; // 클로저 캡처 문제 해결을 위한 로컬 변수
                 var slot = new ShopItemSlot();
                 
                 // 슬롯 루트
-                slot.rootObject = new GameObject($"ItemSlot_{i}");
+                slot.rootObject = new GameObject($"ItemSlot_{slotIndex}");
                 slot.rootObject.transform.SetParent(_rootPanel.transform, false);
                 var slotRect = slot.rootObject.AddComponent<RectTransform>();
                 slotRect.anchorMin = new Vector2(0f, 0.5f);
                 slotRect.anchorMax = new Vector2(0f, 0.5f);
                 slotRect.pivot = new Vector2(0f, 0.5f);
-                slotRect.anchoredPosition = new Vector2(startX + i * (slotWidth + spacing), centerY);
+                slotRect.anchoredPosition = new Vector2(startX + slotIndex * (slotWidth + spacing), centerY);
                 slotRect.sizeDelta = new Vector2(slotWidth, slotHeight);
                 
                 // 배경
@@ -332,6 +357,7 @@ namespace PawnSurvivors.UI
                 iconRect.sizeDelta = new Vector2(140f, 140f);
                 slot.iconImage = iconObj.AddComponent<Image>();
                 slot.iconImage.color = Color.white;
+                slot.iconImage.raycastTarget = false; // 아이콘은 클릭 방해 안 함
                 
                 // 이름
                 var nameObj = new GameObject("NameText");
@@ -347,6 +373,7 @@ namespace PawnSurvivors.UI
                 slot.nameText.fontSize = 36;
                 slot.nameText.color = Color.white;
                 slot.nameText.alignment = TextAlignmentOptions.Left;
+                slot.nameText.raycastTarget = false; // 텍스트는 클릭 방해 안 함
                 if (_koreanFont != null) slot.nameText.font = _koreanFont;
                 
                 // 타입
@@ -363,6 +390,7 @@ namespace PawnSurvivors.UI
                 slot.typeText.fontSize = 28;
                 slot.typeText.color = new Color(0.8f, 0.8f, 0.8f, 1f);
                 slot.typeText.alignment = TextAlignmentOptions.Left;
+                slot.typeText.raycastTarget = false; // 텍스트는 클릭 방해 안 함
                 if (_koreanFont != null) slot.typeText.font = _koreanFont;
                 
                 // 설명
@@ -380,6 +408,7 @@ namespace PawnSurvivors.UI
                 slot.descriptionText.color = Color.white;
                 slot.descriptionText.alignment = TextAlignmentOptions.TopLeft;
                 slot.descriptionText.textWrappingMode = TextWrappingModes.Normal;
+                slot.descriptionText.raycastTarget = false; // 텍스트는 클릭 방해 안 함
                 if (_koreanFont != null) slot.descriptionText.font = _koreanFont;
                 
                 // 가격 (좌측 하단)
@@ -396,11 +425,14 @@ namespace PawnSurvivors.UI
                 slot.costText.fontSize = 36;
                 slot.costText.color = Color.green;
                 slot.costText.alignment = TextAlignmentOptions.Left;
+                slot.costText.raycastTarget = false; // 텍스트는 클릭 방해 안 함
                 if (_koreanFont != null) slot.costText.font = _koreanFont;
                 
                 // 구매 버튼 (전체 슬롯)
                 slot.buyButton = slot.rootObject.AddComponent<Button>();
-                slot.buyButton.onClick.AddListener(() => OnItemBuyClicked(i));
+                slot.buyButton.targetGraphic = bg; // 배경을 targetGraphic으로 설정
+                // 클로저 캡처 문제 해결: slotIndex를 사용
+                slot.buyButton.onClick.AddListener(() => OnItemBuyClicked(slotIndex));
                 
                 // 잠금 버튼 (우측 하단)
                 var lockObj = new GameObject("LockButton");
@@ -426,10 +458,15 @@ namespace PawnSurvivors.UI
                 slot.lockButtonText.fontSize = 28;
                 slot.lockButtonText.color = Color.white;
                 slot.lockButtonText.alignment = TextAlignmentOptions.Center;
+                slot.lockButtonText.raycastTarget = false; // 텍스트는 클릭 방해 안 함
                 if (_koreanFont != null) slot.lockButtonText.font = _koreanFont;
                 
                 slot.lockButton.targetGraphic = lockImage;
-                slot.lockButton.onClick.AddListener(() => OnItemLockClicked(i));
+                // 클로저 캡처 문제 해결: slotIndex를 사용
+                slot.lockButton.onClick.AddListener(() => OnItemLockClicked(slotIndex));
+                
+                // 잠금 버튼이 구매 버튼보다 위에 오도록 설정 (이미 자식 순서로 해결됨)
+                lockObj.transform.SetAsLastSibling(); // 잠금 버튼을 가장 위로
                 
                 _itemSlots.Add(slot);
             }
@@ -785,8 +822,80 @@ namespace PawnSurvivors.UI
             UpdateGoldDisplay();
             UpdateTitle();
             UpdatePawnsInventory();
-            // TODO: 아이템 슬롯 업데이트
+            RefreshShopItems(); // 아이템 슬롯 업데이트
             // 스탯은 다른 방식으로 확인 (스탯 패널 제거됨)
+        }
+        
+        /// <summary>
+        /// 상점 아이템 슬롯을 새로고침합니다.
+        /// ItemPoolUseCase를 사용하여 중복 없는 랜덤 아이템을 가져옵니다.
+        /// </summary>
+        private void RefreshShopItems()
+        {
+            if (GameManager.Instance?.ItemPoolUseCase == null)
+            {
+                LogManager.LogWarning(LogCategory.UI, "ItemPoolUseCase가 없어 상점 아이템을 가져올 수 없습니다.");
+                return;
+            }
+            
+            // 잠금되지 않은 슬롯만 새로고침
+            var unlockedSlots = new List<int>();
+            for (int i = 0; i < _itemSlots.Count; i++)
+            {
+                if (!_itemSlots[i].isLocked)
+                {
+                    unlockedSlots.Add(i);
+                }
+            }
+            
+            if (unlockedSlots.Count == 0)
+            {
+                LogManager.LogInfo(LogCategory.UI, "모든 슬롯이 잠겨있어 아이템을 새로고침하지 않습니다.");
+                return;
+            }
+            
+            // ItemPoolUseCase를 통해 중복 없는 랜덤 아이템 가져오기
+            var itemRepository = GameManager.Instance.ItemRepository;
+            var randomItems = GameManager.Instance.ItemPoolUseCase.GetRandomShopItems(
+                unlockedSlots.Count,
+                excludeOwned: false, // 보유 아이템 제외 여부 (필요시 변경)
+                itemRepository
+            );
+            
+            // 슬롯에 아이템 할당
+            for (int i = 0; i < unlockedSlots.Count && i < randomItems.Count; i++)
+            {
+                int slotIndex = unlockedSlots[i];
+                var slot = _itemSlots[slotIndex];
+                var item = randomItems[i];
+                
+                // 아이템 데이터 저장
+                slot.itemData = item;
+                slot.cost = item.cost;
+                
+                // UI 업데이트
+                if (slot.nameText != null)
+                {
+                    slot.nameText.text = item.itemName ?? "알 수 없음";
+                }
+                
+                if (slot.typeText != null)
+                {
+                    slot.typeText.text = item.itemType == ItemType.Global ? "전역" : "장착";
+                }
+                
+                if (slot.descriptionText != null)
+                {
+                    slot.descriptionText.text = item.description ?? "";
+                }
+                
+                if (slot.costText != null)
+                {
+                    slot.costText.text = item.cost.ToString();
+                }
+            }
+            
+            LogManager.LogInfo(LogCategory.UI, $"상점 아이템 {unlockedSlots.Count}개 새로고침 완료");
         }
 
         private void UpdateGoldDisplay()
@@ -960,12 +1069,12 @@ namespace PawnSurvivors.UI
             if (GameManager.Instance.CurrencyUseCase.SpendGold(_resetCost))
             {
                 // 상점 초기화 로직
-                Debug.Log($"[BrotatoShopScreen] 상점 초기화 (비용: {_resetCost})");
-                // TODO: 아이템 슬롯 새로고침
+                LogManager.LogInfo(LogCategory.UI, $"상점 초기화 (비용: {_resetCost})");
+                RefreshShopItems(); // 아이템 슬롯 새로고침
             }
             else
             {
-                Debug.LogWarning("[BrotatoShopScreen] 골드가 부족합니다.");
+                LogManager.LogWarning(LogCategory.UI, "골드가 부족합니다.");
             }
         }
 
@@ -974,16 +1083,37 @@ namespace PawnSurvivors.UI
             if (slotIndex < 0 || slotIndex >= _itemSlots.Count) return;
             
             var slot = _itemSlots[slotIndex];
-            if (GameManager.Instance?.CurrencyUseCase == null) return;
-            
-            if (GameManager.Instance.CurrencyUseCase.SpendGold(slot.cost))
+            if (slot.itemData == null)
             {
-                Debug.Log($"[BrotatoShopScreen] 아이템 구매: 슬롯 {slotIndex} (비용: {slot.cost})");
-                // TODO: 아이템 구매 로직
+                LogManager.LogWarning(LogCategory.UI, $"슬롯 {slotIndex}에 아이템이 없습니다.");
+                return;
+            }
+            
+            if (GameManager.Instance?.ItemManagementUseCase == null)
+            {
+                LogManager.LogError(LogCategory.UI, "ItemManagementUseCase가 없습니다.");
+                return;
+            }
+            
+            // ItemManagementUseCase를 통해 아이템 구매
+            bool success = GameManager.Instance.ItemManagementUseCase.BuyItem(slot.itemData);
+            
+            if (success)
+            {
+                LogManager.LogInfo(LogCategory.UI, $"아이템 구매 성공: {slot.itemData.itemName} (비용: {slot.cost})");
+                
+                // 구매한 슬롯은 새 아이템으로 교체 (잠금되지 않은 경우)
+                if (!slot.isLocked)
+                {
+                    RefreshShopItems();
+                }
+                
+                // 골드 표시 업데이트
+                UpdateGoldDisplay();
             }
             else
             {
-                Debug.LogWarning("[BrotatoShopScreen] 골드가 부족합니다.");
+                LogManager.LogWarning(LogCategory.UI, "아이템 구매 실패: 골드가 부족하거나 아이템이 유효하지 않습니다.");
             }
         }
 
@@ -997,11 +1127,12 @@ namespace PawnSurvivors.UI
             if (slot.isLocked)
             {
                 slot.lockButtonText.text = "E 잠금 해제";
-                // TODO: 잠금 시각 효과
+                LogManager.LogInfo(LogCategory.UI, $"슬롯 {slotIndex} 잠금됨");
             }
             else
             {
                 slot.lockButtonText.text = "E 잠금";
+                LogManager.LogInfo(LogCategory.UI, $"슬롯 {slotIndex} 잠금 해제됨");
             }
         }
 

@@ -168,7 +168,7 @@ namespace PawnSurvivors.Managers
         {
             if (effectPool == null)
             {
-                Debug.LogError("[FloatingEffectManager] FloatingEffectPool이 초기화되지 않았습니다.");
+                LogManager.LogError(LogCategory.UI, "FloatingEffectPool이 초기화되지 않았습니다.");
                 return;
             }
             
@@ -221,7 +221,7 @@ namespace PawnSurvivors.Managers
             }
             else
             {
-                Debug.LogWarning("[FloatingEffectManager] 파티클 프리팹 경로가 지정되지 않았습니다.");
+                LogManager.LogWarning(LogCategory.UI, "파티클 프리팹 경로가 지정되지 않았습니다.");
             }
         }
     }

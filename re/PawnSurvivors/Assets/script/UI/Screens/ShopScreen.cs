@@ -89,7 +89,7 @@ namespace PawnSurvivors.UI
             
             if (nanumFont == null)
             {
-                Debug.LogWarning("[ShopScreen] NanumGothic SDF 폰트를 찾을 수 없습니다. Assets/Fonts/NanumGothic SDF.asset 파일을 확인하세요.");
+                LogManager.LogWarning(LogCategory.UI, "NanumGothic SDF 폰트를 찾을 수 없습니다. Assets/Fonts/NanumGothic SDF.asset 파일을 확인하세요.");
             }
 
             // 루트 패널 생성

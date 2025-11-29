@@ -70,7 +70,7 @@ namespace PawnSurvivors.UI
 
             if (canvas == null)
             {
-                Debug.LogError("[CurrencyUI] Canvas를 찾을 수 없어 UI를 생성할 수 없습니다.");
+                LogManager.LogError(LogCategory.UI, "Canvas를 찾을 수 없어 UI를 생성할 수 없습니다.");
                 return;
             }
 

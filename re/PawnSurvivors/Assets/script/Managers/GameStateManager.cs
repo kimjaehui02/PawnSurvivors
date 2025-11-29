@@ -1,6 +1,7 @@
 using UnityEngine;
 using PawnSurvivors.UI;
 using PawnSurvivors.Domain.Usecases;
+using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.Managers
 {
@@ -11,7 +12,7 @@ namespace PawnSurvivors.Managers
     public class GameStateManager : MonoBehaviour
     {
         public static GameStateManager Instance { get; private set; }
-
+ 
         public enum GameState
         {
             Title,      // 타이틀 화면
@@ -123,7 +124,7 @@ namespace PawnSurvivors.Managers
         {
             if (UIManager.Instance == null)
             {
-                Debug.LogWarning("[GameStateManager] UIManager.Instance가 null입니다.");
+                LogManager.LogWarning(LogCategory.System, "UIManager.Instance가 null입니다.");
                 return;
             }
 

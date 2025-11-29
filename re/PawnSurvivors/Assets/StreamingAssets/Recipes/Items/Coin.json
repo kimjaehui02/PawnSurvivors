@@ -37,7 +37,7 @@
     },
     {
       "$type": "PawnCore.Recipes.Json.CoinPickupSubManagerSetupData, Assembly-CSharp",
-      "goldAmount": 1,
+      "goldAmount": 100,
       "magnetRange": 5
     }
   ]

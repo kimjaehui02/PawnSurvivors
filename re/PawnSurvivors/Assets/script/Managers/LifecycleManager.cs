@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using PawnSurvivors.Managers;
 
 /// <summary>
 /// 게임의 생명주기를 관리하는 매니저입니다.
@@ -68,7 +69,7 @@ public class LifecycleManager : MonoBehaviour
     public void TogglePause()
     {
         IsPaused = !IsPaused;
-        Debug.Log(IsPaused ? "LifecycleManager Paused" : "LifecycleManager Resumed");
+        LogManager.LogInfo(LogCategory.System, IsPaused ? "LifecycleManager Paused" : "LifecycleManager Resumed");
     }
     
     /// <summary>

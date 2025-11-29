@@ -87,11 +87,11 @@ namespace PawnSurvivors.UI
                 if (stageData != null)
                 {
                     stageTime = stageData.stageDuration;
-                    Debug.Log($"Stage '{_selectedStage}' loaded. Duration: {stageTime}s");
+                    LogManager.LogInfo(LogCategory.Stage, $"Stage '{_selectedStage}' loaded. Duration: {stageTime}s");
                 }
                 else
                 {
-                    Debug.LogWarning($"StageData for '{_selectedStage}' not found. Using default duration.");
+                    LogManager.LogWarning(LogCategory.Stage, $"StageData for '{_selectedStage}' not found. Using default duration.");
                     stageTime = 300f; // 기본값
                 }
             }
@@ -112,12 +112,12 @@ namespace PawnSurvivors.UI
                 }
                 else
                 {
-                    Debug.LogWarning("[StageScreen] OptionButton에 Image 컴포넌트가 없습니다.");
+                    LogManager.LogWarning(LogCategory.UI, "OptionButton에 Image 컴포넌트가 없습니다.");
                 }
             }
             else
             {
-                Debug.LogWarning("[StageScreen] 'Resources/Asprite/Option' 스프라이트를 찾을 수 없습니다.");
+                LogManager.LogWarning(LogCategory.UI, "'Resources/Asprite/Option' 스프라이트를 찾을 수 없습니다.");
             }
         }
         #endregion
@@ -197,7 +197,7 @@ namespace PawnSurvivors.UI
             
             if (levelUpContainer == null)
             {
-                Debug.LogWarning("[StageScreen] LevelUpContainer를 생성할 수 없습니다.");
+                LogManager.LogWarning(LogCategory.UI, "LevelUpContainer를 생성할 수 없습니다.");
                 return;
             }
             
@@ -416,7 +416,7 @@ namespace PawnSurvivors.UI
             
             if (canvas == null)
             {
-                Debug.LogError("[StageScreen] Canvas를 찾을 수 없어 LevelUpContainer를 생성할 수 없습니다.");
+                LogManager.LogError(LogCategory.UI, "Canvas를 찾을 수 없어 LevelUpContainer를 생성할 수 없습니다.");
                 return;
             }
             
@@ -442,7 +442,7 @@ namespace PawnSurvivors.UI
             layoutGroup.childForceExpandWidth = true;
             layoutGroup.childForceExpandHeight = false;
             
-            Debug.Log("[StageScreen] LevelUpContainer를 자동으로 생성했습니다.");
+            LogManager.LogInfo(LogCategory.UI, "LevelUpContainer를 자동으로 생성했습니다.");
         }
         
         /// <summary>
@@ -472,7 +472,7 @@ namespace PawnSurvivors.UI
             
             if (levelUpContainer == null)
             {
-                Debug.LogError("[StageScreen] LevelUpContainer가 없어 UI를 생성할 수 없습니다.");
+                LogManager.LogError(LogCategory.UI, "LevelUpContainer가 없어 UI를 생성할 수 없습니다.");
                 return;
             }
             
@@ -507,7 +507,7 @@ namespace PawnSurvivors.UI
         {
             if (levelUpContainer == null)
             {
-                Debug.LogError("[StageScreen] CreateCharacterLevelUI: levelUpContainer가 null입니다.");
+                LogManager.LogError(LogCategory.UI, "CreateCharacterLevelUI: levelUpContainer가 null입니다.");
                 return null;
             }
             
@@ -571,7 +571,7 @@ namespace PawnSurvivors.UI
                 }
                 else
                 {
-                    Debug.LogWarning("[StageScreen] 한글 폰트를 찾을 수 없습니다. Inspector에서 koreanFontAsset을 할당하거나, Assets/Fonts/NanumGothic SDF.asset 파일을 확인하세요.");
+                    LogManager.LogWarning(LogCategory.UI, "한글 폰트를 찾을 수 없습니다. Inspector에서 koreanFontAsset을 할당하거나, Assets/Fonts/NanumGothic SDF.asset 파일을 확인하세요.");
                 }
             }
             
@@ -838,7 +838,7 @@ namespace PawnSurvivors.UI
             
             if (destroyedCount > 0)
             {
-                Debug.Log($"[StageScreen] 스테이지 종료: {destroyedCount}개의 적/적 투사체 파괴");
+                LogManager.LogInfo(LogCategory.Stage, $"스테이지 종료: {destroyedCount}개의 적/적 투사체 파괴");
             }
         }
 

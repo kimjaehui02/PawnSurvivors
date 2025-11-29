@@ -2,6 +2,7 @@ using UnityEngine;
 using PawnSurvivors.Domain.Usecases;
 using PawnSurvivors.Domain.Repositories;
 using PawnSurvivors.Debugging.Data;
+using PawnSurvivors.Managers;
 using System.IO;
 
 namespace PawnSurvivors.Debugging.Presentation
@@ -53,12 +54,12 @@ namespace PawnSurvivors.Debugging.Presentation
                 if (!string.IsNullOrEmpty(jsonItemsPath))
                 {
                     jsonDataSource.LoadItems(jsonItemsPath);
-                    Debug.Log($"[ItemPoolTestManager] JSON 데이터 소스로 초기화 완료 (경로: {jsonItemsPath})");
+                    LogManager.LogInfo(LogCategory.Debug, $"JSON 데이터 소스로 초기화 완료 (경로: {jsonItemsPath})");
                 }
                 else
                 {
                     jsonDataSource.LoadDebugItems();
-                    Debug.Log("[ItemPoolTestManager] 디버깅 JSON 데이터 소스로 초기화 완료");
+                    LogManager.LogInfo(LogCategory.Debug, "디버깅 JSON 데이터 소스로 초기화 완료");
                 }
                 
                 _repository = new JsonItemPoolRepository(jsonDataSource);
@@ -67,13 +68,13 @@ namespace PawnSurvivors.Debugging.Presentation
             {
                 // Mock Repository 사용
                 _repository = new MockItemPoolRepository();
-                Debug.Log("[ItemPoolTestManager] Mock 데이터로 초기화 완료");
+                LogManager.LogInfo(LogCategory.Debug, "Mock 데이터로 초기화 완료");
             }
             
             // UseCase 생성 (Domain 계층만)
             _itemPoolUseCase = new ItemPoolUseCase(_repository);
             
-            Debug.Log("[ItemPoolTestManager] Domain 계층 초기화 완료");
+            LogManager.LogInfo(LogCategory.Debug, "Domain 계층 초기화 완료");
         }
 
         /// <summary>
@@ -84,11 +85,11 @@ namespace PawnSurvivors.Debugging.Presentation
         {
             if (_itemPoolUseCase == null)
             {
-                Debug.LogError("[ItemPoolTestManager] UseCase가 초기화되지 않았습니다.");
+                LogManager.LogError(LogCategory.Debug, "UseCase가 초기화되지 않았습니다.");
                 return;
             }
 
-            Debug.Log("=== ItemPoolUseCase 테스트 시작 ===");
+            LogManager.LogInfo(LogCategory.Debug, "=== ItemPoolUseCase 테스트 시작 ===");
             
             TestGetAllItems();
             TestGetItem();
@@ -96,7 +97,7 @@ namespace PawnSurvivors.Debugging.Presentation
             TestGetRandomShopItems();
             TestGetRandomShopItemsByType();
             
-            Debug.Log("=== ItemPoolUseCase 테스트 완료 ===");
+            LogManager.LogInfo(LogCategory.Debug, "=== ItemPoolUseCase 테스트 완료 ===");
         }
 
         /// <summary>
@@ -106,10 +107,10 @@ namespace PawnSurvivors.Debugging.Presentation
         private void TestGetAllItems()
         {
             var allItems = _itemPoolUseCase.GetAllItems();
-            Debug.Log($"[테스트] GetAllItems: {allItems.Count}개의 아이템");
+            LogManager.LogDebug(LogCategory.Debug, $"GetAllItems: {allItems.Count}개의 아이템");
             foreach (var item in allItems)
             {
-                Debug.Log($"  - {item.itemId}: {item.itemName} ({item.itemType})");
+                LogManager.LogDebug(LogCategory.Debug, $"  - {item.itemId}: {item.itemName} ({item.itemType})");
             }
         }
 
@@ -124,14 +125,14 @@ namespace PawnSurvivors.Debugging.Presentation
             var item = _itemPoolUseCase.GetItem(testItemId);
             if (item != null)
             {
-                Debug.Log($"[테스트] GetItem: {item.itemId} - {item.itemName}");
-                Debug.Log($"  - 타입: {item.itemType}");
-                Debug.Log($"  - 가격: {item.cost}");
-                Debug.Log($"  - 설명: {item.description}");
+                LogManager.LogDebug(LogCategory.Debug, $"GetItem: {item.itemId} - {item.itemName}");
+                LogManager.LogDebug(LogCategory.Debug, $"  - 타입: {item.itemType}");
+                LogManager.LogDebug(LogCategory.Debug, $"  - 가격: {item.cost}");
+                LogManager.LogDebug(LogCategory.Debug, $"  - 설명: {item.description}");
             }
             else
             {
-                Debug.LogWarning($"[테스트] GetItem: 아이템 '{testItemId}'을 찾을 수 없습니다.");
+                LogManager.LogWarning(LogCategory.Debug, $"GetItem: 아이템 '{testItemId}'을 찾을 수 없습니다.");
             }
         }
 
@@ -151,9 +152,9 @@ namespace PawnSurvivors.Debugging.Presentation
                 if (item.itemType == PawnSurvivors.Domain.ItemType.Equipped) equippedCount++;
             }
             
-            Debug.Log($"[테스트] GetItemsByType:");
-            Debug.Log($"  - Global: {globalCount}개");
-            Debug.Log($"  - Equipped: {equippedCount}개");
+            LogManager.LogDebug(LogCategory.Debug, $"GetItemsByType:");
+            LogManager.LogDebug(LogCategory.Debug, $"  - Global: {globalCount}개");
+            LogManager.LogDebug(LogCategory.Debug, $"  - Equipped: {equippedCount}개");
         }
 
         /// <summary>
@@ -168,10 +169,10 @@ namespace PawnSurvivors.Debugging.Presentation
                 null // Mock ItemRepository는 사용하지 않음
             );
             
-            Debug.Log($"[테스트] GetRandomShopItems ({randomItemCount}개):");
+            LogManager.LogDebug(LogCategory.Debug, $"GetRandomShopItems ({randomItemCount}개):");
             foreach (var item in randomItems)
             {
-                Debug.Log($"  - {item.itemId}: {item.itemName}");
+                LogManager.LogDebug(LogCategory.Debug, $"  - {item.itemId}: {item.itemName}");
             }
         }
 
@@ -188,10 +189,10 @@ namespace PawnSurvivors.Debugging.Presentation
                 null
             );
             
-            Debug.Log($"[테스트] GetRandomShopItemsByType (Global, 2개):");
+            LogManager.LogDebug(LogCategory.Debug, $"GetRandomShopItemsByType (Global, 2개):");
             foreach (var item in globalItems)
             {
-                Debug.Log($"  - {item.itemId}: {item.itemName}");
+                LogManager.LogDebug(LogCategory.Debug, $"  - {item.itemId}: {item.itemName}");
             }
         }
 
@@ -204,7 +205,7 @@ namespace PawnSurvivors.Debugging.Presentation
             jsonItemsPath = ""; // 빈 경로로 설정하면 자동으로 디버깅 경로 사용
             useJsonDataSource = true;
             InitializeDomainLayer();
-            Debug.Log("[ItemPoolTestManager] 디버깅 JSON 데이터 소스로 재초기화 완료");
+            LogManager.LogInfo(LogCategory.Debug, "디버깅 JSON 데이터 소스로 재초기화 완료");
         }
 
         /// <summary>
@@ -220,7 +221,7 @@ namespace PawnSurvivors.Debugging.Presentation
 
             useJsonDataSource = true;
             InitializeDomainLayer();
-            Debug.Log($"[ItemPoolTestManager] 커스텀 JSON 데이터 소스로 재초기화 완료 (경로: {jsonItemsPath})");
+            LogManager.LogInfo(LogCategory.Debug, $"커스텀 JSON 데이터 소스로 재초기화 완료 (경로: {jsonItemsPath})");
         }
 
         /// <summary>
@@ -231,7 +232,7 @@ namespace PawnSurvivors.Debugging.Presentation
         {
             useJsonDataSource = false;
             InitializeDomainLayer();
-            Debug.Log("[ItemPoolTestManager] Mock 데이터로 재초기화 완료");
+            LogManager.LogInfo(LogCategory.Debug, "Mock 데이터로 재초기화 완료");
         }
     }
 }

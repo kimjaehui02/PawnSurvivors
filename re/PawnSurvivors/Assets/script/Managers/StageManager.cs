@@ -46,7 +46,7 @@ public class StageManager : MonoBehaviour
             _stageManagementUseCase.PrepareStageStart(stageName, resetSession);
         }
         
-        Debug.Log($"[StageManager] 스테이지 시작: {stageName} (세션 리셋: {resetSession})");
+        LogManager.LogInfo(LogCategory.Stage, $"스테이지 시작: {stageName} (세션 리셋: {resetSession})");
         
         // PlayerController가 없으면 생성 (상점에서 올 때는 기존 것 유지)
         if (GameManager.Instance != null && GameManager.Instance.PlayerController == null)
@@ -62,16 +62,16 @@ public class StageManager : MonoBehaviour
             {
                 InitializeStageData(stageData);
                 StartStageInternal();
-                Debug.Log($"Stage '{stageName}' started.");
+                LogManager.LogInfo(LogCategory.Stage, $"Stage '{stageName}' started.");
             }
             else
             {
-                Debug.LogError($"StageData for '{stageName}' not found! Cannot start stage.");
+                LogManager.LogError(LogCategory.Stage, $"StageData for '{stageName}' not found! Cannot start stage.");
             }
         }
         else
         {
-            Debug.LogError("[StageManager] StageLoader가 초기화되지 않았습니다!");
+            LogManager.LogError(LogCategory.Stage, "StageLoader가 초기화되지 않았습니다!");
         }
     }
 
@@ -106,7 +106,7 @@ public class StageManager : MonoBehaviour
     /// </summary>
     private void StartStageInternal()
     {
-        Debug.Log($"Stage '{_currentStageData.stageName}' Started!");
+        LogManager.LogInfo(LogCategory.Stage, $"Stage '{_currentStageData.stageName}' Started!");
         _stageElapsedTime = 0f;
         
         // LifecycleManager의 게임 시간도 리셋
@@ -201,7 +201,7 @@ public class StageManager : MonoBehaviour
     {
         if (wave.enemyTypes == null || wave.enemyTypes.Count == 0)
         {
-            Debug.LogWarning($"Wave has no enemy types defined!");
+            LogManager.LogWarning(LogCategory.Stage, $"Wave has no enemy types defined!");
             return;
         }
 
@@ -210,7 +210,7 @@ public class StageManager : MonoBehaviour
         
         if (string.IsNullOrEmpty(selectedEnemyRecipe))
         {
-            Debug.LogError("No valid enemy recipe selected!");
+            LogManager.LogError(LogCategory.Stage, "No valid enemy recipe selected!");
             return;
         }
 
@@ -219,11 +219,11 @@ public class StageManager : MonoBehaviour
         {
             Vector3 spawnPosition = GetCircularSpawnPosition();
             _creationManager.CreatePawn(enemyRecipe, spawnPosition, Quaternion.identity);
-            Debug.Log($"Spawned {selectedEnemyRecipe} at {spawnPosition}");
+            LogManager.LogDebug(LogCategory.Stage, $"Spawned {selectedEnemyRecipe} at {spawnPosition}");
         }
         else
         {
-            Debug.LogError($"Enemy recipe '{selectedEnemyRecipe}' not found for spawning!");
+            LogManager.LogError(LogCategory.Stage, $"Enemy recipe '{selectedEnemyRecipe}' not found for spawning!");
         }
     }
 
@@ -251,7 +251,7 @@ public class StageManager : MonoBehaviour
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            Debug.LogError("Main Camera not found! Cannot calculate circular spawn position. Defaulting to camera Y position.");
+            LogManager.LogError(LogCategory.Stage, "Main Camera not found! Cannot calculate circular spawn position. Defaulting to camera Y position.");
             return new Vector3(0, 0, 0); // Default to origin if camera not found
         }
 
@@ -277,7 +277,7 @@ public class StageManager : MonoBehaviour
     /// </summary>
     public void EndStage()
     {
-        Debug.Log($"Stage '{_currentStageData?.stageName}' Ended!");
+        LogManager.LogInfo(LogCategory.Stage, $"Stage '{_currentStageData?.stageName}' Ended!");
         
         // 웨이브 타이머 초기화
         _waveTimers.Clear();

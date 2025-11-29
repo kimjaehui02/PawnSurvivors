@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using PawnCore.Domain;
 using TMPro;
+using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.UI
 {
@@ -56,7 +57,7 @@ namespace PawnSurvivors.UI
                 return effect;
             }
 
-            Debug.LogWarning($"[FloatingEffectPool] {effectType} 타입의 효과를 풀에서 가져올 수 없습니다.");
+            LogManager.LogWarning(LogCategory.UI, $"{effectType} 타입의 효과를 풀에서 가져올 수 없습니다.");
             return null;
         }
 

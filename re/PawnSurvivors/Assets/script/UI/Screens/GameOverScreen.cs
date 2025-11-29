@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.UI
 {
@@ -43,14 +44,14 @@ namespace PawnSurvivors.UI
         {
             Time.timeScale = 1f;
             // TODO: 게임 재시작
-            Debug.Log("Retry Button Clicked");
+            LogManager.LogInfo(LogCategory.UI, "Retry Button Clicked");
         }
 
         private void OnMainMenuButtonClicked()
         {
             Time.timeScale = 1f;
             // TODO: 메인 메뉴로 이동
-            Debug.Log("Main Menu Button Clicked");
+            LogManager.LogInfo(LogCategory.UI, "Main Menu Button Clicked");
         }
     }
 }

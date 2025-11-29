@@ -127,7 +127,7 @@ namespace PawnSurvivors.UI
             }
             else
             {
-                Debug.LogError("[UIManager] pauseMenuScreen is NULL! Please assign it in the Inspector.");
+                LogManager.LogError(LogCategory.UI, "pauseMenuScreen is NULL! Please assign it in the Inspector.");
             }
         }
 

@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 아이템 Repository (Data 계층 내부용, UseCase에서만 사용)
     /// </summary>
-    private IItemRepository ItemRepository { get; set; }
+    public IItemRepository ItemRepository { get; private set; }
     
     /// <summary>
     /// UseCase 인스턴스들
@@ -46,11 +46,17 @@ public class GameManager : MonoBehaviour
     public ItemManagementUseCase ItemManagementUseCase { get; private set; }
     public PawnStatCalculator PawnStatCalculator { get; private set; }
     public FloatingEffectUseCase FloatingEffectUseCase { get; private set; }
+    public ItemPoolUseCase ItemPoolUseCase { get; private set; }
     
     /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
     /// </summary>
     public PlayerController PlayerController { get; private set; }
+    
+    /// <summary>
+    /// 아이템 풀 로더 (아이템 JSON 파일 로드)
+    /// </summary>
+    private PawnSurvivors.Data.Loaders.ItemPoolLoader _itemPoolLoader;
 
     /// <summary>
     /// PlayerController를 생성하고 초기화합니다.
@@ -68,7 +74,7 @@ public class GameManager : MonoBehaviour
         {
             mainCamera.transform.SetParent(PlayerController.transform);
             mainCamera.transform.localPosition = new Vector3(0f, 0f, -10f); // 2D 게임용
-            Debug.Log("[GameManager] 메인 카메라가 PlayerController에 붙었습니다.");
+            LogManager.LogInfo(LogCategory.System, "메인 카메라가 PlayerController에 붙었습니다.");
         }
         
         // ========== 초기 플레이어 생성 ==========
@@ -77,7 +83,7 @@ public class GameManager : MonoBehaviour
         AddPlayerPawn("PlayerButter");
         AddPlayerPawn("PlayerOpal");
         
-        Debug.Log("[GameManager] 총 3명의 플레이어 생성 완료 (Player x1, PlayerButter x1, PlayerOpal x1)");
+        LogManager.LogInfo(LogCategory.System, "총 3명의 플레이어 생성 완료 (Player x1, PlayerButter x1, PlayerOpal x1)");
         // ========== 초기 플레이어 생성 끝 ==========
         
         // ========== 테스트용 아이템 추가 ==========
@@ -106,7 +112,7 @@ public class GameManager : MonoBehaviour
         
         // 골드 없이 강제로 추가 (테스트용)
         ItemRepository.SaveItem(globalDamageItem);
-        Debug.Log("[GameManager] 테스트 전역 아이템 추가: 공격력 +1 (모든 Pawn에 적용)");
+        LogManager.LogInfo(LogCategory.Item, "테스트 전역 아이템 추가: 공격력 +1 (모든 Pawn에 적용)");
         
         // 2. 장착 아이템: 공격력 2배 (1번째 Pawn에 장착)
         var equippedDamageItem = new PawnSurvivors.Data.ItemData
@@ -135,18 +141,18 @@ public class GameManager : MonoBehaviour
                     if (playerIndex >= 0)
                     {
                         ItemManagementUseCase.EquipItemToPawn(equippedDamageItem.itemId, playerIndex);
-                        Debug.Log($"[GameManager] 테스트 장착 아이템 추가: 공격력 2배 → Pawn {playerIndex} ({firstPawn.name})");
+                        LogManager.LogInfo(LogCategory.Item, $"테스트 장착 아이템 추가: 공격력 2배 → Pawn {playerIndex} ({firstPawn.name})");
                     }
                     else
                     {
-                        Debug.LogWarning("[GameManager] 첫 번째 Pawn의 playerIndex가 설정되지 않았습니다.");
+                        LogManager.LogWarning(LogCategory.Item, "첫 번째 Pawn의 playerIndex가 설정되지 않았습니다.");
                     }
                 }
             }
         }
         else
         {
-            Debug.LogWarning("[GameManager] PlayerController 또는 playerPawns가 없어 테스트 아이템을 장착할 수 없습니다.");
+            LogManager.LogWarning(LogCategory.Item, "PlayerController 또는 playerPawns가 없어 테스트 아이템을 장착할 수 없습니다.");
         }
     }
 
@@ -201,6 +207,15 @@ public class GameManager : MonoBehaviour
         string stagesPath = Path.Combine(Application.streamingAssetsPath, "Stages");
         _stageLoader.LoadStages(stagesPath);
 
+        // ItemPoolLoader 초기화
+        _itemPoolLoader = new PawnSurvivors.Data.Loaders.ItemPoolLoader();
+        string itemsPath = Path.Combine(Application.streamingAssetsPath, "Recipes", "Items");
+        _itemPoolLoader.LoadItems(itemsPath);
+        
+        // ItemPoolUseCase 초기화
+        var itemPoolRepository = new PawnSurvivors.Data.Repositories.ItemPoolRepository(_itemPoolLoader);
+        ItemPoolUseCase = new ItemPoolUseCase(itemPoolRepository);
+
         // StageManager 초기화 (의존성 주입)
         if (StageManager != null)
         {
@@ -209,15 +224,15 @@ public class GameManager : MonoBehaviour
 
         if (LifecycleManager == null)
         {
-            Debug.LogError("GameManager: LifecycleManager component not found on the same GameObject.");
+            LogManager.LogError(LogCategory.System, "LifecycleManager component not found on the same GameObject.");
         }
         if (CreationManager == null)
         {
-            Debug.LogError("GameManager: CreationManager component not found on the same GameObject.");
+            LogManager.LogError(LogCategory.System, "CreationManager component not found on the same GameObject.");
         }
         if (StageManager == null)
         {
-            Debug.LogError("GameManager: StageManager component not found on the same GameObject.");
+            LogManager.LogError(LogCategory.System, "StageManager component not found on the same GameObject.");
         }
     }
 
@@ -235,7 +250,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[GameManager] StageManager가 없습니다!");
+            LogManager.LogError(LogCategory.System, "StageManager가 없습니다!");
         }
     }
 
@@ -246,14 +261,14 @@ public class GameManager : MonoBehaviour
     {
         if (PlayerController == null)
         {
-            Debug.LogError("[GameManager] PlayerController가 없습니다!");
+            LogManager.LogError(LogCategory.System, "PlayerController가 없습니다!");
             return null;
         }
         
         var recipe = CreationManager.GetRecipe(recipeName);
         if (recipe == null)
         {
-            Debug.LogError($"[GameManager] Recipe '{recipeName}'를 찾을 수 없습니다!");
+            LogManager.LogError(LogCategory.System, $"Recipe '{recipeName}'를 찾을 수 없습니다!");
             return null;
         }
         
@@ -263,7 +278,7 @@ public class GameManager : MonoBehaviour
         if (pawn != null)
         {
             PlayerController.AddPlayerPawn(pawn);
-            Debug.Log($"[GameManager] 플레이어 폰 추가: {recipeName}");
+            LogManager.LogInfo(LogCategory.Pawn, $"플레이어 폰 추가: {recipeName}");
         }
         
         return pawn;
@@ -308,6 +323,6 @@ public class GameManager : MonoBehaviour
             StageManager.EndStage();
         }
         
-        Debug.Log("[GameManager] 스테이지 종료");
+        LogManager.LogInfo(LogCategory.Stage, "스테이지 종료");
     }
 }

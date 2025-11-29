@@ -3,6 +3,7 @@ using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 using PawnSurvivors.Data;
+using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.Debugging.Data
 {
@@ -34,7 +35,7 @@ namespace PawnSurvivors.Debugging.Data
         {
             if (!Directory.Exists(itemsPath))
             {
-                Debug.LogWarning($"[JsonItemPoolDataSource] 경로를 찾을 수 없습니다: {itemsPath}");
+                LogManager.LogWarning(LogCategory.Debug, $"경로를 찾을 수 없습니다: {itemsPath}");
                 return;
             }
 
@@ -64,7 +65,7 @@ namespace PawnSurvivors.Debugging.Data
                                 if (itemData != null && !string.IsNullOrEmpty(itemData.itemId))
                                 {
                                     _loadedItems[itemData.itemId] = itemData;
-                                    Debug.Log($"[JsonItemPoolDataSource] 아이템 로드: {itemData.itemId} ({itemData.itemName}) from {file.Name}");
+                                    LogManager.LogDebug(LogCategory.Debug, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {file.Name}");
                                 }
                             }
                         }
@@ -76,21 +77,21 @@ namespace PawnSurvivors.Debugging.Data
                         if (itemData != null && !string.IsNullOrEmpty(itemData.itemId))
                         {
                             _loadedItems[itemData.itemId] = itemData;
-                            Debug.Log($"[JsonItemPoolDataSource] 아이템 로드: {itemData.itemId} ({itemData.itemName}) from {file.Name}");
+                            LogManager.LogDebug(LogCategory.Debug, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {file.Name}");
                         }
                         else
                         {
-                            Debug.LogWarning($"[JsonItemPoolDataSource] {file.Name} - itemId가 없습니다.");
+                            LogManager.LogWarning(LogCategory.Debug, $"{file.Name} - itemId가 없습니다.");
                         }
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"[JsonItemPoolDataSource] {file.Name} 로드 실패: {ex.Message}");
+                    LogManager.LogError(LogCategory.Debug, $"{file.Name} 로드 실패: {ex.Message}");
                 }
             }
 
-            Debug.Log($"[JsonItemPoolDataSource] 총 {_loadedItems.Count}개의 아이템 로드 완료");
+            LogManager.LogInfo(LogCategory.Debug, $"총 {_loadedItems.Count}개의 아이템 로드 완료");
         }
 
         /// <summary>

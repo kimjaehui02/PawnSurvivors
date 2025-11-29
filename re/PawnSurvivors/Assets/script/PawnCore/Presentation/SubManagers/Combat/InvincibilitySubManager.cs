@@ -1,6 +1,7 @@
 using UnityEngine;
 using PawnCore.Domain;
 using PawnCore.Domain.Events;
+using PawnSurvivors.Managers;
 
 /// <summary>
 /// 피격 시 일시적인 무적 효과를 제공하는 SubManager입니다.
@@ -49,7 +50,7 @@ public class InvincibilitySubManager : PawnSubManager
         if (visualsChild != null)
         {
             _spriteRenderer = visualsChild.GetComponent<SpriteRenderer>();
-            Debug.Log($"[InvincibilitySubManager] {name}: Visuals 자식에서 SpriteRenderer 발견!");
+            LogManager.LogDebug(LogCategory.Pawn, $"{name}: Visuals 자식에서 SpriteRenderer 발견!");
         }
         
         // 2. 직접 찾기
@@ -58,7 +59,7 @@ public class InvincibilitySubManager : PawnSubManager
             _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             if (_spriteRenderer != null)
             {
-                Debug.Log($"[InvincibilitySubManager] {name}: GetComponentInChildren으로 SpriteRenderer 발견!");
+                LogManager.LogDebug(LogCategory.Pawn, $"{name}: GetComponentInChildren으로 SpriteRenderer 발견!");
             }
         }
         
@@ -66,17 +67,17 @@ public class InvincibilitySubManager : PawnSubManager
         if (_spriteRenderer != null)
         {
             _originalColor = _spriteRenderer.color;
-            Debug.Log($"[InvincibilitySubManager] {name}: SpriteRenderer 색상 = {_originalColor}");
+            LogManager.LogDebug(LogCategory.Pawn, $"{name}: SpriteRenderer 색상 = {_originalColor}");
         }
         else
         {
-            Debug.LogError($"[InvincibilitySubManager] {name}: SpriteRenderer를 찾을 수 없습니다! 하이어라키 구조 확인 필요!");
+            LogManager.LogError(LogCategory.Pawn, $"{name}: SpriteRenderer를 찾을 수 없습니다! 하이어라키 구조 확인 필요!");
             
             // 디버깅: 모든 자식 출력
-            Debug.Log($"[InvincibilitySubManager] 자식 오브젝트 목록:");
+            LogManager.LogDebug(LogCategory.Pawn, "자식 오브젝트 목록:");
             foreach (Transform child in transform)
             {
-                Debug.Log($"  - {child.name}");
+                LogManager.LogDebug(LogCategory.Pawn, $"  - {child.name}");
             }
         }
     }
@@ -151,7 +152,7 @@ public class InvincibilitySubManager : PawnSubManager
         if (_isInvincible)
         {
             evt.IsCancelled = true;
-            Debug.Log($"{_pawnManager.name} is invincible! Damage ignored.");
+            LogManager.LogDebug(LogCategory.Combat, $"{_pawnManager.name} is invincible! Damage ignored.");
         }
     }
 
@@ -166,7 +167,7 @@ public class InvincibilitySubManager : PawnSubManager
         // SpriteRenderer 찾기 시도
         FindSpriteRenderer();
         
-        Debug.Log($"[InvincibilitySubManager] {_pawnManager.name} is now invincible for {invincibilityDuration} seconds!");
+        LogManager.LogDebug(LogCategory.Combat, $"{_pawnManager.name} is now invincible for {invincibilityDuration} seconds!");
     }
 
     /// <summary>
@@ -183,7 +184,7 @@ public class InvincibilitySubManager : PawnSubManager
             _spriteRenderer.color = _originalColor;
         }
 
-        Debug.Log($"{_pawnManager.name} invincibility ended.");
+        LogManager.LogDebug(LogCategory.Combat, $"{_pawnManager.name} invincibility ended.");
     }
 
     /// <summary>

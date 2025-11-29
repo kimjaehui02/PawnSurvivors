@@ -4,6 +4,7 @@ using PawnCore.Recipes;
 using System.IO;
 using System.Linq;
 using PawnCore.Domain;
+using PawnSurvivors.Managers;
 
 public class CreationManager : MonoBehaviour
 {
@@ -40,7 +41,7 @@ public class CreationManager : MonoBehaviour
         PawnRecipeData recipeData = recipeLoader.GetRecipe(recipeName);
         if (recipeData == null)
         {
-            Debug.LogError($"CreationManager: PawnRecipe with name '{recipeName}' not found.");
+            LogManager.LogError(LogCategory.System, $"PawnRecipe with name '{recipeName}' not found.");
             return null;
         }
         return CreatePawn(recipeData, position, rotation);
@@ -50,7 +51,7 @@ public class CreationManager : MonoBehaviour
     {
         if (recipeData == null)
         {
-            Debug.LogError("CreationManager: PawnRecipeData is null.");
+            LogManager.LogError(LogCategory.System, "PawnRecipeData is null.");
             return null;
         }
 
@@ -144,6 +145,6 @@ public class CreationManager : MonoBehaviour
             }
         }
         
-        Debug.Log($"Destroyed {allPawns.Length} pawns.");
+        LogManager.LogInfo(LogCategory.System, $"Destroyed {allPawns.Length} pawns.");
     }
 }

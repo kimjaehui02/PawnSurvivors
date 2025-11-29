@@ -13,7 +13,7 @@ namespace PawnSurvivors.Managers
         {
             if (!Directory.Exists(directoryPath))
             {
-                Debug.LogError($"Stage directory not found: {directoryPath}");
+                LogManager.LogError(LogCategory.Stage, $"Stage directory not found: {directoryPath}");
                 return;
             }
 

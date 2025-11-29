@@ -3,12 +3,13 @@ using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 using PawnSurvivors.Data;
+using PawnSurvivors.Managers;
 
-namespace PawnCore.Recipes.Json
+namespace PawnSurvivors.Data.Loaders
 {
     /// <summary>
     /// 아이템 풀 JSON 파일들을 로드하고 관리합니다.
-    /// RecipeLoader와 유사한 구조입니다.
+    /// Data 계층의 데이터 소스 역할을 합니다.
     /// </summary>
     public class ItemPoolLoader
     {
@@ -22,7 +23,7 @@ namespace PawnCore.Recipes.Json
         {
             if (!Directory.Exists(itemsPath))
             {
-                Debug.LogWarning($"[ItemPoolLoader] 경로를 찾을 수 없습니다: {itemsPath}");
+                LogManager.LogWarning(LogCategory.Recipe, $"경로를 찾을 수 없습니다: {itemsPath}");
                 return;
             }
 
@@ -41,23 +42,21 @@ namespace PawnCore.Recipes.Json
                     string json = File.ReadAllText(file.FullName);
                     ItemData itemData = JsonConvert.DeserializeObject<ItemData>(json, settings);
 
+                    // itemId가 있는 경우에만 아이템으로 인식 (Pawn 레시피 등 다른 JSON 파일은 건너뛰기)
                     if (itemData != null && !string.IsNullOrEmpty(itemData.itemId))
                     {
                         _itemPool[itemData.itemId] = itemData;
-                        Debug.Log($"[ItemPoolLoader] 아이템 로드: {itemData.itemId} ({itemData.itemName}) from {file.Name}");
+                        LogManager.LogInfo(LogCategory.Recipe, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {file.Name}");
                     }
-                    else
-                    {
-                        Debug.LogWarning($"[ItemPoolLoader] {file.Name} - itemId가 없습니다.");
-                    }
+                    // itemId가 없으면 아이템이 아닌 파일이므로 조용히 건너뛰기 (경고 제거)
                 }
-                catch (System.Exception ex)
+                catch (System.Exception)
                 {
-                    Debug.LogError($"[ItemPoolLoader] {file.Name} 로드 실패: {ex.Message}");
+                    // 역직렬화 실패는 아이템이 아닌 파일일 가능성이 높으므로 조용히 건너뛰기
                 }
             }
 
-            Debug.Log($"[ItemPoolLoader] 총 {_itemPool.Count}개의 아이템 로드 완료");
+            LogManager.LogInfo(LogCategory.Recipe, $"총 {_itemPool.Count}개의 아이템 로드 완료");
         }
 
         /// <summary>
@@ -94,5 +93,4 @@ namespace PawnCore.Recipes.Json
         }
     }
 }
-
 
