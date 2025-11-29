@@ -96,7 +96,7 @@ GameManager (최상위)
 
 **의존성:**
 - `CreationManager`: Pawn 생성
-- `StageLoader`: 스테이지 데이터 로드
+- `StageDataSource`: 스테이지 데이터 로드
 - `StageManagementUseCase`: 스테이지 비즈니스 로직 (세션 관리)
 
 **수정이 필요할 때:**
@@ -161,7 +161,7 @@ GameManager (오케스트레이션)
     ↓
 StageManager (스테이지 라이프사이클 전담) ⭐
     ├── StageManagementUseCase (비즈니스 로직)
-    ├── StageLoader (데이터 로드)
+    ├── StageDataSource (데이터 로드)
     └── CreationManager (Pawn 생성)
 ```
 
@@ -176,7 +176,7 @@ StageManager.StartStage(stageName, resetSession)
     ├── StageManagementUseCase.PrepareStageStart()  // 세션 준비
     ├── GameManager.CreatePlayerController()        // PlayerController 생성
     ├── GameManager.AddPlayerPawn()                 // 플레이어 생성
-    ├── StageLoader.GetStage()                      // 스테이지 데이터 로드
+    ├── StageDataSource.GetStage()                  // 스테이지 데이터 로드
     ├── InitializeStageData()                       // 스테이지 데이터 초기화
     └── StartStageInternal()                        // 내부 시작 로직
 ```
@@ -224,7 +224,7 @@ GameManager.EndStage()
 **의존성 주입:**
 - `StageManager`는 `GameManager.Awake()`에서 의존성 주입됨:
   ```csharp
-  StageManager.Initialize(CreationManager, StageLoader, StageManagementUseCase);
+  StageManager.Initialize(CreationManager, StageDataSource, StageManagementUseCase);
   ```
 
 ---

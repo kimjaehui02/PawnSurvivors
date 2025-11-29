@@ -3,13 +3,22 @@ using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 using PawnSurvivors.Managers;
+using PawnCore.Recipes.Json;
 
-namespace PawnCore.Recipes.Json
+namespace PawnSurvivors.Data.DataSources
 {
-    public class RecipeLoader
+    /// <summary>
+    /// Pawn 레시피 JSON 파일들을 읽어서 PawnRecipeData 모델로 반환하는 데이터 소스입니다.
+    /// Data 계층의 데이터 소스 역할을 담당합니다.
+    /// </summary>
+    public class RecipeDataSource
     {
-        private Dictionary<string, PawnRecipeData> recipes = new Dictionary<string, PawnRecipeData>();
+        private Dictionary<string, PawnRecipeData> _recipes = new Dictionary<string, PawnRecipeData>();
 
+        /// <summary>
+        /// 지정된 디렉토리에서 모든 Pawn 레시피 JSON 파일을 로드합니다.
+        /// </summary>
+        /// <param name="directoryPath">레시피 디렉토리 경로</param>
         public void LoadRecipes(string directoryPath)
         {
             if (!Directory.Exists(directoryPath))
@@ -41,7 +50,7 @@ namespace PawnCore.Recipes.Json
                         continue;
                     }
                     
-                    recipes[data.pawnName] = data;
+                    _recipes[data.pawnName] = data;
                     LogManager.LogInfo(LogCategory.Recipe, $"레시피 로드: {data.pawnName} (from {file.Name})");
                 }
                 catch (System.Exception ex)
@@ -50,13 +59,19 @@ namespace PawnCore.Recipes.Json
                 }
             }
             
-            LogManager.LogInfo(LogCategory.Recipe, $"총 {recipes.Count}개의 레시피 로드 완료");
+            LogManager.LogInfo(LogCategory.Recipe, $"총 {_recipes.Count}개의 레시피 로드 완료");
         }
 
+        /// <summary>
+        /// 레시피 이름으로 레시피 데이터를 가져옵니다.
+        /// </summary>
+        /// <param name="recipeName">레시피 이름</param>
+        /// <returns>PawnRecipeData 또는 null</returns>
         public PawnRecipeData GetRecipe(string recipeName)
         {
-            recipes.TryGetValue(recipeName, out PawnRecipeData recipe);
+            _recipes.TryGetValue(recipeName, out PawnRecipeData recipe);
             return recipe;
         }
     }
 }
+

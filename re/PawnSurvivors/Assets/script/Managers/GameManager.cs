@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using PawnSurvivors.Managers;
 using PawnSurvivors.Data;
 using PawnSurvivors.Data.Repositories;
@@ -14,7 +15,6 @@ public class GameManager : MonoBehaviour
     public LifecycleManager LifecycleManager { get; private set; }
     public CreationManager CreationManager { get; private set; }
     public StageManager StageManager { get; private set; }
-    public StageLoader _stageLoader;
     
     public FloatingEffectManager FloatingEffectManager { get; private set; }
     
@@ -54,9 +54,14 @@ public class GameManager : MonoBehaviour
     public PlayerController PlayerController { get; private set; }
     
     /// <summary>
-    /// 아이템 풀 로더 (아이템 JSON 파일 로드)
+    /// 아이템 풀 데이터 소스 (아이템 JSON 파일 로드)
     /// </summary>
-    private PawnSurvivors.Data.Loaders.ItemPoolLoader _itemPoolLoader;
+    private PawnSurvivors.Data.DataSources.ItemPoolDataSource _itemPoolDataSource;
+    
+    /// <summary>
+    /// 스테이지 데이터 소스 (스테이지 JSON 파일 로드)
+    /// </summary>
+    private PawnSurvivors.Data.DataSources.StageDataSource _stageDataSource;
 
     /// <summary>
     /// PlayerController를 생성하고 초기화합니다.
@@ -203,23 +208,24 @@ public class GameManager : MonoBehaviour
             SurvivalTimeTrackingUseCase = new SurvivalTimeTrackingUseCase(SessionDataRepository, LifecycleManager);
         }
 
-        _stageLoader = new StageLoader();
+        // StageDataSource 초기화
+        _stageDataSource = new PawnSurvivors.Data.DataSources.StageDataSource();
         string stagesPath = Path.Combine(Application.streamingAssetsPath, "Stages");
-        _stageLoader.LoadStages(stagesPath);
+        _stageDataSource.LoadStages(stagesPath);
 
-        // ItemPoolLoader 초기화
-        _itemPoolLoader = new PawnSurvivors.Data.Loaders.ItemPoolLoader();
+        // ItemPoolDataSource 초기화
+        _itemPoolDataSource = new PawnSurvivors.Data.DataSources.ItemPoolDataSource();
         string itemsPath = Path.Combine(Application.streamingAssetsPath, "Recipes", "Items");
-        _itemPoolLoader.LoadItems(itemsPath);
+        _itemPoolDataSource.LoadItems(itemsPath);
         
         // ItemPoolUseCase 초기화
-        var itemPoolRepository = new PawnSurvivors.Data.Repositories.ItemPoolRepository(_itemPoolLoader);
+        var itemPoolRepository = new PawnSurvivors.Data.Repositories.ItemPoolRepository(_itemPoolDataSource);
         ItemPoolUseCase = new ItemPoolUseCase(itemPoolRepository);
 
         // StageManager 초기화 (의존성 주입)
         if (StageManager != null)
         {
-            StageManager.Initialize(CreationManager, _stageLoader, StageManagementUseCase);
+            StageManager.Initialize(CreationManager, _stageDataSource, StageManagementUseCase);
         }
 
         if (LifecycleManager == null)
@@ -300,7 +306,15 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public StageData LoadStage(string stageName)
     {
-        return _stageLoader.GetStage(stageName);
+        return _stageDataSource?.GetStage(stageName);
+    }
+
+    /// <summary>
+    /// 모든 스테이지 이름 목록을 가져옵니다.
+    /// </summary>
+    public List<string> GetAllStageNames()
+    {
+        return _stageDataSource?.GetAllStageNames() ?? new List<string>();
     }
 
     public void PauseStage(string stageName)

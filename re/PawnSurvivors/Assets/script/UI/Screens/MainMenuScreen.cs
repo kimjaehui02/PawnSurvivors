@@ -35,20 +35,28 @@ namespace PawnSurvivors.UI
 
         private void InitializeStageDropdown()
         {
-            if (stageDropdown != null && GameManager.Instance?._stageLoader != null)
+            if (stageDropdown != null && GameManager.Instance != null)
             {
-                // 스테이지 목록 가져오기
-                var stageNames = GameManager.Instance._stageLoader.GetAllStageNames();
-                
-                // Dropdown 옵션 설정
-                stageDropdown.ClearOptions();
-                stageDropdown.AddOptions(stageNames);
-
-                // 첫 번째 스테이지를 기본 선택
-                if (stageNames.Count > 0)
+                // StageManager를 통해 스테이지 목록 가져오기
+                // StageManager가 StageDataSource를 가지고 있으므로 직접 접근
+                var stageManager = GameManager.Instance.StageManager;
+                if (stageManager != null)
                 {
-                    _selectedStage = stageNames[0];
-                    stageDropdown.value = 0;
+                    // StageManager에 GetAllStageNames 메서드가 있다면 사용
+                    // 없으면 GameManager에 public 메서드 추가 필요
+                    // 임시로 GameManager에 public 메서드 추가
+                    var stageNames = GameManager.Instance.GetAllStageNames();
+                    
+                    // Dropdown 옵션 설정
+                    stageDropdown.ClearOptions();
+                    stageDropdown.AddOptions(stageNames);
+
+                    // 첫 번째 스테이지를 기본 선택
+                    if (stageNames.Count > 0)
+                    {
+                        _selectedStage = stageNames[0];
+                        stageDropdown.value = 0;
+                    }
                 }
             }
         }
@@ -63,10 +71,10 @@ namespace PawnSurvivors.UI
 
         private void OnStageDropdownChanged(int index)
         {
-            if (GameManager.Instance?._stageLoader != null)
+            if (GameManager.Instance != null)
             {
-                var stageNames = GameManager.Instance._stageLoader.GetAllStageNames();
-                if (index >= 0 && index < stageNames.Count)
+                var stageNames = GameManager.Instance.GetAllStageNames();
+                if (stageNames != null && index >= 0 && index < stageNames.Count)
                 {
                     SelectStage(stageNames[index]);
                 }

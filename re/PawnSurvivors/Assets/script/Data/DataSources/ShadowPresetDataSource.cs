@@ -2,14 +2,15 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using PawnCore.Domain;
+using PawnSurvivors.Managers;
 
-namespace PawnCore.Recipes
+namespace PawnSurvivors.Data.DataSources
 {
     /// <summary>
-    /// ShadowPreset JSON 파일들을 로드하고 관리합니다.
-    /// RecipeLoader와 유사한 구조입니다.
+    /// ShadowPreset JSON 파일들을 읽어서 ShadowPresetData 모델로 반환하는 데이터 소스입니다.
+    /// Data 계층의 데이터 소스 역할을 담당합니다.
     /// </summary>
-    public class ShadowPresetLoader
+    public class ShadowPresetDataSource
     {
         private Dictionary<string, ShadowPresetData> _presets = new Dictionary<string, ShadowPresetData>();
 
@@ -21,7 +22,7 @@ namespace PawnCore.Recipes
         {
             if (!Directory.Exists(presetsPath))
             {
-                Debug.LogWarning($"ShadowPresetLoader: 경로를 찾을 수 없습니다: {presetsPath}");
+                LogManager.LogWarning(LogCategory.System, $"ShadowPresetDataSource: 경로를 찾을 수 없습니다: {presetsPath}");
                 return;
             }
 
@@ -37,20 +38,17 @@ namespace PawnCore.Recipes
                     if (preset != null && !string.IsNullOrEmpty(preset.presetName))
                     {
                         _presets[preset.presetName] = preset;
-                        // Debug.Log($"ShadowPresetLoader: '{preset.presetName}' 프리셋 로드 완료 from {Path.GetFileName(filePath)}");
                     }
                     else
                     {
-                        Debug.LogWarning($"ShadowPresetLoader: {Path.GetFileName(filePath)} - presetName이 없습니다.");
+                        LogManager.LogWarning(LogCategory.System, $"ShadowPresetDataSource: {Path.GetFileName(filePath)} - presetName이 없습니다.");
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"ShadowPresetLoader: {Path.GetFileName(filePath)} 로드 실패: {ex.Message}");
+                    LogManager.LogError(LogCategory.System, $"ShadowPresetDataSource: {Path.GetFileName(filePath)} 로드 실패: {ex.Message}");
                 }
             }
-
-            // Debug.Log($"ShadowPresetLoader: 총 {_presets.Count}개의 프리셋 로드 완료.");
         }
 
         /// <summary>
@@ -70,7 +68,7 @@ namespace PawnCore.Recipes
                 return preset;
             }
 
-            Debug.LogWarning($"ShadowPresetLoader: '{presetName}' 프리셋을 찾을 수 없습니다.");
+            LogManager.LogWarning(LogCategory.System, $"ShadowPresetDataSource: '{presetName}' 프리셋을 찾을 수 없습니다.");
             return null;
         }
 

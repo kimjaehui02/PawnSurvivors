@@ -84,7 +84,7 @@ LogManager.LogError(LogCategory.System, "치명적 오류 발생");
 
 | 카테고리 | 사용 예시 | 권장 Min Level |
 |---------|----------|---------------|
-| **Recipe** | RecipeLoader, ItemPoolLoader | Warning |
+| **Recipe** | RecipeDataSource, ItemPoolDataSource | Warning |
 | **Item** | 아이템 추가/제거, 구매 | Warning |
 | **Combat** | 데미지, 전투 이벤트 | Error |
 | **UI** | UI 생성/업데이트 | Error |
@@ -98,7 +98,7 @@ LogManager.LogError(LogCategory.System, "치명적 오류 발생");
 
 ## 🎯 실제 사용 예시
 
-### 예시 1: RecipeLoader
+### 예시 1: RecipeDataSource
 ```csharp
 // 레시피 로드 성공
 LogManager.LogInfo(LogCategory.Recipe, $"레시피 로드: {recipeName}");

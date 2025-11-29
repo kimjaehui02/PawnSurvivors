@@ -35,24 +35,25 @@ Debug/
 
 ### Repository와 Data Source 구조 개선
 
-**현재 문제점:**
-- Loader들(`RecipeLoader`, `StageLoader`, `ItemPoolLoader` 등)이 JSON을 직접 읽고 있음
-- Repository 구현체들이 데이터 소스를 직접 참조하지 않고 있음
-- Loader와 Repository가 분리되어 있어 연결이 약함
+**현재 상태:**
+- ✅ `ItemPoolLoader` → `ItemPoolDataSource`로 이름 변경 및 분리 완료
+- ✅ `ItemPoolRepository`가 `ItemPoolDataSource`를 사용하도록 개선 완료
+- ✅ 폴더 구조: `Data/DataSources/`로 명확히 구분
 
-**권장 구조:**
+**구조:**
 ```
-Data Source (JsonItemPoolDataSource)
+Data Source (ItemPoolDataSource)
 └── JSON 읽기 → ItemData 모델 반환
 
 Repository (ItemPoolRepository)
 └── Data Source로부터 ItemData 받음 → Domain 계층에 제공
 ```
 
-**개선 이유:**
-1. **관심사 분리**: Repository는 비즈니스 로직, Data Source는 데이터 로딩
-2. **테스트 용이**: Data Source를 Mock으로 교체 가능
-3. **확장성**: Data Source 변경(JSON → DB → 서버) 시 Repository 수정 최소화
+**개선 완료:**
+1. ✅ **관심사 분리**: Repository는 비즈니스 로직, Data Source는 데이터 로딩
+2. ✅ **테스트 용이**: Data Source를 Mock으로 교체 가능
+3. ✅ **확장성**: Data Source 변경(JSON → DB → 서버) 시 Repository 수정 최소화
+4. ✅ **네이밍 규칙**: 데이터소스는 "DataSource"로 명확하게 명명
 4. **Clean Architecture 준수**: Repository가 Data Source에 의존하되, 인터페이스로 분리
 
 **적용 대상:**

@@ -5,13 +5,13 @@ using Newtonsoft.Json;
 using PawnSurvivors.Data;
 using PawnSurvivors.Managers;
 
-namespace PawnSurvivors.Data.Loaders
+namespace PawnSurvivors.Data.DataSources
 {
     /// <summary>
-    /// 아이템 풀 JSON 파일들을 로드하고 관리합니다.
-    /// Data 계층의 데이터 소스 역할을 합니다.
+    /// 아이템 풀 JSON 파일들을 읽어서 ItemData 모델로 반환하는 데이터 소스입니다.
+    /// Data 계층의 데이터 소스 역할을 담당합니다.
     /// </summary>
-    public class ItemPoolLoader
+    public class ItemPoolDataSource
     {
         private Dictionary<string, ItemData> _itemPool = new Dictionary<string, ItemData>();
 

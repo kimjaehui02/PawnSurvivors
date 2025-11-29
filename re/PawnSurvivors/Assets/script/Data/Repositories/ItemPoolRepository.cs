@@ -2,36 +2,36 @@ using System.Collections.Generic;
 using PawnSurvivors.Data;
 using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Repositories;
-using PawnSurvivors.Data.Loaders;
+using PawnSurvivors.Data.DataSources;
 
 namespace PawnSurvivors.Data.Repositories
 {
     /// <summary>
-    /// ItemPoolLoader를 IItemPoolRepository로 감싸는 어댑터입니다.
-    /// 실제 게임에서 사용하는 Repository 구현체입니다.
+    /// IItemPoolRepository의 구현체입니다.
+    /// ItemPoolDataSource로부터 데이터를 받아 Domain 계층에 제공합니다.
     /// </summary>
     public class ItemPoolRepository : IItemPoolRepository
     {
-        private readonly ItemPoolLoader _itemPoolLoader;
+        private readonly ItemPoolDataSource _dataSource;
 
-        public ItemPoolRepository(ItemPoolLoader itemPoolLoader)
+        public ItemPoolRepository(ItemPoolDataSource dataSource)
         {
-            _itemPoolLoader = itemPoolLoader;
+            _dataSource = dataSource;
         }
 
         public ItemData GetItem(string itemId)
         {
-            return _itemPoolLoader.GetItem(itemId);
+            return _dataSource.GetItem(itemId);
         }
 
         public List<ItemData> GetAllItems()
         {
-            return _itemPoolLoader.GetAllItems();
+            return _dataSource.GetAllItems();
         }
 
         public List<ItemData> GetItemsByType(ItemType itemType)
         {
-            return _itemPoolLoader.GetItemsByType(itemType);
+            return _dataSource.GetItemsByType(itemType);
         }
     }
 }

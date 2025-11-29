@@ -8,7 +8,7 @@ namespace PawnSurvivors.Managers
     /// </summary>
     public enum LogCategory
     {
-        Recipe,      // RecipeLoader, ItemPoolLoader 등
+        Recipe,      // RecipeDataSource, ItemPoolDataSource 등
         Item,        // 아이템 관련
         Combat,      // 전투, 데미지 등
         UI,          // UI 관련

@@ -1,26 +1,26 @@
 using UnityEngine;
 using PawnCore.Recipes.Json;
-using PawnCore.Recipes;
 using System.IO;
 using System.Linq;
 using PawnCore.Domain;
 using PawnSurvivors.Managers;
+using PawnSurvivors.Data.DataSources;
 
 public class CreationManager : MonoBehaviour
 {
-    private RecipeLoader recipeLoader;
-    private ShadowPresetLoader shadowPresetLoader;
+    private RecipeDataSource _recipeDataSource;
+    private ShadowPresetDataSource _shadowPresetDataSource;
 
     private void Awake()
     {
-        recipeLoader = new RecipeLoader();
+        _recipeDataSource = new RecipeDataSource();
         string recipesPath = Path.Combine(Application.streamingAssetsPath, "Recipes");
-        recipeLoader.LoadRecipes(recipesPath);
+        _recipeDataSource.LoadRecipes(recipesPath);
         
         // ShadowPreset 로드
-        shadowPresetLoader = new ShadowPresetLoader();
+        _shadowPresetDataSource = new ShadowPresetDataSource();
         string shadowPresetsPath = Path.Combine(Application.streamingAssetsPath, "ShadowPresets");
-        shadowPresetLoader.LoadPresets(shadowPresetsPath);
+        _shadowPresetDataSource.LoadPresets(shadowPresetsPath);
     }
     
     /// <summary>
@@ -28,17 +28,17 @@ public class CreationManager : MonoBehaviour
     /// </summary>
     public ShadowPresetData GetShadowPreset(string presetName)
     {
-        return shadowPresetLoader?.GetPreset(presetName);
+        return _shadowPresetDataSource?.GetPreset(presetName);
     }
 
     public PawnRecipeData GetRecipe(string recipeName)
     {
-        return recipeLoader.GetRecipe(recipeName);
+        return _recipeDataSource.GetRecipe(recipeName);
     }
 
     public GameObject CreatePawn(string recipeName, Vector3 position, Quaternion rotation)
     {
-        PawnRecipeData recipeData = recipeLoader.GetRecipe(recipeName);
+        PawnRecipeData recipeData = _recipeDataSource.GetRecipe(recipeName);
         if (recipeData == null)
         {
             LogManager.LogError(LogCategory.System, $"PawnRecipe with name '{recipeName}' not found.");

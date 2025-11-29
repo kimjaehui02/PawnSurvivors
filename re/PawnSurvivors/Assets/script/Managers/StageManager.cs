@@ -10,7 +10,7 @@ using PawnSurvivors.Player;
 public class StageManager : MonoBehaviour
 {
     private CreationManager _creationManager;
-    private StageLoader _stageLoader;
+    private PawnSurvivors.Data.DataSources.StageDataSource _stageDataSource;
     private StageManagementUseCase _stageManagementUseCase;
     private StageData _currentStageData;
 
@@ -25,10 +25,10 @@ public class StageManager : MonoBehaviour
     /// <summary>
     /// StageManager를 초기화합니다. (의존성 주입)
     /// </summary>
-    public void Initialize(CreationManager creationManager, StageLoader stageLoader, StageManagementUseCase stageManagementUseCase)
+    public void Initialize(CreationManager creationManager, PawnSurvivors.Data.DataSources.StageDataSource stageDataSource, StageManagementUseCase stageManagementUseCase)
     {
         _creationManager = creationManager;
-        _stageLoader = stageLoader;
+        _stageDataSource = stageDataSource;
         _stageManagementUseCase = stageManagementUseCase;
     }
 
@@ -55,9 +55,9 @@ public class StageManager : MonoBehaviour
         }
 
         // 스테이지 로드 및 초기화
-        if (_stageLoader != null)
+        if (_stageDataSource != null)
         {
-            StageData stageData = _stageLoader.GetStage(stageName);
+            StageData stageData = _stageDataSource.GetStage(stageName);
             if (stageData != null)
             {
                 InitializeStageData(stageData);
@@ -71,7 +71,7 @@ public class StageManager : MonoBehaviour
         }
         else
         {
-            LogManager.LogError(LogCategory.Stage, "StageLoader가 초기화되지 않았습니다!");
+            LogManager.LogError(LogCategory.Stage, "StageDataSource가 초기화되지 않았습니다!");
         }
     }
 
