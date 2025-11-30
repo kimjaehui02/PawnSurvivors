@@ -58,10 +58,10 @@ namespace PawnSurvivors.UI
             {
                 ShowPauseMenu();
             }
-            // 상점 화면이 활성화되어 있으면 메인 메뉴로
+            // 상점 화면이 활성화되어 있으면 일시정지 메뉴 열기
             else if (shopScreen != null && shopScreen.activeSelf)
             {
-                ReturnToMainMenu();
+                ShowPauseMenu();
             }
         }
 

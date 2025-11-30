@@ -27,7 +27,6 @@ namespace PawnSurvivors.UI
         [SerializeField] private Button OptionButton;
 
         [SerializeField] private TMP_Text stageTimeText;
-        [SerializeField] private TMP_Text healthText;
         
         [Header("LevelUp UI")]
         [SerializeField] private RectTransform levelUpContainer; // 모든 캐릭터 정보를 담을 컨테이너
@@ -89,7 +88,6 @@ namespace PawnSurvivors.UI
         {
             UpdateStageTime();
             UpdateTooltipPosition(); // 툴팁 위치를 마우스에 따라 실시간 업데이트
-            UpdateHealth();
             UpdateLevelUpProgress();
             // HandleInput() 제거: UIManager에서 ESC 처리
         }
@@ -159,28 +157,6 @@ namespace PawnSurvivors.UI
             }
         }
 
-        private void UpdateHealth()
-        {
-            if (healthText != null && GameManager.Instance?.CreationManager != null)
-            {
-                // Player 폰을 찾아서 체력 표시
-                GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-                if (playerObject != null)
-                {
-                    var pawnManager = playerObject.GetComponent<PawnManager>();
-                    if (pawnManager != null && pawnManager.PawnData != null)
-                    {
-                        var healthData = pawnManager.PawnData.healthData;
-                        healthText.text = $"HP: {healthData.currentHealth:F0}/{healthData.maxHealth:F0}";
-                    }
-                }
-                else
-                {
-                    healthText.text = "HP: --/--";
-                }
-            }
-        }
-        
         private float GetGameDeltaTime()
         {
             if (GameManager.Instance?.LifecycleManager != null)

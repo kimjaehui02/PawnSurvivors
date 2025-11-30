@@ -1076,7 +1076,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba0c49aaa6d8e664f90dc0a41ff24f8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enableAll: 1
+  enableAll: 0
   categoryFilters: []
 --- !u!4 &1424754338
 Transform:
