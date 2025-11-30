@@ -280,16 +280,176 @@ re/PawnSurvivors/
 
 ---
 
+## 💥 충돌 데미지 시스템
+
+적이 플레이어를 들이받아 데미지를 주거나, 발사체가 충돌 시 데미지를 주는 시스템입니다.
+
+### 주요 기능
+
+#### 1. 충돌 시 파괴 여부 설정 (`destroyOnHit`)
+- **발사체**: `destroyOnHit: true` → 충돌 후 파괴됨
+- **근접 공격 유닛 (적)**: `destroyOnHit: false` → 충돌해도 살아있음
+
+#### 2. 피격 시 추가 효과
+`PawnDamagedEvent`를 구독하여 다양한 피격 효과를 구현할 수 있습니다:
+- 무적 (예시 구현: `InvincibilitySubManager`)
+- 넉백
+- 피격 이펙트
+- 피격 사운드
+- 카메라 쉐이크
+
+### 사용 방법
+
+#### 발사체 (Bullet) 설정
+```json
+{
+  "pawnName": "Bullet",
+  "subManagerSetups": [
+    {
+      "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
+      "damage": 10,
+      "destroyOnHit": true
+    }
+  ]
+}
+```
+
+#### 근접 공격 유닛 (Enemy) 설정
+```json
+{
+  "pawnName": "Enemy",
+  "subManagerSetups": [
+    {
+      "$type": "PawnCore.Recipes.Json.CollisionDamageSubManagerSetupData, Assembly-CSharp",
+      "damage": 5,
+      "destroyOnHit": false
+    },
+    {
+      "$type": "PawnCore.Recipes.Json.DamageableSubManagerSetupData, Assembly-CSharp",
+      "maxHealth": 50
+    }
+  ]
+}
+```
+
+### 이벤트 흐름
+
+```
+충돌 발생
+    ↓
+CollisionDamageSubManager가 충돌 감지
+    ↓
+DamageEvent 발행 (데미지 적용 전)
+    ↓
+DamageableSubManager가 데미지 적용
+    ↓
+PawnDamagedEvent 발행 (데미지 적용 후) ← 여기서 추가 효과 구현!
+    ↓
+InvincibilitySubManager 등이 반응
+    ↓
+체력 0 이하? → PawnDeathEvent 발행
+```
+
+### 커스텀 피격 효과 만들기
+
+새로운 SubManager를 만들고 `PawnDamagedEvent`를 구독하세요:
+
+```csharp
+using UnityEngine;
+using PawnCore.Domain.Events;
+
+public class MyCustomHitEffectSubManager : PawnSubManager
+{
+    public override void SubStart()
+    {
+        // 피격 이벤트 구독
+        _pawnManager.Subscribe<PawnDamagedEvent>(HandlePawnDamaged);
+    }
+
+    private void OnDisable()
+    {
+        if (_pawnManager != null)
+        {
+            _pawnManager.Unsubscribe<PawnDamagedEvent>(HandlePawnDamaged);
+        }
+    }
+
+    private void HandlePawnDamaged(PawnDamagedEvent evt)
+    {
+        // 이 Pawn을 대상으로 한 피격인지 확인
+        if (evt.Target != _pawnManager) return;
+
+        // 여기에 원하는 효과 구현
+        // 예: 넉백, 이펙트 재생, 사운드 재생 등
+    }
+}
+```
+
+---
+
+## 📝 LogManager 사용법
+
+`LogManager`는 Unity 프로젝트의 모든 디버그 로그를 중앙에서 관리하는 시스템입니다. 카테고리별, 레벨별 필터링으로 로그 스팸을 제어할 수 있습니다.
+
+### 기본 사용법
+
+#### Unity Inspector에서 설정
+1. Unity Editor에서 씬에 빈 GameObject 생성
+2. `LogManager` 컴포넌트 추가
+3. Inspector에서 `LogManager` 컴포넌트 설정
+4. **중요**: 씬에 LogManager가 없으면 모든 로그가 출력되지 않습니다
+
+#### 코드에서 사용하기
+```csharp
+using PawnSurvivors.Managers;
+
+// 기존 방식
+Debug.Log("메시지");
+Debug.LogWarning("경고");
+Debug.LogError("에러");
+
+// LogManager 방식
+LogManager.LogInfo(LogCategory.System, "메시지");
+LogManager.LogWarning(LogCategory.System, "경고");
+LogManager.LogError(LogCategory.System, "에러");
+```
+
+### 카테고리 선택 가이드
+
+| 카테고리 | 사용 예시 | 권장 Min Level |
+|---------|----------|---------------|
+| **Recipe** | RecipeDataSource, ItemPoolDataSource | Warning |
+| **Item** | 아이템 추가/제거, 구매 | Warning |
+| **Combat** | 데미지, 전투 이벤트 | Error |
+| **UI** | UI 생성/업데이트 | Error |
+| **Debug** | 디버깅용 테스트 코드 | Debug (평소 꺼둠) |
+| **System** | GameManager, StageManager | Warning |
+| **Pawn** | Pawn 생성/파괴 | Warning |
+| **Data** | 데이터 로딩/저장 | Warning |
+| **Stage** | 스테이지 시작/종료 | Info |
+
+### 문제 해결
+
+**로그가 안 나와요**
+1. 씬에 LogManager 있는지 확인
+2. Inspector에서 `Enable All`이 켜져 있는지 확인
+3. 카테고리의 `Enabled`가 켜져 있는지 확인
+4. `Min Level`이 로그 레벨보다 낮거나 같은지 확인
+
+**로그가 너무 많아요**
+1. Debug 카테고리 끄기: `Enabled = false`
+2. Min Level 올리기: `Info` → `Warning` → `Error`
+3. 전체 끄기: `Enable All = false` (Error는 여전히 표시됨)
+
+---
+
 ## 📚 상세 문서
 
-프로젝트 내에는 여러 위치에 상세한 README 문서들이 있습니다:
+프로젝트 내 핵심 아키텍처 관련 상세 문서:
 
-- **전역 매니저**: `Assets/script/Managers/README.md`
-- **PawnCore 아키텍처**: `Assets/script/PawnCore/README.md`
-- **레시피 시스템**: `Assets/script/PawnCore/Recipes/README.md`
-- **이동 시스템**: `Assets/script/PawnCore/Presentation/SubManagers/Movement/README.md`
-- **이벤트 시스템**: `Assets/script/PawnCore/Domain/Events/README.md`
-- **유스케이스**: `Assets/script/PawnCore/Domain/Usecases/README.md`
+- **PawnCore 아키텍처**: `re/PawnSurvivors/Assets/script/PawnCore/README.md`
+- **이벤트 시스템**: `re/PawnSurvivors/Assets/script/Clean Architecture/Domain/Events/README.md`
+- **유스케이스**: `re/PawnSurvivors/Assets/script/Clean Architecture/Domain/Usecases/README.md`
 
 ---
 

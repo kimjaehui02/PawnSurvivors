@@ -63,6 +63,11 @@ public class GameManager : MonoBehaviour
     /// 스테이지 데이터 소스 (스테이지 JSON 파일 로드)
     /// </summary>
     private PawnSurvivors.Data.DataSources.StageDataSource _stageDataSource;
+    
+    /// <summary>
+    /// 스테이지 리스트 데이터 소스 (스테이지 순서 정의)
+    /// </summary>
+    private PawnSurvivors.Data.DataSources.StageListDataSource _stageListDataSource;
 
     /// <summary>
     /// PlayerController를 생성하고 초기화합니다.
@@ -179,13 +184,23 @@ public class GameManager : MonoBehaviour
         SessionDataRepository = new SessionDataRepository(_sessionData);
         ItemRepository = new ItemRepository(_sessionData);
         
+        // StageDataSource 초기화 (UseCase보다 먼저 초기화 필요)
+        _stageDataSource = new PawnSurvivors.Data.DataSources.StageDataSource();
+        string stagesPath = Path.Combine(Application.streamingAssetsPath, "Stages");
+        _stageDataSource.LoadStages(stagesPath);
+        
+        // StageListDataSource 초기화
+        _stageListDataSource = new PawnSurvivors.Data.DataSources.StageListDataSource();
+        string stageListPath = Path.Combine(Application.streamingAssetsPath, "Stages", "StageList.json");
+        _stageListDataSource.LoadStageList(stageListPath);
+
         // UseCase 초기화
         DamageTrackingUseCase = new DamageTrackingUseCase(SessionDataRepository);
         KillTrackingUseCase = new KillTrackingUseCase(SessionDataRepository);
         SurvivalTimeTrackingUseCase = new SurvivalTimeTrackingUseCase(SessionDataRepository, null); // LifecycleManager는 나중에 설정
         SessionManagementUseCase = new SessionManagementUseCase(SessionDataRepository);
         CurrencyUseCase = new CurrencyUseCase(SessionDataRepository);
-        StageManagementUseCase = new StageManagementUseCase(SessionDataRepository);
+        StageManagementUseCase = new StageManagementUseCase(SessionDataRepository, _stageListDataSource);
         PawnPersistenceUseCase = new PawnPersistenceUseCase(_sessionData);
         ItemManagementUseCase = new ItemManagementUseCase(ItemRepository, SessionDataRepository, CurrencyUseCase);
         PawnStatCalculator = new PawnStatCalculator(ItemRepository);
@@ -209,10 +224,7 @@ public class GameManager : MonoBehaviour
             SurvivalTimeTrackingUseCase = new SurvivalTimeTrackingUseCase(SessionDataRepository, LifecycleManager);
         }
 
-        // StageDataSource 초기화
-        _stageDataSource = new PawnSurvivors.Data.DataSources.StageDataSource();
-        string stagesPath = Path.Combine(Application.streamingAssetsPath, "Stages");
-        _stageDataSource.LoadStages(stagesPath);
+        // StageDataSource는 위에서 이미 초기화됨
 
         // ItemPoolDataSource 초기화
         _itemPoolDataSource = new PawnSurvivors.Data.DataSources.ItemPoolDataSource();

@@ -1,4 +1,5 @@
 using PawnSurvivors.Domain.Repositories;
+using PawnSurvivors.Data.DataSources;
 
 namespace PawnSurvivors.Domain.Usecases
 {
@@ -9,10 +10,12 @@ namespace PawnSurvivors.Domain.Usecases
     public class StageManagementUseCase
     {
         private readonly ISessionDataRepository _sessionRepository;
+        private readonly StageListDataSource _stageListDataSource;
 
-        public StageManagementUseCase(ISessionDataRepository sessionRepository)
+        public StageManagementUseCase(ISessionDataRepository sessionRepository, StageListDataSource stageListDataSource = null)
         {
             _sessionRepository = sessionRepository;
+            _stageListDataSource = stageListDataSource;
         }
 
         /// <summary>
@@ -48,6 +51,21 @@ namespace PawnSurvivors.Domain.Usecases
         {
             // 스테이지 종료 시 필요한 데이터 정리 로직
             // 현재는 세션 데이터는 유지 (상점에서 돌아올 수 있으므로)
+        }
+
+        /// <summary>
+        /// 현재 스테이지의 다음 스테이지 이름을 가져옵니다.
+        /// </summary>
+        /// <returns>다음 스테이지 이름, 없으면 null (마지막 스테이지)</returns>
+        public string GetNextStageName()
+        {
+            if (_stageListDataSource == null)
+            {
+                return null;
+            }
+
+            string currentStageName = GetCurrentStageName();
+            return _stageListDataSource.GetNextStageName(currentStageName);
         }
     }
 }

@@ -144,9 +144,10 @@ namespace PawnSurvivors.UI
             
             if (stageTimeText != null)
             {
-                float gameTime = GetGameTime();
-                int minutes = Mathf.FloorToInt(gameTime / 60f);
-                int seconds = Mathf.FloorToInt(gameTime % 60f);
+                // 남은 시간 표시 (15에서 0까지 줄어드는 방식)
+                float remainingTime = Mathf.Max(0f, stageTime);
+                int minutes = Mathf.FloorToInt(remainingTime / 60f);
+                int seconds = Mathf.FloorToInt(remainingTime % 60f);
                 stageTimeText.text = $"Time: {minutes:00}:{seconds:00}";
             }
 

@@ -203,14 +203,29 @@ namespace PawnSurvivors.UI
 
         private void OnNextStageButtonClicked()
         {
-            if (UIManager.Instance != null)
+            if (GameManager.Instance != null && GameManager.Instance.StageManagementUseCase != null)
             {
-                UIManager.Instance.ShowStageScreen();
-            }
-            
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.StartStage("Stage1", resetSession: false);
+                // 다음 스테이지 이름 가져오기
+                string nextStageName = GameManager.Instance.StageManagementUseCase.GetNextStageName();
+                
+                if (string.IsNullOrEmpty(nextStageName))
+                {
+                    // 마지막 스테이지면 메인 메뉴로 돌아가기 (또는 게임 종료 처리)
+                    LogManager.LogInfo(LogCategory.Stage, "모든 스테이지를 완료했습니다!");
+                    if (UIManager.Instance != null)
+                    {
+                        UIManager.Instance.ReturnToMainMenu();
+                    }
+                    return;
+                }
+                
+                // 다음 스테이지로 이동
+                if (UIManager.Instance != null)
+                {
+                    UIManager.Instance.ShowStageScreen();
+                }
+                
+                GameManager.Instance.StartStage(nextStageName, resetSession: false);
             }
         }
 

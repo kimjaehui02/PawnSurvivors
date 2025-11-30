@@ -1,0 +1,162 @@
+1. 유저에게 해야할 일과 하고싶은 일을 주자
+2. pawn종류를 더 추가하여 시너지효과를 가진 덱빌딩을 하자
+3. 보스를 추가하여 도전욕구를 자극하자
+
+=== UI 도트 픽셀 퍼펙트 설정 방법 ===
+목표: UI도 도트로 만들고 게임 월드와 같은 픽셀 크기로 맞추기
+
+현재 설정:
+- Pixel Perfect Camera: 640x360, AssetsPPU: 40
+- UI Canvas: ScreenSpaceOverlay, referenceResolution: 1920x1080, PixelPerfect: false
+
+방법 1: UI Canvas를 Pixel Perfect Camera에 연결 (권장)
+1. Canvas Render Mode 변경
+   - ScreenSpaceOverlay → ScreenSpaceCamera
+   - Render Camera를 Pixel Perfect Camera로 설정
+2. Canvas Pixel Perfect 활성화
+   - Canvas의 Pixel Perfect 옵션 활성화
+3. CanvasScaler 설정 변경
+   - Reference Resolution: 640x360 (Pixel Perfect Camera와 동일)
+   - Scale Mode: Constant Pixel Size 또는 Scale With Screen Size
+   - Reference Pixels Per Unit: 40 (AssetsPPU와 동일)
+
+방법 2: Canvas Pixel Perfect만 사용
+1. Canvas Render Mode 유지
+   - ScreenSpaceOverlay 유지 가능
+2. Canvas Pixel Perfect 활성화
+   - Canvas의 Pixel Perfect 옵션 활성화
+3. CanvasScaler 설정
+   - Reference Resolution: 640x360
+   - Scale Mode: Constant Pixel Size
+   - Reference Pixels Per Unit: 40
+
+설정 예시:
+Canvas:
+  - Render Mode: ScreenSpaceCamera (또는 ScreenSpaceOverlay)
+  - Render Camera: Pixel Perfect Camera (ScreenSpaceCamera일 때)
+  - Pixel Perfect: 활성화
+
+CanvasScaler:
+  - Scale Mode: Constant Pixel Size
+  - Reference Resolution: (640, 360)
+  - Reference Pixels Per Unit: 40
+
+결과:
+- 게임 월드와 UI가 같은 픽셀 크기로 렌더링됨
+- 도트 UI가 픽셀 퍼펙트로 표시됨
+- WebGL 빌드 시에도 일관된 픽셀 크기 유지
+
+=== UI 도트 픽셀 크기 유지 방법 (RectTransform 크기 설정) ===
+질문: UI는 RectTransform 크기를 주고 스프라이트가 그에 맞춰 스케일링되는데, 
+      도트 한 칸 크기를 정확히 유지할 수 있나?
+
+답변: 가능합니다! 핵심은 PPU(Pixels Per Unit)를 맞추는 것입니다.
+
+원리:
+1. Unity UI는 RectTransform의 크기(유닛 단위)를 기준으로 작동
+2. 스프라이트의 실제 픽셀 크기 = RectTransform 크기(유닛) × PPU
+3. 도트 픽셀 퍼펙트를 유지하려면:
+   - 스프라이트의 PPU = Canvas의 Reference PPU로 맞춤
+   - RectTransform 크기 = 스프라이트 픽셀 크기 / PPU
+
+설정 방법:
+1. 스프라이트 임포트 설정:
+   - Texture Type: Sprite (2D and UI)
+   - Pixels Per Unit: 40 (게임 월드 PPU와 동일)
+   - Filter Mode: Point (no filter) - 도트 선명도 유지
+   - Compression: None - 원본 품질 유지
+
+2. CanvasScaler 설정:
+   - Reference Pixels Per Unit: 40 (스프라이트 PPU와 동일)
+
+3. RectTransform 크기 설정:
+   - 예: 16x16 픽셀 스프라이트, PPU 40인 경우
+   - RectTransform Width = 16 / 40 = 0.4 유닛
+   - RectTransform Height = 16 / 40 = 0.4 유닛
+   - 또는 픽셀 단위로 직접 설정: Width = 16, Height = 16 (PPU가 맞으면 자동 변환)
+
+4. Canvas Pixel Perfect 활성화:
+   - Canvas의 Pixel Perfect 옵션 활성화
+   - 픽셀 스냅핑으로 정확한 픽셀 크기 유지
+
+예시 (정사각형):
+- 16x16 픽셀 버튼 스프라이트
+- 스프라이트 PPU: 40
+- Canvas Reference PPU: 40
+- RectTransform 크기: (0.4, 0.4) 유닛 또는 (16, 16) 픽셀
+- 결과: 정확히 16x16 픽셀로 렌더링됨
+
+예시 (직사각형):
+- 40x48 픽셀 스프라이트 (정사각형이 아닌 경우)
+- 스프라이트 PPU: 40
+- Canvas Reference PPU: 40
+- RectTransform Width = 40 / 40 = 1.0 유닛
+- RectTransform Height = 48 / 40 = 1.2 유닛
+- 또는 픽셀 단위로: (40, 48) 픽셀
+- 결과: 정확히 40x48 픽셀로 렌더링됨 (가로와 세로 비율 유지)
+
+중요:
+- 직사각형 스프라이트도 동일한 방식으로 작동
+- 가로와 세로를 각각 계산: Width = 픽셀너비 / PPU, Height = 픽셀높이 / PPU
+- PPU가 같으면 가로세로 비율이 정확히 유지됨
+
+주의사항:
+- 스프라이트 PPU와 Canvas Reference PPU가 다르면 크기가 어긋남
+- RectTransform 크기를 임의로 조정하면 픽셀 퍼펙트가 깨질 수 있음
+- 모든 UI 스프라이트의 PPU를 통일하는 것이 중요
+
+=== Canvas Render Mode 설명 ===
+Unity Canvas 컴포넌트에는 3가지 렌더 모드가 있습니다:
+
+1. Screen Space - Overlay (화면 공간 - 오버레이)
+   - 의미: UI가 화면 최상위 레이어에 그려짐
+   - 특징:
+     * 카메라의 영향을 받지 않음
+     * 화면 크기에 따라 자동 조정
+     * 가장 빠른 렌더링 성능
+     * UI가 항상 최상위에 표시됨
+   - 사용 예시:
+     * 일반적인 HUD (체력바, 점수 등)
+     * 메뉴 화면
+     * 고정된 UI 요소
+   - 장점: 성능이 좋고 설정이 간단
+   - 단점: 3D 효과나 카메라 효과를 적용할 수 없음
+
+2. Screen Space - Camera (화면 공간 - 카메라)
+   - 의미: UI가 특정 카메라를 통해 렌더링됨
+   - 특징:
+     * 지정한 카메라의 뷰포트와 원근법 영향을 받음
+     * 카메라의 위치/회전에 따라 변할 수 있음
+     * 카메라 효과(블러, 후처리 등) 적용 가능
+     * Pixel Perfect Camera와 연결 가능
+   - 사용 예시:
+     * 픽셀 퍼펙트 UI (도트 게임)
+     * 카메라 효과가 필요한 UI
+     * 3D 환경과 상호작용하는 UI
+   - 장점: 카메라 효과 적용 가능, 픽셀 퍼펙트 지원
+   - 단점: Overlay보다 약간 느림
+
+3. World Space (월드 공간)
+   - 의미: UI가 3D 월드의 오브젝트로 배치됨
+   - 특징:
+     * 게임 오브젝트와 동일하게 동작
+     * 3D 공간에서 위치/크기/회전 가능
+     * 카메라가 움직이면 UI도 함께 움직임
+     * 다른 오브젝트에 가려질 수 있음
+   - 사용 예시:
+     * 게임 내 표지판
+     * NPC 대화창
+     * 3D 공간에 배치된 UI
+     * VR/AR UI
+   - 장점: 3D 공간에 자연스럽게 배치 가능
+   - 단점: 가장 느리고 설정이 복잡
+
+비교:
+- 성능: Overlay > Camera > World Space
+- 유연성: World Space > Camera > Overlay
+- 픽셀 퍼펙트: Camera (Pixel Perfect Camera 연결 시) > Overlay > World Space
+
+도트 게임 UI 권장 설정:
+- Screen Space - Camera + Pixel Perfect Camera 연결
+- 또는 Screen Space - Overlay + Canvas Pixel Perfect 활성화
+
