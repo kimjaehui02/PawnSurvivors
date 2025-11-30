@@ -15,12 +15,12 @@ namespace PawnSurvivors.Examples
         void Example_StartWithMultiplePlayers()
         {
             // 방법 A: 하나씩 추가
-            GameManager.Instance.AddPlayerPawn("Player");   // Recipe 이름
+            GameManager.Instance.AddPlayerPawn("PlayerErpin");   // Recipe 이름
             GameManager.Instance.AddPlayerPawn("Warrior");
             GameManager.Instance.AddPlayerPawn("Mage");
             
             // 방법 B: 배열로 한 번에 추가
-            string[] party = new string[] { "Player", "Warrior", "Mage", "Archer" };
+            string[] party = new string[] { "PlayerErpin", "Warrior", "Mage", "Archer" };
             GameManager.Instance.AddMultiplePlayerPawns(party);
         }
         

@@ -90,11 +90,11 @@ public class GameManager : MonoBehaviour
         
         // ========== 초기 플레이어 생성 ==========
         // 각 캐릭터 1개씩
-        AddPlayerPawn("Player");
+        AddPlayerPawn("PlayerErpin");
         AddPlayerPawn("PlayerButter");
         AddPlayerPawn("PlayerOpal");
         
-        LogManager.LogInfo(LogCategory.System, "총 3명의 플레이어 생성 완료 (Player x1, PlayerButter x1, PlayerOpal x1)");
+        LogManager.LogInfo(LogCategory.System, "총 3명의 플레이어 생성 완료 (PlayerErpin x1, PlayerButter x1, PlayerOpal x1)");
         // ========== 초기 플레이어 생성 끝 ==========
         
         // ========== 테스트용 아이템 추가 ==========
