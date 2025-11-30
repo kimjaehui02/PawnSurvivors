@@ -94,11 +94,11 @@ namespace PawnSurvivors.Presentation.SubManagers.Visual
             // 찾을 수 없거나 지정되지 않은 경우 기본 원 스프라이트로 대체
             if (visualSprite == null)
             {
-                visualSprite = Resources.Load<Sprite>("Temporary/Circle");
+                visualSprite = Resources.Load<Sprite>("Sprites/ex/Circle");
                 
                 if (visualSprite == null)
                 {
-                    Debug.LogError("VisualSubManager: 'Resources/Temporary/Circle'에서 기본 원 스프라이트를 찾을 수 없습니다. 시각적 개체가 인스턴스화되지 않습니다.", this);
+                    Debug.LogError("VisualSubManager: 'Resources/Sprites/ex/Circle'에서 기본 원 스프라이트를 찾을 수 없습니다. 시각적 개체가 인스턴스화되지 않습니다.", this);
                     return; // 렌더링할 스프라이트 없음
                 }
                 
@@ -182,7 +182,7 @@ namespace PawnSurvivors.Presentation.SubManagers.Visual
             _shadowRenderer = _shadowObject.AddComponent<SpriteRenderer>();
 
             // 타원형 그림자용 스프라이트 (기본 Circle 사용)
-            Sprite shadowSprite = Resources.Load<Sprite>("Temporary/Circle");
+            Sprite shadowSprite = Resources.Load<Sprite>("Sprites/ex/Circle");
             if (shadowSprite == null)
             {
                 Debug.LogWarning("VisualSubManager: 그림자용 Circle 스프라이트를 찾을 수 없습니다.");
