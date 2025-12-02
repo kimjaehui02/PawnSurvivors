@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace PawnSurvivors.Managers
 {
     /// <summary>
     /// 화면 비율을 강제로 고정하고 레터박스를 추가하는 매니저
+    /// Pixel Perfect Camera와 통합하여 작동합니다.
     /// </summary>
     public class AspectRatioManager : MonoBehaviour
     {
@@ -17,23 +19,120 @@ namespace PawnSurvivors.Managers
         
         private Camera _mainCamera;
         private Camera _letterboxCamera;
+        private PixelPerfectCamera _pixelPerfectCamera;
+        private float _lastWidth;
+        private float _lastHeight;
+        private bool _isInitialized = false;
         
-        private void Awake()
+        private void Start()
         {
-            _mainCamera = Camera.main;
-            if (_mainCamera == null)
-            {
-                Debug.LogError("[AspectRatioManager] Main Camera를 찾을 수 없습니다!");
-                return;
-            }
-            
-            CreateLetterboxCamera();
-            ApplyLetterbox();
+            Debug.Log("[AspectRatioManager] Start() 호출됨");
+            // Start에서 초기화 (다른 컴포넌트들이 Awake에서 카메라를 설정한 후)
+            FindAndSetupCamera();
         }
         
         private void Update()
         {
-            // 화면 크기가 변경되면 레터박스 재적용
+            // 카메라를 아직 못 찾았으면 다시 시도
+            if (!_isInitialized)
+            {
+                FindAndSetupCamera();
+                return;
+            }
+            
+            // 화면 크기가 변경되었을 때만 레터박스 재적용
+            if (Screen.width != _lastWidth || Screen.height != _lastHeight)
+            {
+                Debug.Log($"[AspectRatioManager] 화면 크기 변경 감지: {_lastWidth}x{_lastHeight} → {Screen.width}x{Screen.height}");
+                _lastWidth = Screen.width;
+                _lastHeight = Screen.height;
+                ApplyLetterbox();
+            }
+        }
+        
+        private void FindAndSetupCamera()
+        {
+            // 씬의 모든 카메라 찾기
+            Camera[] allCameras = FindObjectsByType<Camera>(FindObjectsSortMode.None);
+            Debug.Log($"[AspectRatioManager] 씬에서 찾은 카메라 수: {allCameras.Length}");
+            
+            // Pixel Perfect Camera가 있는 카메라 찾기
+            foreach (var cam in allCameras)
+            {
+                Debug.Log($"[AspectRatioManager] 카메라 확인 중: {cam.name}");
+                
+                // 카메라의 모든 컴포넌트 출력
+                var components = cam.GetComponents<Component>();
+                string componentList = string.Join(", ", System.Array.ConvertAll(components, c => c.GetType().Name));
+                Debug.Log($"[AspectRatioManager] {cam.name}의 컴포넌트 목록: {componentList}");
+                
+                // 타입 이름으로 직접 찾기
+                Component ppcComponent = null;
+                foreach (var comp in components)
+                {
+                    if (comp.GetType().Name == "PixelPerfectCamera")
+                    {
+                        ppcComponent = comp;
+                        Debug.Log($"[AspectRatioManager] PixelPerfectCamera 타입 찾음! FullName: {comp.GetType().FullName}");
+                        break;
+                    }
+                }
+                
+                if (ppcComponent != null)
+                {
+                    _mainCamera = cam;
+                    _pixelPerfectCamera = ppcComponent as PixelPerfectCamera;
+                    Debug.Log($"[AspectRatioManager] Pixel Perfect Camera 찾음: {cam.name}");
+                    break;
+                }
+                else
+                {
+                    Debug.Log($"[AspectRatioManager] PixelPerfectCamera 타입을 찾지 못했습니다.");
+                }
+            }
+            
+            // Pixel Perfect Camera가 없으면 메인 카메라 사용
+            if (_mainCamera == null)
+            {
+                _mainCamera = Camera.main;
+                if (_mainCamera == null)
+                {
+                    GameObject cameraObj = GameObject.FindGameObjectWithTag("MainCamera");
+                    if (cameraObj != null)
+                    {
+                        _mainCamera = cameraObj.GetComponent<Camera>();
+                    }
+                }
+            }
+            
+            if (_mainCamera == null)
+            {
+                Debug.LogWarning("[AspectRatioManager] 카메라를 찾지 못했습니다. 다음 프레임에 재시도...");
+                return;
+            }
+            
+            Debug.Log($"[AspectRatioManager] 사용할 카메라: {_mainCamera.name}");
+            
+            // Pixel Perfect Camera 설정
+            if (_pixelPerfectCamera != null)
+            {
+                _pixelPerfectCamera.cropFrame = PixelPerfectCamera.CropFrame.StretchFill;
+                Debug.Log($"[AspectRatioManager] Pixel Perfect Camera Crop Frame 활성화: cropFrame={_pixelPerfectCamera.cropFrame}");
+            }
+            else
+            {
+                Debug.Log("[AspectRatioManager] Pixel Perfect Camera 없음. 수동 레터박스 모드 사용");
+                // Pixel Perfect Camera가 없으면 수동 레터박스 생성
+                if (_letterboxCamera == null)
+                {
+                    CreateLetterboxCamera();
+                }
+            }
+            
+            _lastWidth = Screen.width;
+            _lastHeight = Screen.height;
+            _isInitialized = true;
+            
             ApplyLetterbox();
         }
         
@@ -63,10 +162,16 @@ namespace PawnSurvivors.Managers
         {
             if (_mainCamera == null) return;
             
-            // 현재 화면 비율
-            float windowAspect = (float)Screen.width / Screen.height;
+            // Pixel Perfect Camera가 있으면 Crop Frame이 자동으로 레터박스 처리
+            if (_pixelPerfectCamera != null)
+            {
+                Debug.Log("[AspectRatioManager] Pixel Perfect Camera가 레터박스 처리 중");
+                // Pixel Perfect Camera가 알아서 처리하므로 추가 작업 불필요
+                return;
+            }
             
-            // 목표 비율과 비교
+            // Pixel Perfect Camera가 없을 때만 수동 레터박스 적용
+            float windowAspect = (float)Screen.width / Screen.height;
             float scaleHeight = windowAspect / targetAspect;
             
             Rect rect = _mainCamera.rect;
