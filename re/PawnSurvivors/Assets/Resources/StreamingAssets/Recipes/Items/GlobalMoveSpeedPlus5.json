@@ -1,0 +1,16 @@
+{
+  "itemId": "GlobalMoveSpeedPlus5",
+  "itemName": "단체 이동속도 +5%",
+  "itemType": 0,
+  "description": "모든 캐릭터의 이동 속도가 5% 증가합니다.",
+  "cost": 55,
+  "iconPath": "",
+  "statModifiers": {},
+  "statMultipliers": {
+    "5": 1.05
+  },
+  "upgradeModifiers": {},
+  "itemFunctionType": "",
+  "functionParameters": {}
+}
+

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 using PawnSurvivors.Managers;
@@ -9,36 +8,37 @@ namespace PawnSurvivors.Data.DataSources
     /// <summary>
     /// 스테이지 JSON 파일들을 읽어서 StageData 모델로 반환하는 데이터 소스입니다.
     /// Data 계층의 데이터 소스 역할을 담당합니다.
+    /// WebGL 호환을 위해 Resources 폴더를 사용합니다.
     /// </summary>
     public class StageDataSource
     {
         private Dictionary<string, StageData> _stages = new Dictionary<string, StageData>();
 
         /// <summary>
-        /// 지정된 디렉토리에서 모든 스테이지 JSON 파일을 로드합니다.
+        /// Resources 폴더에서 모든 스테이지 JSON 파일을 로드합니다.
         /// </summary>
-        /// <param name="directoryPath">스테이지 디렉토리 경로</param>
-        public void LoadStages(string directoryPath)
+        /// <param name="resourcePath">Resources 폴더 기준 경로 (예: "StreamingAssets/Stages")</param>
+        public void LoadStages(string resourcePath)
         {
-            if (!Directory.Exists(directoryPath))
+            // Resources.LoadAll로 모든 TextAsset 로드
+            TextAsset[] jsonAssets = Resources.LoadAll<TextAsset>(resourcePath);
+
+            if (jsonAssets == null || jsonAssets.Length == 0)
             {
-                LogManager.LogError(LogCategory.Stage, $"Stage directory not found: {directoryPath}");
+                LogManager.LogError(LogCategory.Stage, $"Stage directory not found: {resourcePath}");
                 return;
             }
-
-            var info = new DirectoryInfo(directoryPath);
-            var fileInfo = info.GetFiles("*.json");
 
             var settings = new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects
             };
 
-            foreach (var file in fileInfo)
+            foreach (var jsonAsset in jsonAssets)
             {
                 try
                 {
-                    string json = File.ReadAllText(file.FullName);
+                    string json = jsonAsset.text;
                     StageData data = JsonConvert.DeserializeObject<StageData>(json, settings);
                     if (data != null && !string.IsNullOrEmpty(data.stageName))
                     {
@@ -47,7 +47,7 @@ namespace PawnSurvivors.Data.DataSources
                 }
                 catch (System.Exception ex)
                 {
-                    LogManager.LogError(LogCategory.Stage, $"{file.Name} 로드 실패: {ex.Message}");
+                    LogManager.LogError(LogCategory.Stage, $"{jsonAsset.name} 로드 실패: {ex.Message}");
                 }
             }
         }
@@ -64,13 +64,11 @@ namespace PawnSurvivors.Data.DataSources
         }
 
         /// <summary>
-        /// 로드된 모든 스테이지 이름을 가져옵니다.
+        /// 로드된 모든 스테이지 이름 목록을 반환합니다.
         /// </summary>
-        /// <returns>스테이지 이름 리스트</returns>
-        public List<string> GetAllStageNames()
+        public IEnumerable<string> GetAllStageNames()
         {
-            return new List<string>(_stages.Keys);
+            return _stages.Keys;
         }
     }
 }
-

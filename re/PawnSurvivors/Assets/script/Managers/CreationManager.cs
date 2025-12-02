@@ -14,12 +14,13 @@ public class CreationManager : MonoBehaviour
     private void Awake()
     {
         _recipeDataSource = new RecipeDataSource();
-        string recipesPath = Path.Combine(Application.streamingAssetsPath, "Recipes");
+        // Resources 폴더 경로 사용 (WebGL 호환)
+        string recipesPath = "StreamingAssets/Recipes";
         _recipeDataSource.LoadRecipes(recipesPath);
         
         // ShadowPreset 로드
         _shadowPresetDataSource = new ShadowPresetDataSource();
-        string shadowPresetsPath = Path.Combine(Application.streamingAssetsPath, "ShadowPresets");
+        string shadowPresetsPath = "StreamingAssets/ShadowPresets";
         _shadowPresetDataSource.LoadPresets(shadowPresetsPath);
     }
     

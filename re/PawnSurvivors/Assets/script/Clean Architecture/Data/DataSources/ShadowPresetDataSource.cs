@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using PawnSurvivors.Domain;
 using PawnSurvivors.Managers;
@@ -9,30 +8,32 @@ namespace PawnSurvivors.Data.DataSources
     /// <summary>
     /// ShadowPreset JSON 파일들을 읽어서 ShadowPresetData 모델로 반환하는 데이터 소스입니다.
     /// Data 계층의 데이터 소스 역할을 담당합니다.
+    /// WebGL 호환을 위해 Resources 폴더를 사용합니다.
     /// </summary>
     public class ShadowPresetDataSource
     {
         private Dictionary<string, ShadowPresetData> _presets = new Dictionary<string, ShadowPresetData>();
 
         /// <summary>
-        /// 지정된 디렉토리에서 모든 ShadowPreset JSON 파일을 로드합니다.
+        /// Resources 폴더에서 모든 ShadowPreset JSON 파일을 로드합니다.
         /// </summary>
-        /// <param name="presetsPath">ShadowPresets 폴더 경로</param>
-        public void LoadPresets(string presetsPath)
+        /// <param name="resourcePath">Resources 폴더 기준 경로 (예: "StreamingAssets/ShadowPresets")</param>
+        public void LoadPresets(string resourcePath)
         {
-            if (!Directory.Exists(presetsPath))
+            // Resources.LoadAll로 모든 TextAsset 로드
+            TextAsset[] jsonAssets = Resources.LoadAll<TextAsset>(resourcePath);
+
+            if (jsonAssets == null || jsonAssets.Length == 0)
             {
-                LogManager.LogWarning(LogCategory.System, $"ShadowPresetDataSource: 경로를 찾을 수 없습니다: {presetsPath}");
+                LogManager.LogWarning(LogCategory.System, $"ShadowPresetDataSource: 경로를 찾을 수 없습니다: {resourcePath}");
                 return;
             }
 
-            string[] jsonFiles = Directory.GetFiles(presetsPath, "*.json");
-
-            foreach (string filePath in jsonFiles)
+            foreach (var jsonAsset in jsonAssets)
             {
                 try
                 {
-                    string jsonContent = File.ReadAllText(filePath);
+                    string jsonContent = jsonAsset.text;
                     ShadowPresetData preset = JsonUtility.FromJson<ShadowPresetData>(jsonContent);
 
                     if (preset != null && !string.IsNullOrEmpty(preset.presetName))
@@ -41,12 +42,12 @@ namespace PawnSurvivors.Data.DataSources
                     }
                     else
                     {
-                        LogManager.LogWarning(LogCategory.System, $"ShadowPresetDataSource: {Path.GetFileName(filePath)} - presetName이 없습니다.");
+                        LogManager.LogWarning(LogCategory.System, $"ShadowPresetDataSource: {jsonAsset.name} - presetName이 없습니다.");
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    LogManager.LogError(LogCategory.System, $"ShadowPresetDataSource: {Path.GetFileName(filePath)} 로드 실패: {ex.Message}");
+                    LogManager.LogError(LogCategory.System, $"ShadowPresetDataSource: {jsonAsset.name} 로드 실패: {ex.Message}");
                 }
             }
         }
@@ -81,4 +82,3 @@ namespace PawnSurvivors.Data.DataSources
         }
     }
 }
-

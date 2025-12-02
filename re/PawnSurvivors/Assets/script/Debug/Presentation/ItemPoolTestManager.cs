@@ -220,7 +220,7 @@ namespace PawnSurvivors.Debugging.Presentation
         {
             if (string.IsNullOrEmpty(jsonItemsPath))
             {
-                jsonItemsPath = Path.Combine(Application.streamingAssetsPath, "Debug", "Items");
+                jsonItemsPath = "StreamingAssets/Debug/Items";
             }
 
             useJsonDataSource = true;

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 using PawnSurvivors.Data;
@@ -10,43 +9,44 @@ namespace PawnSurvivors.Data.DataSources
     /// <summary>
     /// 아이템 풀 JSON 파일들을 읽어서 ItemData 모델로 반환하는 데이터 소스입니다.
     /// Data 계층의 데이터 소스 역할을 담당합니다.
+    /// WebGL 호환을 위해 Resources 폴더를 사용합니다.
     /// </summary>
     public class ItemPoolDataSource
     {
         private Dictionary<string, ItemData> _itemPool = new Dictionary<string, ItemData>();
 
         /// <summary>
-        /// 지정된 디렉토리에서 모든 아이템 JSON 파일을 로드합니다.
+        /// Resources 폴더에서 모든 아이템 JSON 파일을 로드합니다.
         /// </summary>
-        /// <param name="itemsPath">Items 폴더 경로</param>
-        public void LoadItems(string itemsPath)
+        /// <param name="resourcePath">Resources 폴더 기준 경로 (예: "StreamingAssets/Recipes/Items")</param>
+        public void LoadItems(string resourcePath)
         {
-            if (!Directory.Exists(itemsPath))
+            // Resources.LoadAll로 모든 TextAsset 로드
+            TextAsset[] jsonAssets = Resources.LoadAll<TextAsset>(resourcePath);
+
+            if (jsonAssets == null || jsonAssets.Length == 0)
             {
-                LogManager.LogWarning(LogCategory.Recipe, $"경로를 찾을 수 없습니다: {itemsPath}");
+                LogManager.LogWarning(LogCategory.Recipe, $"경로를 찾을 수 없습니다: {resourcePath}");
                 return;
             }
-
-            var info = new DirectoryInfo(itemsPath);
-            var fileInfo = info.GetFiles("*.json", SearchOption.AllDirectories);
 
             var settings = new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects
             };
 
-            foreach (var file in fileInfo)
+            foreach (var jsonAsset in jsonAssets)
             {
                 try
                 {
-                    string json = File.ReadAllText(file.FullName);
+                    string json = jsonAsset.text;
                     ItemData itemData = JsonConvert.DeserializeObject<ItemData>(json, settings);
 
                     // itemId가 있는 경우에만 아이템으로 인식 (Pawn 레시피 등 다른 JSON 파일은 건너뛰기)
                     if (itemData != null && !string.IsNullOrEmpty(itemData.itemId))
                     {
                         _itemPool[itemData.itemId] = itemData;
-                        LogManager.LogInfo(LogCategory.Recipe, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {file.Name}");
+                        LogManager.LogInfo(LogCategory.Recipe, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {jsonAsset.name}");
                     }
                     // itemId가 없으면 아이템이 아닌 파일이므로 조용히 건너뛰기 (경고 제거)
                 }
@@ -93,4 +93,3 @@ namespace PawnSurvivors.Data.DataSources
         }
     }
 }
-

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 using PawnSurvivors.Data;
@@ -10,8 +9,7 @@ namespace PawnSurvivors.Debugging.Data
     /// <summary>
     /// JSON 파일을 읽어서 ItemData 모델로 반환하는 데이터 소스입니다.
     /// 디버깅/테스트용으로 사용되며, 나중에 실제 구현 시 참고용입니다.
-    /// 
-    /// 실제 구현 시에는 Data 계층에 위치하게 됩니다.
+    /// WebGL 호환을 위해 Resources 폴더를 사용합니다.
     /// </summary>
     public class JsonItemPoolDataSource
     {
@@ -19,39 +17,39 @@ namespace PawnSurvivors.Debugging.Data
 
         /// <summary>
         /// 디버깅용 JSON 파일을 자동으로 로드합니다.
-        /// StreamingAssets/Debug/Items 경로에서 로드합니다.
+        /// Resources/StreamingAssets/Debug/Items 경로에서 로드합니다.
         /// </summary>
         public void LoadDebugItems()
         {
-            string debugItemsPath = Path.Combine(Application.streamingAssetsPath, "Debug", "Items");
+            string debugItemsPath = "StreamingAssets/Debug/Items";
             LoadItems(debugItemsPath);
         }
 
         /// <summary>
-        /// 지정된 디렉토리에서 모든 아이템 JSON 파일을 로드합니다.
+        /// Resources 폴더에서 모든 아이템 JSON 파일을 로드합니다.
         /// </summary>
-        /// <param name="itemsPath">Items 폴더 경로</param>
-        public void LoadItems(string itemsPath)
+        /// <param name="resourcePath">Resources 폴더 기준 경로</param>
+        public void LoadItems(string resourcePath)
         {
-            if (!Directory.Exists(itemsPath))
+            // Resources.LoadAll로 모든 TextAsset 로드
+            TextAsset[] jsonAssets = Resources.LoadAll<TextAsset>(resourcePath);
+
+            if (jsonAssets == null || jsonAssets.Length == 0)
             {
-                LogManager.LogWarning(LogCategory.Debug, $"경로를 찾을 수 없습니다: {itemsPath}");
+                LogManager.LogWarning(LogCategory.Debug, $"경로를 찾을 수 없습니다: {resourcePath}");
                 return;
             }
-
-            var info = new DirectoryInfo(itemsPath);
-            var fileInfo = info.GetFiles("*.json", SearchOption.AllDirectories);
 
             var settings = new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects
             };
 
-            foreach (var file in fileInfo)
+            foreach (var jsonAsset in jsonAssets)
             {
                 try
                 {
-                    string json = File.ReadAllText(file.FullName);
+                    string json = jsonAsset.text;
                     
                     // 배열 형태인지 확인
                     if (json.TrimStart().StartsWith("["))
@@ -65,7 +63,7 @@ namespace PawnSurvivors.Debugging.Data
                                 if (itemData != null && !string.IsNullOrEmpty(itemData.itemId))
                                 {
                                     _loadedItems[itemData.itemId] = itemData;
-                                    LogManager.LogDebug(LogCategory.Debug, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {file.Name}");
+                                    LogManager.LogDebug(LogCategory.Debug, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {jsonAsset.name}");
                                 }
                             }
                         }
@@ -77,17 +75,17 @@ namespace PawnSurvivors.Debugging.Data
                         if (itemData != null && !string.IsNullOrEmpty(itemData.itemId))
                         {
                             _loadedItems[itemData.itemId] = itemData;
-                            LogManager.LogDebug(LogCategory.Debug, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {file.Name}");
+                            LogManager.LogDebug(LogCategory.Debug, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {jsonAsset.name}");
                         }
                         else
                         {
-                            LogManager.LogWarning(LogCategory.Debug, $"{file.Name} - itemId가 없습니다.");
+                            LogManager.LogWarning(LogCategory.Debug, $"{jsonAsset.name} - itemId가 없습니다.");
                         }
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    LogManager.LogError(LogCategory.Debug, $"{file.Name} 로드 실패: {ex.Message}");
+                    LogManager.LogError(LogCategory.Debug, $"{jsonAsset.name} 로드 실패: {ex.Message}");
                 }
             }
 
@@ -141,4 +139,3 @@ namespace PawnSurvivors.Debugging.Data
         }
     }
 }
-

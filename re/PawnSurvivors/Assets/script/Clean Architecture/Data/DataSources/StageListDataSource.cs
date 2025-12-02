@@ -1,4 +1,3 @@
-using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 using PawnSurvivors.Managers;
@@ -7,26 +6,30 @@ namespace PawnSurvivors.Data.DataSources
 {
     /// <summary>
     /// 스테이지 리스트 JSON 파일을 읽어서 StageListData 모델로 반환하는 데이터 소스입니다.
+    /// WebGL 호환을 위해 Resources 폴더를 사용합니다.
     /// </summary>
     public class StageListDataSource
     {
         private StageListData _stageList;
 
         /// <summary>
-        /// 스테이지 리스트 JSON 파일을 로드합니다.
+        /// Resources 폴더에서 스테이지 리스트 JSON 파일을 로드합니다.
         /// </summary>
-        /// <param name="filePath">StageList.json 파일 경로</param>
-        public void LoadStageList(string filePath)
+        /// <param name="resourcePath">Resources 폴더 기준 경로 (예: "StreamingAssets/Stages/StageList", 확장자 제외)</param>
+        public void LoadStageList(string resourcePath)
         {
-            if (!File.Exists(filePath))
+            // Resources.Load로 TextAsset 로드
+            TextAsset jsonAsset = Resources.Load<TextAsset>(resourcePath);
+
+            if (jsonAsset == null)
             {
-                LogManager.LogError(LogCategory.Stage, $"StageList.json 파일을 찾을 수 없습니다: {filePath}");
+                LogManager.LogError(LogCategory.Stage, $"StageList.json 파일을 찾을 수 없습니다: {resourcePath}");
                 return;
             }
 
             try
             {
-                string json = File.ReadAllText(filePath);
+                string json = jsonAsset.text;
                 var settings = new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.Objects
@@ -88,4 +91,3 @@ namespace PawnSurvivors.Data.DataSources
         }
     }
 }
-

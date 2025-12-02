@@ -186,13 +186,14 @@ public class GameManager : MonoBehaviour
         ItemRepository = new ItemRepository(_sessionData);
         
         // StageDataSource 초기화 (UseCase보다 먼저 초기화 필요)
+        // Resources 폴더 경로 사용 (WebGL 호환)
         _stageDataSource = new PawnSurvivors.Data.DataSources.StageDataSource();
-        string stagesPath = Path.Combine(Application.streamingAssetsPath, "Stages");
+        string stagesPath = "StreamingAssets/Stages";
         _stageDataSource.LoadStages(stagesPath);
         
         // StageListDataSource 초기화
         _stageListDataSource = new PawnSurvivors.Data.DataSources.StageListDataSource();
-        string stageListPath = Path.Combine(Application.streamingAssetsPath, "Stages", "StageList.json");
+        string stageListPath = "StreamingAssets/Stages/StageList";
         _stageListDataSource.LoadStageList(stageListPath);
 
         // UseCase 초기화
@@ -236,8 +237,9 @@ public class GameManager : MonoBehaviour
         // StageDataSource는 위에서 이미 초기화됨
 
         // ItemPoolDataSource 초기화
+        // Resources 폴더 경로 사용 (WebGL 호환)
         _itemPoolDataSource = new PawnSurvivors.Data.DataSources.ItemPoolDataSource();
-        string itemsPath = Path.Combine(Application.streamingAssetsPath, "Recipes", "Items");
+        string itemsPath = "StreamingAssets/Recipes/Items";
         _itemPoolDataSource.LoadItems(itemsPath);
         
         // ItemPoolUseCase 초기화
@@ -339,7 +341,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public List<string> GetAllStageNames()
     {
-        return _stageDataSource?.GetAllStageNames() ?? new List<string>();
+        var names = _stageDataSource?.GetAllStageNames();
+        return names != null ? new List<string>(names) : new List<string>();
     }
 
     public void PauseStage(string stageName)
