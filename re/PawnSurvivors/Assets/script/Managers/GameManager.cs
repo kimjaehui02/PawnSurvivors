@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
     
     public FloatingEffectManager FloatingEffectManager { get; private set; }
     public BackgroundTilemapManager BackgroundTilemapManager { get; private set; }
+    public AspectRatioManager AspectRatioManager { get; private set; }
     
     /// <summary>
     /// 현재 게임 세션의 런타임 데이터 (Data 계층 내부용, 외부 접근 불가)
@@ -240,6 +241,13 @@ public class GameManager : MonoBehaviour
         if (BackgroundTilemapManager == null)
         {
             BackgroundTilemapManager = gameObject.AddComponent<BackgroundTilemapManager>();
+        }
+        
+        // AspectRatioManager 초기화 (레터박스)
+        AspectRatioManager = GetComponent<AspectRatioManager>();
+        if (AspectRatioManager == null)
+        {
+            AspectRatioManager = gameObject.AddComponent<AspectRatioManager>();
         }
         
         CreationManager = GetComponent<CreationManager>();

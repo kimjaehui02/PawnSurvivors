@@ -101,7 +101,8 @@ namespace PawnSurvivors.UI
             listRect.anchoredPosition = Vector2.zero;
             listRect.sizeDelta = new Vector2(1200f, 600f);
             GridLayoutGroup grid = _characterListContainer.AddComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(150f, 150f);
+            // 40:48 비율 유지 (가로 125, 세로 150)
+            grid.cellSize = new Vector2(125f, 150f);
             grid.spacing = new Vector2(20f, 20f);
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = 6;
@@ -164,6 +165,7 @@ namespace PawnSurvivors.UI
                 icon.transform.SetParent(_characterListContainer.transform, false);
                 
                 Image img = icon.AddComponent<Image>();
+                img.preserveAspect = true; // 비율 유지
                 string spritePath = GetSpritePath(characterName);
                 Sprite sprite = Resources.Load<Sprite>(spritePath);
                 if (sprite != null) img.sprite = sprite;
@@ -188,6 +190,10 @@ namespace PawnSurvivors.UI
                 "rufo" => "루포",
                 "beni" => "베니",
                 "tig" => "티그",
+                "speaki" => "스피키",
+                "epica" => "에피카",
+                "elena" => "엘레나",
+                "ui" => "우이",
                 _ => name
             };
             return $"Sprites/player/{korean}";
