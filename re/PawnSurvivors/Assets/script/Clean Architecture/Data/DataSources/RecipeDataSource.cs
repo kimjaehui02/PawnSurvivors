@@ -82,5 +82,23 @@ namespace PawnSurvivors.Data.DataSources
             _recipes.TryGetValue(recipeName, out PawnRecipeData recipe);
             return recipe;
         }
+
+        /// <summary>
+        /// 모든 Player 레시피 이름 목록을 가져옵니다.
+        /// </summary>
+        public List<string> GetAllPlayerRecipeNames()
+        {
+            var playerRecipes = new List<string>();
+            
+            foreach (var kvp in _recipes)
+            {
+                if (kvp.Key.StartsWith("Player"))
+                {
+                    playerRecipes.Add(kvp.Key);
+                }
+            }
+            
+            return playerRecipes;
+        }
     }
 }

@@ -1,9 +1,9 @@
 {
   "campaignName": "Main Campaign",
   "stages": [
+    "DebugStage",
     "Stage1",
-    "Stage2",
-    "DebugStage"
+    "Stage2"
   ]
 }
 

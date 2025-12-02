@@ -33,6 +33,16 @@ namespace PawnSurvivors.Data.Repositories
             _sessionData.currentStageName = stageName;
         }
 
+        public string GetCurrentStageState()
+        {
+            return _sessionData.currentStageState;
+        }
+
+        public void SetCurrentStageState(string stageState)
+        {
+            _sessionData.currentStageState = stageState;
+        }
+
         public float GetGameStartTime()
         {
             return _sessionData.gameStartTime;

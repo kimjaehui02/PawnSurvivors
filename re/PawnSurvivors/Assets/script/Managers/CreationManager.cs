@@ -2,6 +2,7 @@ using UnityEngine;
 using PawnSurvivors.Data.Recipes;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using PawnSurvivors.Domain;
 using PawnSurvivors.Managers;
 using PawnSurvivors.Data.DataSources;
@@ -147,5 +148,13 @@ public class CreationManager : MonoBehaviour
         }
         
         LogManager.LogInfo(LogCategory.System, $"Destroyed {allPawns.Length} pawns.");
+    }
+
+    /// <summary>
+    /// 모든 Player 레시피 이름 목록을 가져옵니다.
+    /// </summary>
+    public List<string> GetAllPlayerRecipeNames()
+    {
+        return _recipeDataSource.GetAllPlayerRecipeNames();
     }
 }

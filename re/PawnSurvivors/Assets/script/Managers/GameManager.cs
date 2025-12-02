@@ -49,11 +49,18 @@ public class GameManager : MonoBehaviour
     public FloatingEffectUseCase FloatingEffectUseCase { get; private set; }
     public ItemPoolUseCase ItemPoolUseCase { get; private set; }
     public ShopUseCase ShopUseCase { get; private set; }
+    public CharacterSelectionUseCase CharacterSelectionUseCase { get; private set; }
+    public StageFlowUseCase StageFlowUseCase { get; private set; }
     
     /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
     /// </summary>
     public PlayerController PlayerController { get; private set; }
+    
+    /// <summary>
+    /// 선택된 캐릭터 목록
+    /// </summary>
+    private List<string> _selectedCharacters = new List<string> { "PlayerErpin", "PlayerButter", "PlayerOpal" };
     
     /// <summary>
     /// 아이템 풀 데이터 소스 (아이템 JSON 파일 로드)
@@ -90,12 +97,22 @@ public class GameManager : MonoBehaviour
         }
         
         // ========== 초기 플레이어 생성 ==========
-        // 각 캐릭터 1개씩
-        AddPlayerPawn("PlayerErpin");
-        AddPlayerPawn("PlayerButter");
-        AddPlayerPawn("PlayerOpal");
+        // 기존 플레이어가 있으면 부활, 없으면 생성
+        if (PlayerController.playerPawns.Count > 0)
+        {
+            // 기존 플레이어 부활
+            ReviveAllPlayers();
+        }
+        else
+        {
+            // 선택된 캐릭터들 생성
+            foreach (string characterName in _selectedCharacters)
+            {
+                AddPlayerPawn(characterName);
+            }
+        }
         
-        LogManager.LogInfo(LogCategory.System, "총 3명의 플레이어 생성 완료 (PlayerErpin x1, PlayerButter x1, PlayerOpal x1)");
+        LogManager.LogInfo(LogCategory.System, $"총 {_selectedCharacters.Count}명의 플레이어 준비 완료");
         // ========== 초기 플레이어 생성 끝 ==========
         
         // ========== 테스트용 아이템 추가 ==========
@@ -248,6 +265,16 @@ public class GameManager : MonoBehaviour
         
         // ShopUseCase 초기화
         ShopUseCase = new ShopUseCase(ItemPoolUseCase, ItemRepository, CurrencyUseCase);
+        
+        // CharacterSelectionUseCase 초기화
+        CharacterSelectionUseCase = new CharacterSelectionUseCase(SessionDataRepository);
+        
+        // StageFlowUseCase 초기화
+        StageFlowUseCase = new StageFlowUseCase(SessionDataRepository, _stageListDataSource);
+        StageFlowUseCase.OnStageStartRequested += HandleStageStartRequested;
+        StageFlowUseCase.OnStageCompletedToShop += HandleStageCompletedToShop;
+        StageFlowUseCase.OnGameOver += HandleGameOver;
+        StageFlowUseCase.OnAllStagesCleared += HandleAllStagesCleared;
 
         // StageManager 초기화 (의존성 주입)
         if (StageManager != null)
@@ -350,6 +377,46 @@ public class GameManager : MonoBehaviour
         LifecycleManager.TogglePause();
     }
 
+    public void SetSelectedCharacters(List<string> characters)
+    {
+        _selectedCharacters = new List<string>(characters);
+    }
+
+    public List<string> GetSelectedCharacters()
+    {
+        return new List<string>(_selectedCharacters);
+    }
+
+    /// <summary>
+    /// 모든 플레이어를 부활시킵니다 (다음 스테이지 시작 시).
+    /// </summary>
+    private void ReviveAllPlayers()
+    {
+        if (PlayerController == null) return;
+
+        int revivedCount = 0;
+        foreach (var pawn in PlayerController.playerPawns)
+        {
+            if (pawn != null && !pawn.activeInHierarchy)
+            {
+                pawn.SetActive(true);
+                
+                // 체력 회복
+                var pawnManager = pawn.GetComponent<PawnManager>();
+                if (pawnManager?.PawnData?.healthData != null)
+                {
+                    pawnManager.PawnData.healthData.currentHealth = pawnManager.PawnData.healthData.maxHealth;
+                }
+                
+                revivedCount++;
+            }
+        }
+        
+        if (revivedCount > 0)
+        {
+            LogManager.LogInfo(LogCategory.System, $"{revivedCount}명의 플레이어 부활");
+        }
+    }
 
     /// <summary>
     /// 스테이지를 종료합니다.
@@ -366,5 +433,42 @@ public class GameManager : MonoBehaviour
         }
         
         LogManager.LogInfo(LogCategory.Stage, "스테이지 종료");
+    }
+
+    private void HandleStageStartRequested(string stageName)
+    {
+        if (StageManager != null)
+        {
+            StageManager.StartStage(stageName, resetSession: false);
+        }
+        if (PawnSurvivors.UI.UIManager.Instance != null)
+        {
+            PawnSurvivors.UI.UIManager.Instance.ShowStageScreen();
+        }
+    }
+    
+    private void HandleStageCompletedToShop()
+    {
+        EndStage();
+        if (PawnSurvivors.UI.UIManager.Instance != null)
+        {
+            PawnSurvivors.UI.UIManager.Instance.ShowShopScreen();
+        }
+    }
+    
+    private void HandleGameOver()
+    {
+        if (PawnSurvivors.UI.UIManager.Instance != null)
+        {
+            PawnSurvivors.UI.UIManager.Instance.ShowGameOverScreen();
+        }
+    }
+    
+    private void HandleAllStagesCleared()
+    {
+        if (PawnSurvivors.UI.UIManager.Instance != null)
+        {
+            PawnSurvivors.UI.UIManager.Instance.ShowGameOverScreen();
+        }
     }
 }

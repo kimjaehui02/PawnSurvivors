@@ -20,6 +20,7 @@ namespace PawnSurvivors.UI
         [SerializeField] private string _selectedStage = "Stage1";
 
         private float stageTime = 0f; // JSON에서 초기화됨
+        private bool _stageEnded = false;
         
         #region UI Elements
         [Header("UI Elements")]
@@ -81,6 +82,7 @@ namespace PawnSurvivors.UI
         private void OnEnable()
         {
             // 스테이지 화면이 활성화될 때마다 타이머 리셋
+            _stageEnded = false;
             InitializeStageData();
         }
 
@@ -152,9 +154,10 @@ namespace PawnSurvivors.UI
             }
 
             stageTime -= deltaTime;
-            if (stageTime <= 0)
+            if (stageTime <= 0 && !_stageEnded)
             {
-                StageEnd();
+                _stageEnded = true;
+                OnStageClear();
             }
         }
 
@@ -1304,7 +1307,10 @@ namespace PawnSurvivors.UI
             }
         }
 
-        public void StageEnd()
+        /// <summary>
+        /// 스테이지 클리어 (시간 종료) - 상점으로 이동
+        /// </summary>
+        public void OnStageClear()
         {
             if (GameManager.Instance != null)
             {
@@ -1318,6 +1324,24 @@ namespace PawnSurvivors.UI
                 if (UIManager.Instance != null)
                 {
                     UIManager.Instance.ShowShopScreen();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 스테이지 실패 (플레이어 전멸) - 게임오버 화면으로
+        /// </summary>
+        public void OnStageFailed()
+        {
+            if (GameManager.Instance != null)
+            {
+                // 스테이지 종료 시 남은 적 모두 파괴
+                DestroyAllEnemies();
+                
+                // StageFlowUseCase를 통해 게임오버 처리
+                if (GameManager.Instance.StageFlowUseCase != null)
+                {
+                    GameManager.Instance.StageFlowUseCase.FailStage();
                 }
             }
         }

@@ -21,6 +21,9 @@ namespace PawnSurvivors.Data
         /// <summary>현재 스테이지 이름</summary>
         public string currentStageName = "";
         
+        /// <summary>현재 스테이지 상태</summary>
+        public string currentStageState = "NotStarted";
+        
         /// <summary>게임 시작 시간 (Time.time)</summary>
         public float gameStartTime = 0f;
         

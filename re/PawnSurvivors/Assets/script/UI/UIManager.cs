@@ -20,6 +20,7 @@ namespace PawnSurvivors.UI
         [SerializeField] private GameObject gameOverScreen;
         [SerializeField] private GameObject stageClearScreen;
         [SerializeField] private GameObject shopScreen;
+        [SerializeField] private GameObject characterSelectScreen;
 
         private void Awake()
         {
@@ -85,6 +86,33 @@ namespace PawnSurvivors.UI
             HideAllScreens();
             if (mainMenuScreen != null)
                 mainMenuScreen.SetActive(true);
+        }
+
+        /// <summary>
+        /// 캐릭터 선택 화면을 표시합니다.
+        /// </summary>
+        public void ShowCharacterSelectScreen()
+        {
+            HideAllScreens();
+            
+            if (characterSelectScreen == null)
+            {
+                GameObject selectObj = new GameObject("CharacterSelectScreen");
+                CharacterSelectScreen screenComponent = selectObj.AddComponent<CharacterSelectScreen>();
+                characterSelectScreen = selectObj;
+                characterSelectScreen.transform.SetParent(transform);
+                characterSelectScreen.SetActive(true);
+            }
+            else
+            {
+                characterSelectScreen.SetActive(true);
+            }
+            
+            CharacterSelectScreen screen = characterSelectScreen.GetComponent<CharacterSelectScreen>();
+            if (screen != null)
+            {
+                screen.Show();
+            }
         }
 
         /// <summary>
@@ -157,8 +185,16 @@ namespace PawnSurvivors.UI
         public void ShowGameOverScreen()
         {
             HideAllScreens();
+            
             if (gameOverScreen != null)
+            {
                 gameOverScreen.SetActive(true);
+                GameOverScreen screen = gameOverScreen.GetComponent<GameOverScreen>();
+                if (screen != null)
+                {
+                    screen.Show(0);
+                }
+            }
         }
 
         /// <summary>
@@ -237,6 +273,7 @@ namespace PawnSurvivors.UI
             if (gameOverScreen != null) gameOverScreen.SetActive(false);
             if (stageClearScreen != null) stageClearScreen.SetActive(false);
             if (shopScreen != null) shopScreen.SetActive(false);
+            if (characterSelectScreen != null) characterSelectScreen.SetActive(false);
         }
 
         #endregion

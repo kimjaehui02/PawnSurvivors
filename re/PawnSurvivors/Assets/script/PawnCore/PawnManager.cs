@@ -84,7 +84,21 @@ public class PawnManager : MonoBehaviour
         // 자신의 사망인지 확인
         if (evt.DeadPawn == this)
         {
-            DestroyPawn();
+            // 플레이어 Pawn인지 확인
+            bool isPlayerPawn = GameManager.Instance?.PlayerController != null && 
+                                GameManager.Instance.PlayerController.playerPawns.Contains(gameObject);
+            
+            if (isPlayerPawn)
+            {
+                // 플레이어는 비활성화만 (다음 스테이지에서 부활)
+                gameObject.SetActive(false);
+                GameManager.Instance.PlayerController.OnPlayerPawnDied(gameObject);
+            }
+            else
+            {
+                // 적이나 투사체는 파괴
+                DestroyPawn();
+            }
         }
     }
 

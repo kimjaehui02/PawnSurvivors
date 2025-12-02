@@ -43,14 +43,24 @@ namespace PawnSurvivors.UI
         private void OnRetryButtonClicked()
         {
             Time.timeScale = 1f;
-            // TODO: 게임 재시작
+            
+            if (GameManager.Instance?.StageFlowUseCase != null)
+            {
+                GameManager.Instance.StageFlowUseCase.RestartStage();
+            }
+            
             LogManager.LogInfo(LogCategory.UI, "Retry Button Clicked");
         }
 
         private void OnMainMenuButtonClicked()
         {
             Time.timeScale = 1f;
-            // TODO: 메인 메뉴로 이동
+            
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ReturnToMainMenu();
+            }
+            
             LogManager.LogInfo(LogCategory.UI, "Main Menu Button Clicked");
         }
     }

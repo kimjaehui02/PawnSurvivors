@@ -15,6 +15,8 @@ namespace PawnSurvivors.Domain.Repositories
         
         string GetCurrentStageName();
         void SetCurrentStageName(string stageName);
+        string GetCurrentStageState();
+        void SetCurrentStageState(string stageState);
         float GetGameStartTime();
         void SetGameStartTime(float time);
         float GetSurvivalTime();

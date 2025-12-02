@@ -133,16 +133,54 @@ namespace PawnSurvivors.Player
         }
         
         /// <summary>
-        /// 플레이어 폰을 제거합니다.
+        /// 플레이어 폰을 제거합니다 (영구 제거).
         /// </summary>
         public void RemovePlayerPawn(GameObject pawn)
         {
             if (playerPawns.Contains(pawn))
             {
                 playerPawns.Remove(pawn);
-                pawn.transform.SetParent(null); // 부모 해제
+                pawn.transform.SetParent(null);
                 
                 Debug.Log($"[PlayerController] Pawn 제거됨: {pawn.name}");
+            }
+        }
+        
+        /// <summary>
+        /// 플레이어 Pawn이 죽었을 때 호출됩니다 (비활성화만, 제거 안 함).
+        /// </summary>
+        public void OnPlayerPawnDied(GameObject pawn)
+        {
+            Debug.Log($"[PlayerController] Pawn 사망 (비활성화): {pawn.name}");
+            CheckGameOver();
+        }
+        
+        public List<GameObject> GetPlayerPawns()
+        {
+            return playerPawns;
+        }
+        
+        private void CheckGameOver()
+        {
+            // 활성화된 플레이어만 카운트
+            int aliveCount = 0;
+            foreach (var pawn in playerPawns)
+            {
+                if (pawn != null && pawn.activeInHierarchy)
+                {
+                    aliveCount++;
+                }
+            }
+            
+            // 모든 플레이어가 비활성화(사망)되었으면 게임오버
+            if (aliveCount == 0)
+            {
+                PawnSurvivors.Managers.LogManager.LogInfo(PawnSurvivors.Managers.LogCategory.System, "모든 플레이어가 사망했습니다. 게임 오버!");
+                
+                if (GameManager.Instance?.StageFlowUseCase != null)
+                {
+                    GameManager.Instance.StageFlowUseCase.FailStage();
+                }
             }
         }
         
