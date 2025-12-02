@@ -133,7 +133,56 @@ namespace PawnSurvivors.Managers
             _lastHeight = Screen.height;
             _isInitialized = true;
             
+            // 모든 Canvas를 Camera 모드로 변경
+            SetupAllCanvases();
+            
             ApplyLetterbox();
+        }
+        
+        /// <summary>
+        /// 모든 Canvas를 ScreenSpaceCamera 모드로 변경하여 레터박스 적용
+        /// </summary>
+        private void SetupAllCanvases()
+        {
+            if (_mainCamera == null) return;
+            
+            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            int convertedCount = 0;
+            
+            foreach (var canvas in allCanvases)
+            {
+                if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                {
+                    canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                    canvas.worldCamera = _mainCamera;
+                    convertedCount++;
+                }
+            }
+            
+            if (convertedCount > 0)
+            {
+                Debug.Log($"[AspectRatioManager] {convertedCount}개의 Canvas를 Camera 모드로 변경");
+            }
+        }
+        
+        /// <summary>
+        /// 새로 생성된 Canvas를 자동으로 Camera 모드로 변경
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (!_isInitialized || _mainCamera == null) return;
+            
+            // 매 프레임마다 새로 생성된 Overlay Canvas 찾아서 변경
+            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            foreach (var canvas in allCanvases)
+            {
+                if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                {
+                    canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                    canvas.worldCamera = _mainCamera;
+                    Debug.Log($"[AspectRatioManager] 새 Canvas '{canvas.name}'를 Camera 모드로 변경");
+                }
+            }
         }
         
         /// <summary>
