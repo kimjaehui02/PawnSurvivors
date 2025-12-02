@@ -48,6 +48,12 @@ public class StageManager : MonoBehaviour
         
         LogManager.LogInfo(LogCategory.Stage, $"스테이지 시작: {stageName} (세션 리셋: {resetSession})");
         
+        // 배경 타일맵 생성
+        if (GameManager.Instance != null && GameManager.Instance.BackgroundTilemapManager != null)
+        {
+            GameManager.Instance.BackgroundTilemapManager.CreateBackgroundTilemap();
+        }
+        
         // PlayerController가 없으면 생성 (상점에서 올 때는 기존 것 유지)
         if (GameManager.Instance != null && GameManager.Instance.PlayerController == null)
         {

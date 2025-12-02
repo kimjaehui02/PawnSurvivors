@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4207047921889413336}
   - component: {fileID: 1493877278870001718}
   - component: {fileID: 6532618181828003181}
+  - component: {fileID: 1322398282024584162}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -125,3 +126,20 @@ MonoBehaviour:
   damageTextFont: {fileID: 0}
   defaultParticlePrefabPath: 
   effectPool: {fileID: 0}
+--- !u!114 &1322398282024584162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4162605278000882485}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d079c4698118e0b4ebd84a1c3b2e9964, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tileSpriteFolderPath: Sprites/tiles
+  mapSize: {x: 50, y: 50}
+  cellSize: {x: 0, y: 0, z: 0}
+  sortingOrder: -10
+  useRandomTiles: 1
