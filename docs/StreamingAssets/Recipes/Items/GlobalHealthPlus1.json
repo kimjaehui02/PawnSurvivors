@@ -1,0 +1,16 @@
+{
+  "itemId": "GlobalHealthPlus1",
+  "itemName": "단체 체력 +1",
+  "itemType": 0,
+  "description": "모든 캐릭터의 최대 체력이 1 증가합니다.",
+  "cost": 40,
+  "iconPath": "",
+  "statModifiers": {
+    "1": 1.0
+  },
+  "statMultipliers": {},
+  "upgradeModifiers": {},
+  "itemFunctionType": "",
+  "functionParameters": {}
+}
+

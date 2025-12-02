@@ -1,0 +1,16 @@
+{
+  "itemId": "GlobalFireRatePlus5",
+  "itemName": "단체 공격속도 +5%",
+  "itemType": 0,
+  "description": "모든 캐릭터의 공격 속도가 5% 증가합니다.",
+  "cost": 60,
+  "iconPath": "",
+  "statModifiers": {},
+  "statMultipliers": {
+    "2": 1.05
+  },
+  "upgradeModifiers": {},
+  "itemFunctionType": "",
+  "functionParameters": {}
+}
+

@@ -1,0 +1,68 @@
+[
+  {
+    "itemId": "DebugGlobalItem1",
+    "itemName": "[디버깅] 전역 아이템 1",
+    "itemType": 0,
+    "description": "디버깅용 깡통 전역 아이템입니다. 효과가 없습니다.",
+    "cost": 10,
+    "iconPath": "",
+    "statModifiers": {},
+    "statMultipliers": {},
+    "upgradeModifiers": {},
+    "itemFunctionType": "",
+    "functionParameters": {}
+  },
+  {
+    "itemId": "DebugGlobalItem2",
+    "itemName": "[디버깅] 전역 아이템 2",
+    "itemType": 0,
+    "description": "디버깅용 깡통 전역 아이템입니다. 효과가 없습니다.",
+    "cost": 15,
+    "iconPath": "",
+    "statModifiers": {},
+    "statMultipliers": {},
+    "upgradeModifiers": {},
+    "itemFunctionType": "",
+    "functionParameters": {}
+  },
+  {
+    "itemId": "DebugGlobalItem3",
+    "itemName": "[디버깅] 전역 아이템 3",
+    "itemType": 0,
+    "description": "디버깅용 깡통 전역 아이템입니다. 효과가 없습니다.",
+    "cost": 20,
+    "iconPath": "",
+    "statModifiers": {},
+    "statMultipliers": {},
+    "upgradeModifiers": {},
+    "itemFunctionType": "",
+    "functionParameters": {}
+  },
+  {
+    "itemId": "DebugEquippedItem1",
+    "itemName": "[디버깅] 장착 아이템 1",
+    "itemType": 1,
+    "description": "디버깅용 깡통 장착 아이템입니다. 효과가 없습니다.",
+    "cost": 25,
+    "iconPath": "",
+    "statModifiers": {},
+    "statMultipliers": {},
+    "upgradeModifiers": {},
+    "itemFunctionType": "",
+    "functionParameters": {}
+  },
+  {
+    "itemId": "DebugEquippedItem2",
+    "itemName": "[디버깅] 장착 아이템 2",
+    "itemType": 1,
+    "description": "디버깅용 깡통 장착 아이템입니다. 효과가 없습니다.",
+    "cost": 30,
+    "iconPath": "",
+    "statModifiers": {},
+    "statMultipliers": {},
+    "upgradeModifiers": {},
+    "itemFunctionType": "",
+    "functionParameters": {}
+  }
+]
+
