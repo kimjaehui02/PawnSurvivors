@@ -16,7 +16,7 @@
     {
       "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
       "colliderType": "Circle2D",
-      "isTrigger": true,
+      "isTrigger": false,
       "rigidbodyType": "Kinematic",
       "gravityScale": 0,
       "physicsLayerName": "Default",

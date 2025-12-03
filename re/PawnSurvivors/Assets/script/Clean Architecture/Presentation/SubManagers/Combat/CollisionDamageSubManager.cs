@@ -51,17 +51,17 @@ public class CollisionDamageSubManager : PawnSubManager
         // 특정 업데이트 로직이 필요하지 않음
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        ProcessCollision(other);
+        ProcessCollision(collision.collider);
     }
 
-    private void OnTriggerStay2D(Collider2D other)
+    private void OnCollisionStay2D(Collision2D collision)
     {
         // destroyOnHit이 false인 경우(근접 공격 유닛)만 연속 충돌 처리
         if (!destroyOnHit)
         {
-            ProcessCollision(other);
+            ProcessCollision(collision.collider);
         }
     }
 

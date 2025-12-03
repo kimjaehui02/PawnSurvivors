@@ -25,15 +25,7 @@
       "visualSpriteName": "Temporary/Circle",
       "visualColor": {"r": 0.8, "g": 0.2, "b": 0.8, "a": 1},
       "shadowPreset": "EnemyShadow",
-      "strategySetups": [
-        {
-          "$type": "PawnSurvivors.Data.Recipes.BounceAnimationStrategySetupData, Assembly-CSharp",
-          "isEnabledByDefault": true,
-          "bounceHeight": 0.1,
-          "bounceSpeed": 8,
-          "movementThreshold": 0.1
-        }
-      ]
+      "strategySetups": []
     },
     {
       "$type": "PawnSurvivors.Data.Recipes.MovableSubManagerSetupData, Assembly-CSharp",
@@ -51,8 +43,8 @@
     {
       "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
       "colliderType": "Circle2D",
-      "isTrigger": true,
-      "rigidbodyType": "Kinematic",
+      "isTrigger": false,
+      "rigidbodyType": "Dynamic",
       "gravityScale": 0,
       "physicsLayerName": "Enemy",
       "physicsTag": "Enemy"

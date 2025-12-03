@@ -37,8 +37,8 @@
     {
       "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
       "colliderType": "Circle2D",
-      "isTrigger": true,
-      "rigidbodyType": "Kinematic",
+      "isTrigger": false,
+      "rigidbodyType": "Dynamic",
       "gravityScale": 0,
       "physicsLayerName": "EnemyProjectile",
       "physicsTag": "EnemyBullet"
