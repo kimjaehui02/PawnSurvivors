@@ -468,12 +468,11 @@ public class GameManager : MonoBehaviour
         {
             if (pawn != null && pawn.activeInHierarchy)
             {
-                // AttackSubManager가 있으면 강제 비활성화/활성화로 OnEnable 트리거
+                // AttackSubManager가 있으면 리셋
                 var attackSubManager = pawn.GetComponent<AttackSubManager>();
                 if (attackSubManager != null)
                 {
-                    attackSubManager.enabled = false;
-                    attackSubManager.enabled = true;
+                    attackSubManager.ResetForNewStage(); // ✅ 명확한 의도
                     resetCount++;
                 }
             }

@@ -64,18 +64,11 @@ public class AttackSubManager : PawnSubManager
         ResetAttackState();
     }
     
-    private void OnEnable()
-    {
-        // 부활/재활성화 시 무조건 상태 초기화
-        // _attackMethod와 _attackPattern이 null이어도 괜찮음 (SubStart에서 처리됨)
-        ResetAttackState();
-    }
-    
     /// <summary>
-    /// 공격 상태를 초기화합니다.
-    /// 스테이지 시작 또는 부활 시 호출됩니다.
+    /// 외부에서 공격 상태를 리셋할 수 있는 public 메서드입니다.
+    /// 다음 스테이지 시작 시 GameManager에서 호출됩니다.
     /// </summary>
-    private void ResetAttackState()
+    public void ResetForNewStage()
     {
         _nextFireTime = 0f; // 즉시 공격 가능
         
