@@ -14,7 +14,7 @@ namespace PawnSurvivors.UI
 
         [Header("UI Screens")]
         [SerializeField] private GameObject titleScreen;
-        [SerializeField] private GameObject mainMenuScreen;
+        [SerializeField] private GameObject campaignSelectScreen;
         [SerializeField] private GameObject stageScreen;
         [SerializeField] private GameObject pauseMenuScreen;
         [SerializeField] private GameObject gameOverScreen;
@@ -81,11 +81,22 @@ namespace PawnSurvivors.UI
         /// <summary>
         /// 메인 메뉴 화면을 표시합니다. (스테이지 선택)
         /// </summary>
-        public void ShowMainMenuScreen()
+        public void ShowCampaignSelectScreen()
         {
             HideAllScreens();
-            if (mainMenuScreen != null)
-                mainMenuScreen.SetActive(true);
+            
+            if (campaignSelectScreen == null)
+            {
+                GameObject campaignObj = new GameObject("CampaignSelectScreen");
+                campaignObj.AddComponent<CampaignSelectScreen>();
+                campaignSelectScreen = campaignObj;
+                campaignSelectScreen.transform.SetParent(transform);
+                campaignSelectScreen.SetActive(true);
+            }
+            else
+            {
+                campaignSelectScreen.SetActive(true);
+            }
         }
 
         /// <summary>
@@ -261,13 +272,14 @@ namespace PawnSurvivors.UI
                 GameManager.Instance.EndStage();
             }
 
-            ShowMainMenuScreen();
+            ShowCharacterSelectScreen();
         }
 
         private void HideAllScreens()
         {
             if (titleScreen != null) titleScreen.SetActive(false);
-            if (mainMenuScreen != null) mainMenuScreen.SetActive(false);
+            if (campaignSelectScreen != null) campaignSelectScreen.SetActive(false);
+            if (characterSelectScreen != null) characterSelectScreen.SetActive(false);
             if (stageScreen != null) stageScreen.SetActive(false);
             if (pauseMenuScreen != null) pauseMenuScreen.SetActive(false);
             if (gameOverScreen != null) gameOverScreen.SetActive(false);

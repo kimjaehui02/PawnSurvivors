@@ -135,7 +135,7 @@ namespace PawnSurvivors.Managers
                     break;
 
                 case GameState.MainMenu:
-                    UIManager.Instance.ShowMainMenuScreen();
+                    UIManager.Instance.ShowCharacterSelectScreen();
                     // 게임 상태 초기화
                     if (GameManager.Instance != null)
                     {

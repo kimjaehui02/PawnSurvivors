@@ -271,7 +271,7 @@ namespace PawnSurvivors.UI
 
             if (UIManager.Instance != null)
             {
-                UIManager.Instance.ShowMainMenuScreen();
+                UIManager.Instance.ShowCampaignSelectScreen();
             }
         }
 

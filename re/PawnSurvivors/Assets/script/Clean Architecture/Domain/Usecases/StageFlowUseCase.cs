@@ -9,6 +9,9 @@ namespace PawnSurvivors.Domain.Usecases
         private readonly ISessionDataRepository _sessionRepository;
         private readonly StageListDataSource _stageListDataSource;
         
+        // 현재 선택된 캠페인의 스테이지 목록
+        private string[] _campaignStages = null;
+        
         public enum StageState
         {
             NotStarted,
@@ -110,13 +113,36 @@ namespace PawnSurvivors.Domain.Usecases
 
         public string GetNextStageName()
         {
+            string currentStageName = GetCurrentStageName();
+            
+            // 캠페인 스테이지가 설정되어 있으면 그것 사용
+            if (_campaignStages != null && _campaignStages.Length > 0)
+            {
+                for (int i = 0; i < _campaignStages.Length - 1; i++)
+                {
+                    if (_campaignStages[i] == currentStageName)
+                    {
+                        return _campaignStages[i + 1];
+                    }
+                }
+                return null; // 마지막 스테이지
+            }
+            
+            // 기존 방식 (StageListDataSource 사용)
             if (_stageListDataSource == null)
             {
                 return null;
             }
 
-            string currentStageName = GetCurrentStageName();
             return _stageListDataSource.GetNextStageName(currentStageName);
+        }
+        
+        /// <summary>
+        /// 캠페인의 스테이지 목록을 설정합니다.
+        /// </summary>
+        public void SetCampaignStages(string[] stages)
+        {
+            _campaignStages = stages;
         }
 
         public void RestartStage()
