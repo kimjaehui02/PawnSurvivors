@@ -103,22 +103,13 @@ public class GameManager : MonoBehaviour
         }
         
         // ========== 초기 플레이어 생성 ==========
-        // 기존 플레이어가 있으면 부활, 없으면 생성
-        if (PlayerController.playerPawns.Count > 0)
+        // 선택된 캐릭터들 생성 (첫 스테이지에만 호출됨)
+        foreach (string characterName in _selectedCharacters)
         {
-            // 기존 플레이어 부활
-            ReviveAllPlayers();
-        }
-        else
-        {
-            // 선택된 캐릭터들 생성
-            foreach (string characterName in _selectedCharacters)
-            {
-                AddPlayerPawn(characterName);
-            }
+            AddPlayerPawn(characterName);
         }
         
-        LogManager.LogInfo(LogCategory.System, $"총 {_selectedCharacters.Count}명의 플레이어 준비 완료");
+        LogManager.LogInfo(LogCategory.System, $"총 {_selectedCharacters.Count}명의 플레이어 생성 완료");
         // ========== 초기 플레이어 생성 끝 ==========
         
         // ========== 테스트용 아이템 추가 ==========
@@ -420,6 +411,20 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 기존 플레이어들을 다음 스테이지에 대비합니다.
+    /// 죽은 플레이어는 부활시키고, 모든 플레이어의 공격 상태를 리셋합니다.
+    /// </summary>
+    public void PrepareExistingPlayers()
+    {
+        if (PlayerController == null) return;
+        
+        ReviveAllPlayers(); // 죽은 플레이어 부활
+        ResetAllPlayerAttackStates(); // 모든 플레이어 공격 리셋
+        
+        LogManager.LogInfo(LogCategory.System, $"{PlayerController.playerPawns.Count}명의 플레이어 준비 완료");
+    }
+    
+    /// <summary>
     /// 모든 플레이어를 부활시킵니다 (다음 스테이지 시작 시).
     /// </summary>
     private void ReviveAllPlayers()
@@ -447,6 +452,36 @@ public class GameManager : MonoBehaviour
         if (revivedCount > 0)
         {
             LogManager.LogInfo(LogCategory.System, $"{revivedCount}명의 플레이어 부활");
+        }
+    }
+    
+    /// <summary>
+    /// 모든 플레이어의 공격 상태를 리셋합니다.
+    /// 살아있는 플레이어도 다음 스테이지에서 공격할 수 있도록 합니다.
+    /// </summary>
+    private void ResetAllPlayerAttackStates()
+    {
+        if (PlayerController == null) return;
+
+        int resetCount = 0;
+        foreach (var pawn in PlayerController.playerPawns)
+        {
+            if (pawn != null && pawn.activeInHierarchy)
+            {
+                // AttackSubManager가 있으면 강제 비활성화/활성화로 OnEnable 트리거
+                var attackSubManager = pawn.GetComponent<AttackSubManager>();
+                if (attackSubManager != null)
+                {
+                    attackSubManager.enabled = false;
+                    attackSubManager.enabled = true;
+                    resetCount++;
+                }
+            }
+        }
+        
+        if (resetCount > 0)
+        {
+            LogManager.LogInfo(LogCategory.System, $"{resetCount}개의 공격 SubManager 상태 리셋");
         }
     }
 

@@ -54,9 +54,18 @@ public class StageManager : MonoBehaviour
         }
         
         // PlayerController가 없으면 생성 (상점에서 올 때는 기존 것 유지)
-        if (GameManager.Instance != null && GameManager.Instance.PlayerController == null)
+        if (GameManager.Instance != null)
         {
-            GameManager.Instance.CreatePlayerController();
+            if (GameManager.Instance.PlayerController == null)
+            {
+                // 새로 생성 (첫 스테이지)
+                GameManager.Instance.CreatePlayerController();
+            }
+            else
+            {
+                // 기존 플레이어 준비 (다음 스테이지)
+                GameManager.Instance.PrepareExistingPlayers();
+            }
         }
 
         // 스테이지 로드 및 초기화

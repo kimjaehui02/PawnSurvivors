@@ -66,7 +66,8 @@ public class AttackSubManager : PawnSubManager
     
     private void OnEnable()
     {
-        // 부활/재활성화 시 상태 초기화
+        // 부활/재활성화 시 무조건 상태 초기화
+        // _attackMethod와 _attackPattern이 null이어도 괜찮음 (SubStart에서 처리됨)
         ResetAttackState();
     }
     
@@ -82,12 +83,25 @@ public class AttackSubManager : PawnSubManager
         {
             _attackPattern.Reset(); // Pattern 초기화
         }
+        
+        Debug.Log($"[AttackSubManager] {gameObject.name} 공격 상태 초기화 - Method: {attackMethodType}, Pattern: {attackPatternType}");
     }
 
     public override void SubUpdate()
     {
         // CombatData가 없으면 무시
-        if (_pawnData?.combatData == null) return;
+        if (_pawnData?.combatData == null)
+        {
+            Debug.LogWarning($"[AttackSubManager] {gameObject.name} CombatData is null!");
+            return;
+        }
+        
+        // AttackMethod/Pattern 체크
+        if (_attackMethod == null || _attackPattern == null)
+        {
+            Debug.LogWarning($"[AttackSubManager] {gameObject.name} Method={_attackMethod != null}, Pattern={_attackPattern != null}");
+            return;
+        }
 
         float currentGameTime = GetGameTime();
         
