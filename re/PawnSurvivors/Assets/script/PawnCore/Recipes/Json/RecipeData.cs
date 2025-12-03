@@ -720,4 +720,49 @@ namespace PawnSurvivors.Data.Recipes
             return subManager;
         }
     }
+
+    // ========================================
+    // HealthBar SubManager Setup Data
+    // ========================================
+
+    [Serializable]
+    public class HealthBarSubManagerSetupData : SubManagerSetupData
+    {
+        [Tooltip("체력바 위치 오프셋")]
+        public Vector3 barOffset = new Vector3(0f, 1.5f, 0f);
+        
+        [Tooltip("체력바 너비")]
+        public float barWidth = 2f;
+        
+        [Tooltip("체력바 높이")]
+        public float barHeight = 0.3f;
+        
+        [Tooltip("배경 색상")]
+        public Color backgroundColor = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+        
+        [Tooltip("체력 색상")]
+        public Color healthColor = new Color(0.2f, 0.8f, 0.2f, 1f);
+        
+        [Tooltip("낮은 체력 색상")]
+        public Color lowHealthColor = new Color(0.9f, 0.2f, 0.2f, 1f);
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // HealthBarSubManager는 PawnData에 저장할 데이터가 없음
+            // 모든 설정은 컴포넌트 자체에서 관리
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            PawnSurvivors.Presentation.SubManagers.Visual.HealthBarSubManager subManager = 
+                pawnObject.AddComponent<PawnSurvivors.Presentation.SubManagers.Visual.HealthBarSubManager>();
+            subManager.barOffset = barOffset;
+            subManager.barWidth = barWidth;
+            subManager.barHeight = barHeight;
+            subManager.backgroundColor = backgroundColor;
+            subManager.healthColor = healthColor;
+            subManager.lowHealthColor = lowHealthColor;
+            return subManager;
+        }
+    }
 }

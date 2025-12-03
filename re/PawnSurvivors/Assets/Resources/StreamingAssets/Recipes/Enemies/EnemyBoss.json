@@ -54,6 +54,15 @@
       "spawnRecipeNames": ["Coin"],
       "spawnChances": [1.0],
       "spawnCounts": [5]
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.HealthBarSubManagerSetupData, Assembly-CSharp",
+      "barOffset": {"x": 0, "y": 1.8, "z": 0},
+      "barWidth": 3.0,
+      "barHeight": 0.4,
+      "backgroundColor": {"r": 0.2, "g": 0.2, "b": 0.2, "a": 0.9},
+      "healthColor": {"r": 0.9, "g": 0.1, "b": 0.1, "a": 1.0},
+      "lowHealthColor": {"r": 0.5, "g": 0.0, "b": 0.0, "a": 1.0}
     }
   ]
 }
