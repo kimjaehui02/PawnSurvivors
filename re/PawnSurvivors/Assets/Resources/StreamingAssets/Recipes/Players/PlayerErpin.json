@@ -15,10 +15,13 @@
       "$type": "PawnSurvivors.Data.Recipes.PlayerAttackInputSubManagerSetupData, Assembly-CSharp"
     },
     {
-      "$type": "PawnSurvivors.Data.Recipes.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
+      "$type": "PawnSurvivors.Data.Recipes.AttackSubManagerSetupData, Assembly-CSharp",
+      "attackMethodType": "Projectile",
+      "attackPatternType": "Single",
       "projectileRecipeName": "Bullet",
       "fireRate": 1,
-      "damage": 3
+      "damage": 3,
+      "attackRange": 0
     },
     {
       "$type": "PawnSurvivors.Data.Recipes.VisualSubManagerSetupData, Assembly-CSharp",

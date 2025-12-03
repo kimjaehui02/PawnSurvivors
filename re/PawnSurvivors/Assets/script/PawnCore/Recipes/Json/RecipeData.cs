@@ -140,18 +140,98 @@ namespace PawnSurvivors.Data.Recipes
 
         public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
         {
-            ProjectileShooterSubManager subManager = pawnObject.AddComponent<ProjectileShooterSubManager>();
+            // ⚠️ 레거시: 이제 AttackSubManagerSetupData를 사용하세요.
+            // 하위 호환을 위해 AttackSubManager로 자동 변환합니다.
+            AttackSubManager subManager = pawnObject.AddComponent<AttackSubManager>();
             
-            // FirePoint가 없으면 생성
-            Transform firePointTransform = pawnObject.transform.Find("FirePoint");
-            if (firePointTransform == null)
+            // AttackPoint 생성
+            Transform attackPointTransform = pawnObject.transform.Find("AttackPoint");
+            if (attackPointTransform == null)
             {
-                GameObject firePoint = new GameObject("FirePoint");
-                firePoint.transform.SetParent(pawnObject.transform);
-                firePoint.transform.localPosition = Vector3.zero;
-                firePointTransform = firePoint.transform;
+                GameObject attackPoint = new GameObject("AttackPoint");
+                attackPoint.transform.SetParent(pawnObject.transform);
+                attackPoint.transform.localPosition = Vector3.zero;
+                attackPointTransform = attackPoint.transform;
             }
-            subManager.firePoint = firePointTransform;
+            subManager.attackPoint = attackPointTransform;
+            
+            // Projectile + Single 설정
+            subManager.attackMethodType = AttackMethodType.Projectile;
+            subManager.attackPatternType = AttackPatternType.Single;
+            
+            return subManager;
+        }
+    }
+
+    [Serializable]
+    public class AttackSubManagerSetupData : SubManagerSetupData
+    {
+        public string attackMethodType = "Projectile"; // "Projectile", "Instant", or "Area"
+        public string attackPatternType = "Single"; // "Single" or "Burst"
+        public string projectileRecipeName = null; // Projectile 방식일 때만 필요
+        public float fireRate = 1f;
+        public float damage = 10f;
+        public string targetTag = null; // 타겟 태그 (null이면 자동 결정)
+        public float attackRange = 0f; // 공격 범위 (0이면 무한, Area는 필수)
+        public float projectileSpeed = 0f; // 투사체 속도 (0이면 레시피 기본값)
+        
+        // Burst 패턴 설정
+        public int burstCount = 2;
+        public float burstDelay = 0.1f;
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            var combatData = pawnData.GetOrCreateCombatData();
+            combatData.projectileRecipeName = projectileRecipeName;
+            combatData.fireRate = fireRate;
+            combatData.damage = damage;
+            combatData.targetTag = targetTag;
+            combatData.projectileSpeed = projectileSpeed;
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            AttackSubManager subManager = pawnObject.AddComponent<AttackSubManager>();
+            
+            // AttackPoint가 없으면 생성
+            Transform attackPointTransform = pawnObject.transform.Find("AttackPoint");
+            if (attackPointTransform == null)
+            {
+                GameObject attackPoint = new GameObject("AttackPoint");
+                attackPoint.transform.SetParent(pawnObject.transform);
+                attackPoint.transform.localPosition = Vector3.zero;
+                attackPointTransform = attackPoint.transform;
+            }
+            subManager.attackPoint = attackPointTransform;
+            
+            // AttackMethodType 설정
+            if (attackMethodType == "Instant")
+            {
+                subManager.attackMethodType = AttackMethodType.Instant;
+            }
+            else if (attackMethodType == "Area")
+            {
+                subManager.attackMethodType = AttackMethodType.Area;
+            }
+            else
+            {
+                subManager.attackMethodType = AttackMethodType.Projectile;
+            }
+            
+            // AttackPatternType 설정
+            if (attackPatternType == "Burst")
+            {
+                subManager.attackPatternType = AttackPatternType.Burst;
+                subManager.burstCount = burstCount;
+                subManager.burstDelay = burstDelay;
+            }
+            else
+            {
+                subManager.attackPatternType = AttackPatternType.Single;
+            }
+            
+            subManager.attackRange = attackRange;
+            
             return subManager;
         }
     }

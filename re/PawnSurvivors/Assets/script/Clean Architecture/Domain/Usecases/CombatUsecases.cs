@@ -4,6 +4,7 @@ using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Events;
 using PawnSurvivors.Data.Recipes;
 using PawnSurvivors.Domain.Usecases;
+using PawnSurvivors.Utilities;
 
 /// <summary>
 /// 전투 관련 비즈니스 로직을 담당하는 Usecase 클래스입니다.
@@ -52,8 +53,7 @@ public static class CombatUsecases
             else
             {
                 // 자동 결정: 발사자의 태그에 따라 타겟 결정
-                // Player 태그면 Enemy를 타겟, Enemy 태그면 Player를 타겟
-                targetTag = (owner != null && owner.gameObject.CompareTag("Player")) ? "Enemy" : "Player";
+                targetTag = owner != null ? TagHelper.GetOppositeTag(owner.gameObject) : "Enemy";
             }
             
             Transform closestTarget = TargetingUsecases.FindClosestTargetByTag(firePoint.position, targetTag, 0); // 0은 무한 범위를 의미합니다.
@@ -171,20 +171,16 @@ public static class CombatUsecases
             return false; // 타겟 없음
         }
 
-        // 타겟의 PawnManager 가져오기
-        if (closestTarget.TryGetComponent<PawnManager>(out var targetPawnManager))
+        // 데미지를 받을 수 있는 Pawn인지 확인
+        if (PawnHelper.TryGetDamageablePawn(closestTarget.gameObject, out var targetPawnManager))
         {
-            // DamageableSubManager가 있는지 확인 (데미지를 받을 수 있는 대상만)
-            if (targetPawnManager.TryGetComponent<DamageableSubManager>(out _))
-            {
-                // 즉시 DamageEvent 발행
-                targetPawnManager.Publish(new DamageEvent(targetPawnManager, damage, attacker));
-                
-                // 다음 공격 시간 갱신
-                nextFireTime = gameTime + 1f / fireRate;
-                
-                return true; // 공격 성공
-            }
+            // 즉시 DamageEvent 발행
+            targetPawnManager.Publish(new DamageEvent(targetPawnManager, damage, attacker));
+            
+            // 다음 공격 시간 갱신
+            nextFireTime = gameTime + 1f / fireRate;
+            
+            return true; // 공격 성공
         }
 
         return false; // 공격 실패
