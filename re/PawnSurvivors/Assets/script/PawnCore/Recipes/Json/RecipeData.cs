@@ -178,6 +178,10 @@ namespace PawnSurvivors.Data.Recipes
         // Burst 패턴 설정
         public int burstCount = 2;
         public float burstDelay = 0.1f;
+        
+        // Range Visualization 설정
+        public bool showRangeIndicator = false;
+        public Color rangeColor = new Color(1f, 1f, 1f, 0.3f);
 
         public override void ApplyToPawnData(PawnData pawnData)
         {
@@ -231,6 +235,8 @@ namespace PawnSurvivors.Data.Recipes
             }
             
             subManager.attackRange = attackRange;
+            subManager.showRangeIndicator = showRangeIndicator;
+            subManager.rangeColor = rangeColor;
             
             return subManager;
         }

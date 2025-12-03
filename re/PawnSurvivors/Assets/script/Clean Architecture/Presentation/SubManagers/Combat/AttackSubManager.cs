@@ -36,11 +36,19 @@ public class AttackSubManager : PawnSubManager
     [Tooltip("연타 간격 (초, Burst 패턴일 때만 사용)")]
     public float burstDelay = 0.1f;
     
+    [Header("Range Visualization")]
+    [Tooltip("공격 범위를 시각적으로 표시 (Area 공격만)")]
+    public bool showRangeIndicator = false;
+    
+    [Tooltip("범위 표시 색상")]
+    public Color rangeColor = new Color(1f, 1f, 1f, 0.3f);
+    
     // Private fields
     private PawnData _pawnData;
     private float _nextFireTime = 0f;
     private IAttackMethod _attackMethod;
     private IAttackPattern _attackPattern;
+    private GameObject _rangeIndicator;
 
     public override void SubStart()
     {
@@ -61,7 +69,75 @@ public class AttackSubManager : PawnSubManager
         _attackPattern = CreateAttackPattern(attackPatternType);
         
         // 초기 상태 설정
-        // ResetAttackState();
+        _nextFireTime = 0f;
+        
+        // Area 공격이고 범위 표시 옵션이 켜져있으면
+        if (attackMethodType == AttackMethodType.Area && showRangeIndicator && attackRange > 0)
+        {
+            CreateRangeIndicator();
+        }
+    }
+    
+    /// <summary>
+    /// 공격 범위를 시각적으로 표시하는 원을 생성합니다.
+    /// </summary>
+    private void CreateRangeIndicator()
+    {
+        // 범위 표시용 자식 GameObject 생성
+        _rangeIndicator = new GameObject("RangeIndicator");
+        _rangeIndicator.transform.SetParent(transform);
+        _rangeIndicator.transform.localPosition = Vector3.zero;
+        
+        // SpriteRenderer 추가
+        SpriteRenderer spriteRenderer = _rangeIndicator.AddComponent<SpriteRenderer>();
+        
+        // 원형 스프라이트 생성 (Unity 기본 스프라이트 사용)
+        Sprite circleSprite = Resources.Load<Sprite>("Sprites/Circle");
+        if (circleSprite == null)
+        {
+            // 기본 Circle 스프라이트가 없으면 임시로 생성
+            Texture2D texture = new Texture2D(256, 256);
+            Color[] pixels = new Color[256 * 256];
+            Vector2 center = new Vector2(128, 128);
+            
+            for (int y = 0; y < 256; y++)
+            {
+                for (int x = 0; x < 256; x++)
+                {
+                    float distance = Vector2.Distance(new Vector2(x, y), center);
+                    float alpha = distance < 120 ? 1f : 0f;
+                    pixels[y * 256 + x] = new Color(1, 1, 1, alpha);
+                }
+            }
+            
+            texture.SetPixels(pixels);
+            texture.Apply();
+            circleSprite = Sprite.Create(texture, new Rect(0, 0, 256, 256), new Vector2(0.5f, 0.5f), 100f);
+        }
+        
+        spriteRenderer.sprite = circleSprite;
+        spriteRenderer.color = rangeColor;
+        
+        // 범위에 맞게 스케일 조정 (픽셀 퍼 유닛 고려)
+        // Unity 기본 Circle 스프라이트는 256x256 픽셀, PPU=100
+        // 따라서 실제 크기는 2.56 유닛
+        // attackRange에 맞추려면: scale = (attackRange * 2) / 2.56
+        float targetDiameter = attackRange * 2f; // 지름
+        float baseSize = 2.56f; // 기본 스프라이트 크기
+        float scale = targetDiameter / baseSize;
+        _rangeIndicator.transform.localScale = new Vector3(scale, scale, 1f);
+        
+        // 렌더 순서 조정 (타일맵보다 앞에, 캐릭터보다 뒤에)
+        spriteRenderer.sortingOrder = -1;
+    }
+    
+    private void OnDestroy()
+    {
+        // 범위 표시 정리
+        if (_rangeIndicator != null)
+        {
+            Destroy(_rangeIndicator);
+        }
     }
     
     /// <summary>
