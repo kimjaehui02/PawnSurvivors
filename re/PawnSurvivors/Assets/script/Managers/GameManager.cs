@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     
     public FloatingEffectManager FloatingEffectManager { get; private set; }
     public BackgroundTilemapManager BackgroundTilemapManager { get; private set; }
-    public AspectRatioManager AspectRatioManager { get; private set; }
+    // public AspectRatioManager AspectRatioManager { get; private set; }
     
     /// <summary>
     /// 현재 게임 세션의 런타임 데이터 (Data 계층 내부용, 외부 접근 불가)
@@ -34,6 +34,11 @@ public class GameManager : MonoBehaviour
     /// 아이템 Repository (Data 계층 내부용, UseCase에서만 사용)
     /// </summary>
     public IItemRepository ItemRepository { get; private set; }
+    
+    /// <summary>
+    /// 레시피 Repository (Data 계층 내부용, UseCase에서만 사용)
+    /// </summary>
+    public IRecipeRepository RecipeRepository { get; private set; }
     
     /// <summary>
     /// UseCase 인스턴스들
@@ -203,6 +208,8 @@ public class GameManager : MonoBehaviour
         SessionDataRepository = new SessionDataRepository(_sessionData);
         ItemRepository = new ItemRepository(_sessionData);
         
+        // RecipeRepository는 CreationManager 초기화 후 설정
+        
         // StageDataSource 초기화 (UseCase보다 먼저 초기화 필요)
         // Resources 폴더 경로 사용 (WebGL 호환)
         _stageDataSource = new PawnSurvivors.Data.DataSources.StageDataSource();
@@ -244,11 +251,11 @@ public class GameManager : MonoBehaviour
         }
         
         // AspectRatioManager 초기화 (레터박스)
-        AspectRatioManager = GetComponent<AspectRatioManager>();
-        if (AspectRatioManager == null)
-        {
-            AspectRatioManager = gameObject.AddComponent<AspectRatioManager>();
-        }
+        // AspectRatioManager = GetComponent<AspectRatioManager>();
+        // if (AspectRatioManager == null)
+        // {
+        //     AspectRatioManager = gameObject.AddComponent<AspectRatioManager>();
+        // }
         
         CreationManager = GetComponent<CreationManager>();
         StageManager = GetComponent<StageManager>();
@@ -271,8 +278,25 @@ public class GameManager : MonoBehaviour
         var itemPoolRepository = new PawnSurvivors.Data.Repositories.ItemPoolRepository(_itemPoolDataSource);
         ItemPoolUseCase = new ItemPoolUseCase(itemPoolRepository, ItemRepository);
         
-        // ShopUseCase 초기화
-        ShopUseCase = new ShopUseCase(ItemPoolUseCase, ItemRepository, CurrencyUseCase);
+        // RecipeRepository 초기화 (CreationManager의 RecipeDataSource 사용)
+        if (CreationManager != null)
+        {
+            var recipeDataSource = CreationManager.GetType()
+                .GetField("_recipeDataSource", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.GetValue(CreationManager) as PawnSurvivors.Data.DataSources.RecipeDataSource;
+            
+            if (recipeDataSource != null)
+            {
+                RecipeRepository = new PawnSurvivors.Data.Repositories.RecipeRepository(recipeDataSource);
+            }
+            else
+            {
+                LogManager.LogError(LogCategory.System, "RecipeDataSource를 CreationManager에서 가져올 수 없습니다.");
+            }
+        }
+        
+        // ShopUseCase 초기화 (아이템 + 캐릭터 랜덤 선택 기능 포함)
+        ShopUseCase = new ShopUseCase(ItemPoolUseCase, ItemRepository, RecipeRepository, CurrencyUseCase);
         
         // CharacterSelectionUseCase 초기화
         CharacterSelectionUseCase = new CharacterSelectionUseCase(SessionDataRepository);

@@ -133,4 +133,60 @@ public static class CombatUsecases
         lastDamageTimes[target] = currentTime;
         return true;
     }
+
+    /// <summary>
+    /// 즉발 공격(Instant Attack)을 처리합니다.
+    /// 투사체를 발사하지 않고 즉시 타겟에게 데미지를 입힙니다.
+    /// </summary>
+    /// <param name="nextFireTime">다음 공격 시간 (ref)</param>
+    /// <param name="fireRate">공격 속도</param>
+    /// <param name="attackPosition">공격 시작 위치</param>
+    /// <param name="attackRange">공격 범위 (0이면 무한)</param>
+    /// <param name="targetTag">타겟 태그</param>
+    /// <param name="damage">데미지</param>
+    /// <param name="gameTime">현재 게임 시간</param>
+    /// <param name="attacker">공격자 GameObject</param>
+    /// <returns>공격 성공 시 true</returns>
+    public static bool HandleInstantAttack(
+        ref float nextFireTime, 
+        float fireRate, 
+        Vector3 attackPosition, 
+        float attackRange, 
+        string targetTag, 
+        float damage, 
+        float gameTime, 
+        GameObject attacker)
+    {
+        // 공격 속도 체크
+        if (gameTime < nextFireTime)
+        {
+            return false; // 쿨다운 중
+        }
+
+        // 가장 가까운 타겟 찾기
+        Transform closestTarget = TargetingUsecases.FindClosestTargetByTag(attackPosition, targetTag, attackRange);
+        
+        if (closestTarget == null)
+        {
+            return false; // 타겟 없음
+        }
+
+        // 타겟의 PawnManager 가져오기
+        if (closestTarget.TryGetComponent<PawnManager>(out var targetPawnManager))
+        {
+            // DamageableSubManager가 있는지 확인 (데미지를 받을 수 있는 대상만)
+            if (targetPawnManager.TryGetComponent<DamageableSubManager>(out _))
+            {
+                // 즉시 DamageEvent 발행
+                targetPawnManager.Publish(new DamageEvent(targetPawnManager, damage, attacker));
+                
+                // 다음 공격 시간 갱신
+                nextFireTime = gameTime + 1f / fireRate;
+                
+                return true; // 공격 성공
+            }
+        }
+
+        return false; // 공격 실패
+    }
 }
