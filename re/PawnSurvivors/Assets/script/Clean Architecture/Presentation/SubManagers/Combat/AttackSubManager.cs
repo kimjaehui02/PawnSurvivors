@@ -61,7 +61,7 @@ public class AttackSubManager : PawnSubManager
         _attackPattern = CreateAttackPattern(attackPatternType);
         
         // 초기 상태 설정
-        ResetAttackState();
+        // ResetAttackState();
     }
     
     /// <summary>

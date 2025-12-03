@@ -44,11 +44,13 @@ namespace PawnSurvivors.Domain.Combat
             // 타겟 찾기
             Transform closestTarget = TargetingUsecases.FindClosestTargetByTag(attackPoint.position, targetTag, attackRange);
             
-            Vector3 direction = attackPoint.up; // 기본 방향
-            if (closestTarget != null)
+            // 타겟이 없으면 발사하지 않음
+            if (closestTarget == null)
             {
-                direction = (closestTarget.position - attackPoint.position).normalized;
+                return false;
             }
+            
+            Vector3 direction = (closestTarget.position - attackPoint.position).normalized;
 
             // 투사체 속도 계산
             float projectileSpeed = 0f;
