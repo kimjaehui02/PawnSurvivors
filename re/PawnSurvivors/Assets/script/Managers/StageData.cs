@@ -11,6 +11,7 @@ namespace PawnSurvivors.Managers
         public float spawnRadius = 10f;
         public float spawnDistanceFromCamera = 2f; // 카메라 뷰포트 바깥쪽으로 얼마나 떨어져서 스폰할지
         public float stageDuration = 300f; // 스테이지 지속 시간 (초). -1이면 무한
+        public string bgmName = "Audio/BGM"; // 배경 음악 (Resources 경로)
         
         // 웨이브 기반 적 소환 시스템
         public List<EnemyWave> enemyWaves = new List<EnemyWave>();

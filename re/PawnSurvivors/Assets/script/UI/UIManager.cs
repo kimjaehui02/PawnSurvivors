@@ -21,6 +21,7 @@ namespace PawnSurvivors.UI
         [SerializeField] private GameObject stageClearScreen;
         [SerializeField] private GameObject shopScreen;
         [SerializeField] private GameObject characterSelectScreen;
+        [SerializeField] private GameObject optionsScreen;
 
         private void Awake()
         {
@@ -35,7 +36,26 @@ namespace PawnSurvivors.UI
 
         private void Start()
         {
+            // 기존 프리팹 제거하고 코드 기반으로 초기화
+            InitializeScreens();
+            
             ShowTitleScreen();
+        }
+        
+        private void InitializeScreens()
+        {
+            // 기존 프리팹들 제거
+            if (pauseMenuScreen != null)
+            {
+                Destroy(pauseMenuScreen);
+                pauseMenuScreen = null;
+            }
+            
+            if (optionsScreen != null)
+            {
+                Destroy(optionsScreen);
+                optionsScreen = null;
+            }
         }
 
         private void Update()
@@ -151,22 +171,24 @@ namespace PawnSurvivors.UI
         /// </summary>
         public void ShowPauseMenu()
         {
-            if (pauseMenuScreen != null)
+            if (pauseMenuScreen == null)
             {
-                pauseMenuScreen.SetActive(true);
-                
-                // LifecycleManager를 통해 일시정지
-                if (GameManager.Instance?.LifecycleManager != null)
-                {
-                    if (!GameManager.Instance.LifecycleManager.IsPaused)
-                    {
-                        GameManager.Instance.LifecycleManager.TogglePause();
-                    }
-                }
+                // 코드로 생성 (프리팹 없이)
+                pauseMenuScreen = new GameObject("PauseMenuScreen");
+                pauseMenuScreen.transform.SetParent(transform);
+                pauseMenuScreen.AddComponent<PauseMenuScreen>();
+                pauseMenuScreen.SetActive(false); // 생성 시 비활성화
             }
-            else
+            
+            pauseMenuScreen.SetActive(true);
+            
+            // LifecycleManager를 통해 일시정지
+            if (GameManager.Instance?.LifecycleManager != null)
             {
-                LogManager.LogError(LogCategory.UI, "pauseMenuScreen is NULL! Please assign it in the Inspector.");
+                if (!GameManager.Instance.LifecycleManager.IsPaused)
+                {
+                    GameManager.Instance.LifecycleManager.TogglePause();
+                }
             }
         }
 
@@ -275,6 +297,22 @@ namespace PawnSurvivors.UI
             ShowCharacterSelectScreen();
         }
 
+        /// <summary>
+        /// 옵션 화면을 표시합니다.
+        /// </summary>
+        public void ShowOptionsScreen()
+        {
+            if (optionsScreen == null)
+            {
+                // 코드로 생성 (프리팹 없이)
+                optionsScreen = new GameObject("OptionsScreen");
+                optionsScreen.transform.SetParent(transform);
+                optionsScreen.AddComponent<OptionsScreen>();
+            }
+            
+            optionsScreen.SetActive(true);
+        }
+
         private void HideAllScreens()
         {
             if (titleScreen != null) titleScreen.SetActive(false);
@@ -285,7 +323,7 @@ namespace PawnSurvivors.UI
             if (gameOverScreen != null) gameOverScreen.SetActive(false);
             if (stageClearScreen != null) stageClearScreen.SetActive(false);
             if (shopScreen != null) shopScreen.SetActive(false);
-            if (characterSelectScreen != null) characterSelectScreen.SetActive(false);
+            if (optionsScreen != null) optionsScreen.SetActive(false);
         }
 
         #endregion

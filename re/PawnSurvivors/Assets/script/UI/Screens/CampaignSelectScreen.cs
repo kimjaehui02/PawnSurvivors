@@ -44,6 +44,7 @@ namespace PawnSurvivors.UI
             CanvasScaler scaler = gameObject.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.matchWidthOrHeight = 0.5f; // 화면 비율 맞춤
             
             // EventSystem 확인 및 생성
             if (UnityEngine.EventSystems.EventSystem.current == null)
@@ -59,6 +60,7 @@ namespace PawnSurvivors.UI
             RectTransform titleRect = titleObj.AddComponent<RectTransform>();
             titleRect.anchorMin = new Vector2(0.5f, 0.9f);
             titleRect.anchorMax = new Vector2(0.5f, 0.9f);
+            titleRect.anchoredPosition = Vector2.zero;
             titleRect.sizeDelta = new Vector2(800, 100);
             
             TMP_Text titleText = titleObj.AddComponent<TextMeshProUGUI>();
@@ -74,12 +76,15 @@ namespace PawnSurvivors.UI
             RectTransform containerRect = containerObj.AddComponent<RectTransform>();
             containerRect.anchorMin = new Vector2(0.5f, 0.5f);
             containerRect.anchorMax = new Vector2(0.5f, 0.5f);
+            containerRect.anchoredPosition = Vector2.zero;
             containerRect.sizeDelta = new Vector2(800, 600);
             
             GridLayoutGroup grid = containerObj.AddComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(750, 120);
-            grid.spacing = new Vector2(10, 20);
+            grid.cellSize = new Vector2(700, 100); // 크기 축소
+            grid.spacing = new Vector2(10, 15);
             grid.childAlignment = TextAnchor.MiddleCenter;
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 1; // 1열로 고정
             
             _campaignListContainer = containerObj;
             
@@ -89,6 +94,7 @@ namespace PawnSurvivors.UI
             RectTransform backRect = backBtnObj.AddComponent<RectTransform>();
             backRect.anchorMin = new Vector2(0.5f, 0.1f);
             backRect.anchorMax = new Vector2(0.5f, 0.1f);
+            backRect.anchoredPosition = Vector2.zero;
             backRect.sizeDelta = new Vector2(300, 80);
             
             Image backImg = backBtnObj.AddComponent<Image>();

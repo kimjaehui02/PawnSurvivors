@@ -100,7 +100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   titleScreen: {fileID: 0}
-  mainMenuScreen: {fileID: 0}
+  campaignSelectScreen: {fileID: 0}
   stageScreen: {fileID: 0}
   pauseMenuScreen: {fileID: 0}
   gameOverScreen: {fileID: 0}
@@ -153,6 +153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d079c4698118e0b4ebd84a1c3b2e9964, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gridObject: {fileID: 0}
+  gridObjectName: BackgroundGrid
   tileSpriteFolderPath: Sprites/tiles
   mapSize: {x: 50, y: 50}
   cellSize: {x: 0, y: 0, z: 0}

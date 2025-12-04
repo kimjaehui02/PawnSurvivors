@@ -64,6 +64,16 @@ public class GameManager : MonoBehaviour
     public PlayerController PlayerController { get; private set; }
     
     /// <summary>
+    /// 배경 음악 AudioSource
+    /// </summary>
+    public AudioSource BGMSource { get; private set; }
+    
+    /// <summary>
+    /// 오디오 설정 (볼륨 관리)
+    /// </summary>
+    public PawnSurvivors.Data.GameAudioSettings AudioSettings { get; private set; }
+    
+    /// <summary>
     /// 선택된 캐릭터 목록
     /// </summary>
     private List<string> _selectedCharacters = new List<string> { "PlayerErpin", "PlayerButter", "PlayerOpal" };
@@ -181,6 +191,13 @@ public class GameManager : MonoBehaviour
         
         CreationManager = GetComponent<CreationManager>();
         StageManager = GetComponent<StageManager>();
+        
+        // 오디오 설정 로드
+        AudioSettings = new PawnSurvivors.Data.GameAudioSettings();
+        AudioSettings.Load();
+        
+        // BGM AudioSource 생성
+        InitializeBGM();
         
         // LifecycleManager 설정 후 UseCase 업데이트
         if (LifecycleManager != null)
@@ -341,6 +358,58 @@ public class GameManager : MonoBehaviour
         return new List<string>(_selectedCharacters);
     }
 
+    /// <summary>
+    /// BGM AudioSource를 초기화합니다.
+    /// </summary>
+    private void InitializeBGM()
+    {
+        GameObject bgmObj = new GameObject("BGM");
+        bgmObj.transform.SetParent(transform);
+        BGMSource = bgmObj.AddComponent<AudioSource>();
+        BGMSource.loop = true;
+        BGMSource.playOnAwake = false;
+        UpdateBGMVolume(); // 설정된 볼륨 적용
+    }
+    
+    /// <summary>
+    /// BGM을 재생합니다.
+    /// </summary>
+    /// <param name="bgmPath">Resources 폴더 기준 경로 (예: "Audio/BGM")</param>
+    public void PlayBGM(string bgmPath)
+    {
+        if (BGMSource == null || string.IsNullOrEmpty(bgmPath)) return;
+        
+        AudioClip bgm = Resources.Load<AudioClip>(bgmPath);
+        if (bgm == null)
+        {
+            LogManager.LogWarning(LogCategory.System, $"BGM '{bgmPath}' not found in Resources.");
+            return;
+        }
+        
+        // 이미 같은 BGM이 재생 중이면 스킵
+        if (BGMSource.clip == bgm && BGMSource.isPlaying)
+        {
+            return;
+        }
+        
+        BGMSource.clip = bgm;
+        UpdateBGMVolume(); // 볼륨 적용
+        BGMSource.Play();
+        LogManager.LogInfo(LogCategory.System, $"BGM 재생: {bgmPath}");
+    }
+    
+    /// <summary>
+    /// BGM 볼륨을 업데이트합니다.
+    /// 설정 변경 시 호출하면 즉시 반영됩니다.
+    /// </summary>
+    public void UpdateBGMVolume()
+    {
+        if (BGMSource != null && AudioSettings != null)
+        {
+            BGMSource.volume = AudioSettings.EffectiveBGMVolume;
+        }
+    }
+    
     /// <summary>
     /// 기존 플레이어들을 다음 스테이지에 대비합니다.
     /// 죽은 플레이어는 부활시키고, 모든 플레이어의 공격 상태를 리셋합니다.

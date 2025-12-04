@@ -129,6 +129,12 @@ public class StageManager : MonoBehaviour
             GameManager.Instance.LifecycleManager.ResetGameTime();
         }
         
+        // BGM 재생
+        if (GameManager.Instance != null && !string.IsNullOrEmpty(_currentStageData.bgmName))
+        {
+            GameManager.Instance.PlayBGM(_currentStageData.bgmName);
+        }
+        
         // ✅ 공격 SubManager들의 상태 리셋은 OnEnable에서 자동 처리됨
         // AttackSubManager, ProjectileShooterSubManager, InstantAttackSubManager 모두
         // OnEnable에서 _nextFireTime = 0f 처리하므로 별도 호출 불필요

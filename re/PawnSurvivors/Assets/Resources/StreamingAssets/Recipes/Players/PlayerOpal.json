@@ -72,6 +72,12 @@
       "backgroundColor": {"r": 0.2, "g": 0.2, "b": 0.2, "a": 0.8},
       "healthColor": {"r": 0.2, "g": 0.8, "b": 0.2, "a": 1.0},
       "lowHealthColor": {"r": 0.9, "g": 0.2, "b": 0.2, "a": 1.0}
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.AudioSubManagerSetupData, Assembly-CSharp",
+      "hitSounds": ["Audio/Hit0", "Audio/Hit1"],
+      "deathSound": "Audio/Dead",
+      "volume": 0.7
     }
   ]
 }

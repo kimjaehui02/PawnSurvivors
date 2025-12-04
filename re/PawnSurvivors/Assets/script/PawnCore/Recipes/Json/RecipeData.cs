@@ -765,4 +765,35 @@ namespace PawnSurvivors.Data.Recipes
             return subManager;
         }
     }
+
+    // ========================================
+    // Audio SubManager Setup Data
+    // ========================================
+
+    [Serializable]
+    public class AudioSubManagerSetupData : SubManagerSetupData
+    {
+        [Tooltip("피격 사운드 (여러 개면 랜덤)")]
+        public string[] hitSounds = new string[] { "Audio/Hit0", "Audio/Hit1" };
+        
+        [Tooltip("사망 사운드")]
+        public string deathSound = "Audio/Dead";
+        
+        [Tooltip("사운드 볼륨")]
+        public float volume = 1f;
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // AudioSubManager는 PawnData에 저장할 데이터가 없음
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            AudioSubManager subManager = pawnObject.AddComponent<AudioSubManager>();
+            subManager.hitSounds = hitSounds ?? new string[0];
+            subManager.deathSound = deathSound;
+            subManager.volume = volume;
+            return subManager;
+        }
+    }
 }
