@@ -13,11 +13,21 @@ namespace PawnSurvivors.UI
     {
         private GameObject _audioSettingsScreen;
         private TMP_FontAsset _font;
+        private bool _isUICreated = false;
+        
+        /// <summary>
+        /// 현재 열려있는 하위 화면을 반환합니다.
+        /// </summary>
+        public GameObject ActiveSubScreen => _audioSettingsScreen != null && _audioSettingsScreen.activeSelf ? _audioSettingsScreen : null;
 
         private void Awake()
         {
-            LoadFont();
-            CreateUI();
+            if (!_isUICreated)
+            {
+                LoadFont();
+                CreateUI();
+                _isUICreated = true;
+            }
         }
 
         private void LoadFont()
@@ -30,7 +40,7 @@ namespace PawnSurvivors.UI
             // Canvas 생성
             Canvas canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100;
+            canvas.sortingOrder = 110; // PauseMenu(100)보다 위
             
             gameObject.AddComponent<GraphicRaycaster>();
             
@@ -129,27 +139,13 @@ namespace PawnSurvivors.UI
 
         private void OnAudioSettingsClicked()
         {
-            // 오디오 설정 화면 생성
+            // 오디오 설정 화면 생성 (코드로)
             if (_audioSettingsScreen == null)
             {
-                GameObject prefab = Resources.Load<GameObject>("Prefabs/UI/AudioSettingsScreen");
-                if (prefab != null)
-                {
-                    _audioSettingsScreen = Instantiate(prefab, transform.parent);
-                }
-                else
-                {
-                    // 프리팹 없으면 코드로 생성
-                    _audioSettingsScreen = new GameObject("AudioSettingsScreen");
-                    _audioSettingsScreen.transform.SetParent(transform.parent);
-                    
-                    // 타입 이름으로 컴포넌트 추가
-                    var componentType = System.Type.GetType("PawnSurvivors.UI.AudioSettingsScreen");
-                    if (componentType != null)
-                    {
-                        _audioSettingsScreen.AddComponent(componentType);
-                    }
-                }
+                _audioSettingsScreen = new GameObject("AudioSettingsScreen");
+                _audioSettingsScreen.transform.SetParent(transform.parent, false);
+                _audioSettingsScreen.AddComponent<AudioSettingsScreen>();
+                _audioSettingsScreen.SetActive(false); // 생성 직후 비활성화
             }
             
             // 메인 옵션 화면 숨기고 오디오 설정 표시
@@ -160,6 +156,12 @@ namespace PawnSurvivors.UI
         private void OnCloseClicked()
         {
             gameObject.SetActive(false);
+            
+            // 일시정지 메뉴로 돌아가기
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowPauseMenu();
+            }
         }
 
         private void OnEnable()

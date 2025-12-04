@@ -11,13 +11,17 @@ namespace PawnSurvivors.UI
     /// </summary>
     public class PauseMenuScreen : MonoBehaviour
     {
-        private GameObject _optionsScreen;
         private TMP_FontAsset _font;
+        private bool _isUICreated = false;
 
         private void Awake()
         {
-            LoadFont();
-            CreateUI();
+            if (!_isUICreated)
+            {
+                LoadFont();
+                CreateUI();
+                _isUICreated = true;
+            }
         }
 
         private void LoadFont()
@@ -144,17 +148,12 @@ namespace PawnSurvivors.UI
 
         private void OnOptionsClicked()
         {
-            // 옵션 화면 생성
-            if (_optionsScreen == null)
+            // UIManager를 통해 옵션 화면 표시
+            if (UIManager.Instance != null)
             {
-                _optionsScreen = new GameObject("OptionsScreen");
-                _optionsScreen.transform.SetParent(transform.parent);
-                _optionsScreen.AddComponent<OptionsScreen>();
+                gameObject.SetActive(false); // 일시정지 메뉴 숨기기
+                UIManager.Instance.ShowOptionsScreen();
             }
-            
-            // 일시정지 메뉴 숨기고 옵션 표시
-            gameObject.SetActive(false);
-            _optionsScreen.SetActive(true);
         }
 
         private void OnMainMenuClicked()
@@ -174,13 +173,5 @@ namespace PawnSurvivors.UI
 #endif
         }
 
-        private void OnEnable()
-        {
-            // 옵션 화면이 열려있으면 닫기
-            if (_optionsScreen != null)
-            {
-                _optionsScreen.SetActive(false);
-            }
-        }
     }
 }

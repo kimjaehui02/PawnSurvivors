@@ -14,11 +14,16 @@ namespace PawnSurvivors.UI
         private Slider _bgmVolumeSlider;
         private Slider _sfxVolumeSlider;
         private TMP_FontAsset _font;
+        private bool _isUICreated = false;
 
         private void Awake()
         {
-            LoadFont();
-            CreateUI();
+            if (!_isUICreated)
+            {
+                LoadFont();
+                CreateUI();
+                _isUICreated = true;
+            }
         }
         
         private void OnEnable()
@@ -37,7 +42,7 @@ namespace PawnSurvivors.UI
             // Canvas 생성
             Canvas canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100; // 다른 UI 위에 표시
+            canvas.sortingOrder = 120; // Options(110)보다 위
             
             gameObject.AddComponent<GraphicRaycaster>();
             
@@ -266,6 +271,12 @@ namespace PawnSurvivors.UI
         private void OnCloseButtonClicked()
         {
             gameObject.SetActive(false);
+            
+            // 옵션 메뉴로 돌아가기
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowOptionsScreen();
+            }
         }
     }
 }

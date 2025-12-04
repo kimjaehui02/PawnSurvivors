@@ -69,20 +69,43 @@ namespace PawnSurvivors.UI
 
         private void HandleEscapeKey()
         {
+            // 최우선: 소리 설정 화면 (3개 슬라이더) 찾기
+            GameObject audioSettingsScreen = GameObject.Find("AudioSettingsScreen");
+            if (audioSettingsScreen != null && audioSettingsScreen.activeSelf)
+            {
+                // 소리 설정 → 옵션으로
+                audioSettingsScreen.SetActive(false);
+                ShowOptionsScreen();
+                return;
+            }
+            
+            // 옵션 화면이 열려있으면 → 일시정지로
+            if (optionsScreen != null && optionsScreen.activeSelf)
+            {
+                optionsScreen.SetActive(false);
+                ShowPauseMenu();
+                return;
+            }
+            
             // 일시정지 메뉴가 열려있으면 닫기
             if (pauseMenuScreen != null && pauseMenuScreen.activeSelf)
             {
                 HidePauseMenu();
+                return;
             }
+            
             // 스테이지 화면이 활성화되어 있으면 일시정지 메뉴 열기
-            else if (stageScreen != null && stageScreen.activeSelf)
+            if (stageScreen != null && stageScreen.activeSelf)
             {
                 ShowPauseMenu();
+                return;
             }
+            
             // 상점 화면이 활성화되어 있으면 일시정지 메뉴 열기
-            else if (shopScreen != null && shopScreen.activeSelf)
+            if (shopScreen != null && shopScreen.activeSelf)
             {
                 ShowPauseMenu();
+                return;
             }
         }
 
@@ -308,6 +331,7 @@ namespace PawnSurvivors.UI
                 optionsScreen = new GameObject("OptionsScreen");
                 optionsScreen.transform.SetParent(transform);
                 optionsScreen.AddComponent<OptionsScreen>();
+                optionsScreen.SetActive(false); // 생성 직후 비활성화 (Awake 호출 후)
             }
             
             optionsScreen.SetActive(true);
