@@ -77,7 +77,7 @@
       "$type": "PawnSurvivors.Data.Recipes.AudioSubManagerSetupData, Assembly-CSharp",
       "hitSounds": ["Audio/Hit0", "Audio/Hit1"],
       "deathSound": "Audio/Dead",
-      "volume": 0.7
+      "volume": 1.0
     }
   ]
 }
