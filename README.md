@@ -1,172 +1,103 @@
 # Pawn Survivors
 
-**Unity 2D 로그라이크 서바이벌 게임**
+> Unity 2D 로그라이크 서바이벌 게임 | Clean Architecture 적용
 
-Clean Architecture 패턴을 적용한 확장 가능한 게임 프로젝트입니다.
-
----
-
-## 🎮 게임 소개
-
-<details>
-<summary><b>게임 플레이</b></summary>
-
-### 장르
-- 로그라이크 서바이벌 액션
-
-### 핵심 시스템
-- **캐릭터 선택**: 10명의 고유한 캐릭터 (각기 다른 공격 방식)
-- **캠페인 시스템**: 여러 스테이지로 구성된 캠페인 선택
-- **전투 시스템**: Projectile, Instant, Area 공격 + Burst 패턴
-- **레벨업 시스템**: 조건 기반 레벨업 (킬 수, 시간, 데미지)
-- **아이템 시스템**: 전역/장착 아이템, 스탯 보너스
-- **상점 시스템**: 스테이지 클리어 후 아이템/캐릭터 구매
-
-### 캐릭터 예시
-- **티그**: 원거리 투사체 공격
-- **우이**: 주변 범위 공격 (공격 범위 시각화)
-- **에르핀, 버터, 오팔** 등 7명 추가
-
-</details>
-
-<details>
-<summary><b>주요 기능</b></summary>
-
-- ✅ JSON 기반 레시피 시스템 (데이터 주도)
-- ✅ 동적 UI 생성 (코드 기반)
-- ✅ 체력바 시스템 (SpriteRenderer)
-- ✅ 사운드 시스템 (이벤트 기반)
-- ✅ 볼륨 조절 (마스터/BGM/효과음)
-- ✅ 물리 충돌 (적끼리, 플레이어-적)
-- ✅ 카메라 시스템 (여러 플레이어 추적)
-- ✅ 웹 빌드 지원
-
-</details>
+**핵심 가치:** JSON 기반 데이터 주도 설계로 **코드 수정 없이 밸런스 조정** 가능  
+**기술적 특징:** 이벤트 버스 + SubManager 패턴으로 **느슨한 결합**과 **높은 확장성** 달성  
+**포트폴리오:** 디자인 패턴과 Clean Architecture를 실전 적용한 프로젝트
 
 ---
 
-## 🏗️ 아키텍처
+## 🎮 게임 개요
+
+**장르:** 로그라이크 서바이벌 액션  
+**플랫폼:** WebGL (브라우저에서 플레이 가능)
+
+**주요 시스템:**
+- 10명의 캐릭터 (각기 다른 공격 방식)
+- 캠페인/스테이지 시스템
+- 아이템 & 상점 시스템
+- 레벨업 & 능력치 강화
+
+---
+
+## 🏗️ 핵심 아키텍처
 
 <details>
-<summary><b>Clean Architecture 구조</b></summary>
+<summary><b>Clean Architecture 3계층</b></summary>
 
 ```
-┌─────────────────────────────────────────┐
-│         Presentation Layer              │
-│  (SubManagers, UI, Input Handling)      │
-├─────────────────────────────────────────┤
-│           Domain Layer                  │
-│  (Use Cases, Entities, Events)          │
-├─────────────────────────────────────────┤
-│            Data Layer                   │
-│  (Repositories, DataSources, JSON)      │
-└─────────────────────────────────────────┘
+Presentation (Unity 의존)
+     ↓ (호출)
+Domain (비즈니스 로직, Unity 독립)
+     ↓ (호출)
+Data (저장소, JSON)
 ```
 
-### 계층별 역할
+**의존성 규칙:** 상위 계층만 하위 계층을 호출 (역방향 X)
 
-**Presentation Layer**
-- SubManager 패턴으로 기능 모듈화
-- UI 동적 생성 (코드 기반)
-- Unity 컴포넌트와 직접 통신
-
-**Domain Layer**
-- 비즈니스 로직 (공격, 레벨업, 아이템)
-- Use Case 패턴
-- 이벤트 버스 (느슨한 결합)
-
-**Data Layer**
-- JSON 기반 데이터 관리
-- Repository 패턴
-- WebGL 호환 (Resources 폴더)
+**장점:**
+- ✅ 테스트 용이 (Domain은 Unity 없이 테스트 가능)
+- ✅ 유지보수성 향상 (계층별 역할 명확)
+- ✅ 확장성 (새 기능 추가 시 다른 계층 영향 최소화)
 
 </details>
 
 <details>
-<summary><b>SubManager 시스템</b></summary>
+<summary><b>SubManager 패턴</b></summary>
 
-### 개념
-각 Pawn은 여러 SubManager로 구성되며, 각 SubManager는 단일 책임을 가집니다.
+### 문제
+전통적인 방식: 캐릭터마다 거대한 MonoBehaviour 클래스  
+→ 코드 중복, 확장 어려움, 테스트 힘듦
 
-### 주요 SubManager
+### 해결
+**SubManager로 기능 분할** (Component 패턴)
 
-**전투 관련**
-- `AttackSubManager`: 공격 로직 통합 관리
-- `CollisionDamageSubManager`: 충돌 데미지 처리
-- `DamageableSubManager`: 피격 및 체력 관리
+```
+Pawn GameObject
+  ├── AttackSubManager (공격)
+  ├── HealthBarSubManager (체력바)
+  ├── AudioSubManager (사운드)
+  └── MovableSubManager (이동)
+```
 
-**이동 관련**
-- `MovableSubManager`: 이동 전략 관리
-- `SeparationSubManager`: 겹침 방지 (적끼리, 플레이어-적)
+**각 SubManager = 단일 책임**
 
-**시각 관련**
-- `VisualSubManager`: 스프라이트 렌더링
-- `HealthBarSubManager`: 체력바 표시 (SpriteRenderer)
-- `HitFlashSubManager`: 피격 시 깜빡임
-
-**오디오 관련**
-- `AudioSubManager`: 피격/사망 사운드 (이벤트 구독)
-
-**기타**
-- `PhysicsSubManager`: Collider/Rigidbody 관리
-- `LevelUpSubManager`: 레벨업 조건 및 보상
-- `CoinPickupSubManager`: 코인 획득
-
-### 장점
-- ✅ 높은 재사용성 (JSON으로 조합)
-- ✅ 단일 책임 원칙
-- ✅ 쉬운 확장 (새 SubManager 추가)
-- ✅ 독립적 테스트 가능
+### 결과
+- ✅ JSON으로 SubManager 조합 가능
+- ✅ 새 캐릭터 = JSON 파일 복사 후 수정만
+- ✅ 코드 재사용률 대폭 증가
 
 </details>
 
 <details>
-<summary><b>전략 패턴 (Strategy Pattern)</b></summary>
+<summary><b>이벤트 버스</b></summary>
 
-### 이동 전략
-- `KeyboardMovementStrategy`: 키보드 입력
-- `HomingMovementStrategy`: 타겟 추적
-- `DirectionalMovementStrategy`: 직선 이동
-- `TargetMovementStrategy`: 특정 위치로 이동
+### 문제
+SubManager끼리 직접 참조 → 결합도 높음
 
-### 애니메이션 전략
-- `BounceAnimationStrategy`: 통통 튀는 애니메이션
-- `IdleAnimationStrategy`: 정적 표시
-
-### 레벨업 전략
-- `KillCountLevelUpStrategy`: 킬 수 기반
-- `SurvivalTimeLevelUpStrategy`: 생존 시간 기반
-- `DamageDealtLevelUpStrategy`: 데미지량 기반
-- `EventTriggerLevelUpStrategy`: 특정 이벤트 기반
-
-</details>
-
-<details>
-<summary><b>이벤트 버스 시스템</b></summary>
-
-### 이벤트 종류
-- `PawnDamagedEvent`: 피격 시
-- `PawnDeathEvent`: 사망 시
-- `PawnLevelUpEvent`: 레벨업 시
-- `CurrencyChangedEvent`: 골드 변경 시
-
-### 구독 예시
 ```csharp
-// HitFlashSubManager
-_pawnManager.Subscribe<PawnDamagedEvent>(OnDamaged);
-
-void OnDamaged(PawnDamagedEvent evt)
-{
-    if (evt.Target == _pawnManager)
-    {
-        StartFlash(); // 깜빡임
-    }
-}
+// 나쁜 예
+DamageableSubManager가 직접:
+  hitFlash.Flash();
+  healthBar.Update();
+  audioManager.PlayHit();
 ```
 
-### 장점
-- ✅ 느슨한 결합 (SubManager끼리 독립적)
-- ✅ 확장 용이 (새 구독자 추가 쉬움)
+### 해결
+**이벤트 발행/구독** (Observer 패턴)
+
+```csharp
+// 발행
+Publish(new PawnDamagedEvent(target, damage));
+
+// 구독 (각 SubManager가 독립적으로)
+Subscribe<PawnDamagedEvent>(OnDamaged);
+```
+
+### 결과
+- ✅ SubManager끼리 모름 (느슨한 결합)
+- ✅ 새 SubManager 추가해도 기존 코드 수정 불필요
 - ✅ 이벤트 우선순위 지원
 
 </details>
@@ -178,551 +109,414 @@ void OnDamaged(PawnDamagedEvent evt)
 <details>
 <summary><b>JSON 레시피 시스템</b></summary>
 
-### 구조
-모든 Pawn은 JSON 파일로 정의됩니다.
+### 설계 결정
+**모든 게임 오브젝트를 JSON으로 정의**
 
+### 이유
+- 밸런스 조정 시 코드 리컴파일 불필요
+- 디자이너가 프로그래머 없이 작업 가능
+- Git으로 변경 이력 추적 용이
+
+### 예시
 ```json
 {
-  "pawnName": "PlayerTig",
+  "pawnName": "EnemyBoss",
   "subManagerSetups": [
-    {
-      "$type": "AttackSubManagerSetupData",
-      "attackMethodType": "Projectile",
-      "fireRate": 2.0,
-      "damage": 10
-    },
-    {
-      "$type": "HealthBarSubManagerSetupData",
-      "barWidth": 1.5,
-      "healthColor": {"r": 0.2, "g": 0.8, "b": 0.2}
-    }
+    {"$type": "DamageableSubManagerSetupData", "maxHealth": 500},
+    {"$type": "AttackSubManagerSetupData", "fireRate": 1.5, "damage": 15}
   ]
 }
 ```
 
-### 장점
-- ✅ 코드 수정 없이 밸런스 조정
-- ✅ 새 캐릭터 추가 용이
-- ✅ 디자이너 친화적
-- ✅ 버전 관리 쉬움
+**코드 수정 없이 체력 500 → 300 변경 가능**
 
 ### 지원 데이터
-- **캐릭터**: Players/ (10개)
-- **적**: Enemies/ (4종)
-- **투사체**: Projectiles/ (Bullet, EnemyBullet, Coin)
-- **스테이지**: Stages/ (DebugStage, Stage1, Stage2)
-- **캠페인**: Campaigns/CampaignList.json
-- **아이템**: Items/ (공격력, 체력, 속도 등)
+- 캐릭터 14종 (플레이어 10, 적 4)
+- 스테이지 3개 (웨이브 시스템)
+- 아이템 8종
+- 캠페인 2개
 
 </details>
 
 <details>
-<summary><b>스테이지 시스템</b></summary>
+<summary><b>Resources 폴더 사용</b></summary>
 
-### 웨이브 기반 적 스폰
+### 문제
+`StreamingAssets` = WebGL에서 비동기 로딩 필요 (UnityWebRequest)
+
+### 해결
+**JSON도 Resources 폴더에 배치**
+
+```csharp
+// 동기 로딩 가능
+var recipe = Resources.Load<TextAsset>("StreamingAssets/Recipes/Players/PlayerTig");
+```
+
+### 결과
+- ✅ WebGL 빌드 안정성
+- ✅ 동기 로딩 (코드 간결)
+- ✅ 빌드 크기 자동 최적화
+
+</details>
+
+---
+
+## 🛠️ 주요 기술 구현
+
+<details>
+<summary><b>1. 확장 가능한 공격 시스템</b></summary>
+
+### 설계
+공격 = **Method (방식)** × **Pattern (패턴)**
+
+```
+3가지 Method × 2가지 Pattern = 6가지 조합
+```
+
+**Method:**
+- Projectile (투사체)
+- Instant (즉시 타격)
+- Area (범위 공격)
+
+**Pattern:**
+- Single (단발)
+- Burst (연사)
+
+### 확장성
+새 공격 추가 = `IAttackMethod` 구현 후 JSON에서 사용
+
+**기존 코드 수정 불필요**
+
+</details>
+
+<details>
+<summary><b>2. 체력바 시스템</b></summary>
+
+### 선택지
+1. WorldSpace Canvas + Slider
+2. SpriteRenderer + Scale 조절
+
+### 결정: SpriteRenderer 선택
+
+**이유:**
+- Canvas = GameObject당 5~10개 컴포넌트 필요 (무거움)
+- 적 수십 마리 → Canvas 수십 개 = 성능 문제
+- 단순한 바 형태만 필요 (Slider의 복잡한 기능 불필요)
+
+**구현:**
+```csharp
+// Background (회색) + Foreground (빨강)
+foreground.localScale.x = healthPercent; // 0.0 ~ 1.0
+```
+
+**Trade-off:**
+- ✅ 가벼움
+- ⚠️ 복잡한 UI 불가 (단순 바만 가능)
+
+</details>
+
+<details>
+<summary><b>3. 충돌 시스템 (Physics2D)</b></summary>
+
+### 요구사항
+- 적끼리 충돌 ✅
+- 플레이어-적 충돌 ✅
+- 플레이어끼리 겹침 허용 ✅
+- 총알끼리 충돌 X ✅
+
+### 해결
+**Layer Collision Matrix + RigidbodyType 조합**
+
+```
+Player: Kinematic (isTrigger=false)
+Enemy: Dynamic (isTrigger=false)
+Bullet: Dynamic (별도 Layer)
+
+Unity Physics 규칙:
+- Dynamic ↔ Dynamic = 충돌 O
+- Kinematic ↔ Kinematic = 충돌 X
+```
+
+**핵심:** `OnCollisionEnter2D` 사용 (OnTrigger 아님)
+
+**Why:** Trigger로는 물리 충돌 불가능
+
+</details>
+
+<details>
+<summary><b>4. 웨이브 기반 적 스폰</b></summary>
+
+### 문제
+고정된 스폰 = 지루함, 난이도 조절 어려움
+
+### 해결
+**시간대별 웨이브 + 가중치 랜덤**
 
 ```json
 {
-  "stageName": "Stage1",
-  "stageDuration": 60,
-  "bgmName": "Audio/BGM",
   "enemyWaves": [
     {
       "startTime": 0,
       "endTime": 30,
-      "spawnInterval": 2.5,
       "enemyTypes": [
         {"recipeName": "Enemy", "weight": 100},
-        {"recipeName": "EnemyShooter", "weight": 50}
+        {"recipeName": "Elite", "weight": 30}
       ]
     }
   ]
 }
 ```
 
-### 기능
-- ✅ 시간대별 웨이브 설정
-- ✅ 가중치 기반 랜덤 스폰
-- ✅ 보스 전용 (spawnOnce)
-- ✅ 스테이지별 BGM
+**0~30초:** 일반 적 70%, 엘리트 30%  
+**30초 이후:** 다음 웨이브 (보스 등)
+
+### 장점
+- ✅ 난이도 곡선 조절 쉬움
+- ✅ 코드 수정 없이 밸런스 조정
+
+</details>
+
+<details>
+<summary><b>5. 볼륨 시스템</b></summary>
+
+### 구조
+```
+실제 볼륨 = 마스터 × 개별 볼륨
+
+BGM 볼륨 = masterVolume × bgmVolume
+SFX 볼륨 = masterVolume × sfxVolume
+```
+
+**Why 이 구조?**
+- 마스터로 전체 조절 가능
+- 개별로 BGM/SFX 비율 조절 가능
+
+**저장:** PlayerPrefs (게임 종료 후에도 유지)
 
 </details>
 
 ---
 
-## 🛠️ 기술 스택
+## 🎨 디자인 패턴 적용
 
-<details>
-<summary><b>핵심 기술</b></summary>
-
-### 엔진 & 언어
-- **Unity 2022.3 LTS** (2D)
-- **C# 9.0+**
-
-### 아키텍처 패턴
-- **Clean Architecture**: 계층 분리
-- **Repository Pattern**: 데이터 추상화
-- **Strategy Pattern**: 이동/애니메이션/레벨업
-- **Observer Pattern**: 이벤트 버스
-- **Component Pattern**: SubManager 시스템
-
-### 라이브러리
-- **Newtonsoft.Json**: JSON 파싱
-- **TextMeshPro**: UI 텍스트 렌더링
-- **Unity Input System**: 새로운 입력 시스템
-
-### 물리
-- **Physics2D**: 충돌 감지
-- **Layer Collision Matrix**: 팀별 충돌 설정
-- **Dynamic Rigidbody**: 적끼리 충돌 방지
-
-</details>
-
-<details>
-<summary><b>주요 구현</b></summary>
-
-### 1. 공격 시스템
-```csharp
-// 전략 패턴 적용
-IAttackMethod (인터페이스)
-  ├── ProjectileAttackMethod (투사체)
-  ├── InstantAttackMethod (즉시 타격)
-  └── AreaAttackMethod (범위 공격)
-
-IAttackPattern (인터페이스)
-  ├── SingleAttackPattern (단발)
-  └── BurstAttackPattern (연사)
-```
-
-**장점**: 공격 방식을 조합 가능 (Projectile + Burst 등)
-
-### 2. 이벤트 버스
-```csharp
-// 발행
-_pawnManager.Publish(new PawnDamagedEvent(target, damage));
-
-// 구독
-_pawnManager.Subscribe<PawnDamagedEvent>(OnDamaged);
-```
-
-**장점**: SubManager 간 결합도 ↓, 확장성 ↑
-
-### 3. 동적 UI 생성
-```csharp
-// 코드로 UI 생성 (프리팹 없이)
-GameObject CreateButton(string text, Action callback)
-{
-    GameObject btn = new GameObject("Button");
-    btn.AddComponent<Button>().onClick.AddListener(callback);
-    // ...
-}
-```
-
-**장점**: 런타임 UI 생성, 프리팹 관리 불필요
-
-### 4. Resources 기반 로딩
-```csharp
-// WebGL 호환
-PawnRecipe recipe = Resources.Load<PawnRecipe>("Recipes/Players/PlayerTig");
-AudioClip sound = Resources.Load<AudioClip>("Audio/Hit0");
-```
-
-**장점**: StreamingAssets 대신 Resources 사용 (웹 빌드 안정)
-
-</details>
-
-<details>
-<summary><b>성능 최적화</b></summary>
-
-### 적용된 최적화
-- **Object Pooling**: 총알, 코인 재사용 (구현 예정)
-- **Separation 체크 빈도 제한**: 0.1초마다 (매 프레임 X)
-- **Layer Collision Matrix**: 불필요한 충돌 제거
-- **이벤트 우선순위**: 중요한 이벤트 먼저 처리
-
-### 측정 가능한 개선
-- 적 스폰: ~100 동시 처리 가능
-- UI 생성: 즉시 로드 (프리팹 의존 X)
-
-</details>
+| 패턴 | 적용 위치 | 목적 |
+|------|-----------|------|
+| **Strategy** | 이동/공격/레벨업 | 런타임에 동작 교체 |
+| **Observer** | 이벤트 버스 | 느슨한 결합 |
+| **Component** | SubManager | 기능 모듈화 |
+| **Repository** | Data 계층 | 데이터 접근 추상화 |
+| **Factory** | CreationManager | Pawn 생성 중앙화 |
 
 ---
 
 ## 📂 프로젝트 구조
 
-<details>
-<summary><b>폴더 구조</b></summary>
-
 ```
-Assets/
-├── script/
-│   ├── Clean Architecture/
-│   │   ├── Domain/           # 비즈니스 로직
-│   │   │   ├── Usecases/     # Use Case (게임 규칙)
-│   │   │   ├── Combat/       # 공격 시스템
-│   │   │   ├── Events/       # 이벤트 정의
-│   │   │   └── Utilities/    # Domain Helper
-│   │   ├── Presentation/     # Unity 통신
-│   │   │   └── SubManagers/  # 기능별 컴포넌트
-│   │   │       ├── Combat/
-│   │   │       ├── Movement/
-│   │   │       ├── Visual/
-│   │   │       ├── Physics/
-│   │   │       └── Audio/
-│   │   └── Data/             # 데이터 구조
-│   │       └── Repositories/ # 데이터 접근 추상화
-│   ├── Managers/             # 게임 관리자
-│   ├── UI/                   # UI 시스템
-│   │   └── Screens/          # 화면별 UI
-│   └── PawnCore/             # Pawn 핵심 시스템
-│       └── Recipes/          # JSON 파싱
-│
-├── Resources/
-│   ├── Audio/                # 사운드 파일
-│   ├── Sprites/              # 스프라이트
-│   └── StreamingAssets/
-│       ├── Recipes/          # 캐릭터/적/아이템 JSON
-│       ├── Stages/           # 스테이지 JSON
-│       └── Campaigns/        # 캠페인 JSON
-│
-└── Prefabs/
-    └── UI/                   # UI 프리팹 (레거시)
+script/
+├── Clean Architecture/
+│   ├── Domain/              # 비즈니스 로직 (Unity 독립)
+│   │   ├── Usecases/        # Use Case (게임 규칙)
+│   │   ├── Combat/          # 공격 시스템 (Strategy)
+│   │   └── Events/          # 이벤트 정의
+│   ├── Presentation/        # Unity 통신
+│   │   └── SubManagers/     # 기능별 컴포넌트
+│   └── Data/                # 저장소
+├── Managers/                # GameManager, StageManager 등
+└── UI/                      # 화면별 UI
+
+Resources/StreamingAssets/
+├── Recipes/                 # 캐릭터/적/아이템 JSON
+├── Stages/                  # 스테이지 JSON
+└── Campaigns/               # 캠페인 JSON
 ```
-
-</details>
-
-<details>
-<summary><b>핵심 클래스</b></summary>
-
-### Managers
-- `GameManager`: 게임 전체 관리 (싱글톤)
-- `UIManager`: UI 화면 전환
-- `StageManager`: 스테이지 흐름, 적 스폰
-- `CreationManager`: Pawn 생성 (레시피 → GameObject)
-
-### Domain Use Cases
-- `CombatUsecases`: 공격 로직
-- `ItemManagementUseCase`: 아이템 관리
-- `StageFlowUseCase`: 스테이지 진행
-- `CharacterSelectionUseCase`: 캐릭터 선택
-
-### Presentation SubManagers
-- `AttackSubManager`: 공격 (Method + Pattern 조합)
-- `HealthBarSubManager`: 체력바 (이벤트 기반)
-- `AudioSubManager`: 사운드 (이벤트 기반)
-- `MovableSubManager`: 이동 (전략 패턴)
-
-</details>
 
 ---
 
-## 🎨 기술적 특징
+## 🔧 주요 설계 결정
 
 <details>
-<summary><b>1. 확장 가능한 공격 시스템</b></summary>
+<summary><b>왜 이렇게 만들었나</b></summary>
 
-### 구현
-공격을 **Method (방식)** + **Pattern (패턴)**으로 분리
+### 1. SubManager vs 거대한 클래스
 
+**기존 방식:**
 ```csharp
-AttackSubManager
-  ├── IAttackMethod (어떻게 공격?)
-  │   ├── Projectile (투사체)
-  │   ├── Instant (즉시 타격)
-  │   └── Area (범위 공격)
-  └── IAttackPattern (어떤 패턴?)
-      ├── Single (단발)
-      └── Burst (연사)
-```
-
-### 조합 예시
-- Projectile + Single = 일반 총알
-- Projectile + Burst = 3연발 총알
-- Area + Single = 광역 폭발
-
-### 확장성
-새 공격 방식 추가 시 `IAttackMethod` 구현만 하면 됨!
-
-</details>
-
-<details>
-<summary><b>2. 이벤트 기반 오디오/비주얼</b></summary>
-
-### 문제
-기존: DamageableSubManager가 HitFlash, HealthBar, Audio를 직접 호출
-→ 결합도 높음, 확장 어려움
-
-### 해결
-이벤트 버스 도입
-
-```csharp
-// DamageableSubManager (발행)
-_pawnManager.Publish(new PawnDamagedEvent(this, damage));
-
-// HitFlashSubManager (구독)
-_pawnManager.Subscribe<PawnDamagedEvent>(OnDamaged);
-
-// HealthBarSubManager (구독)
-_pawnManager.Subscribe<PawnDamagedEvent>(OnDamaged);
-
-// AudioSubManager (구독)
-_pawnManager.Subscribe<PawnDamagedEvent>(OnDamaged);
-```
-
-### 장점
-- ✅ DamageableSubManager는 다른 SubManager를 모름
-- ✅ 새 SubManager 추가해도 기존 코드 수정 불필요
-- ✅ 이벤트 우선순위 지원
-
-</details>
-
-<details>
-<summary><b>3. JSON 기반 데이터 주도</b></summary>
-
-### 특징
-모든 게임 오브젝트를 JSON으로 정의
-
-### 예시: 보스 적
-```json
+class Player : MonoBehaviour
 {
-  "pawnName": "EnemyBoss",
-  "subManagerSetups": [
-    {"$type": "CollisionDamageSubManagerSetupData", "damage": 15},
-    {"$type": "DamageableSubManagerSetupData", "maxHealth": 500},
-    {"$type": "ProjectileShooterSubManagerSetupData", "fireRate": 1.5},
-    {"$type": "HealthBarSubManagerSetupData", "barWidth": 3.0},
-    {"$type": "AudioSubManagerSetupData", "volume": 1.2}
-  ]
+    void Attack() { ... }      // 500줄
+    void Move() { ... }        // 300줄
+    void TakeDamage() { ... }  // 200줄
+    // 총 1000줄+
 }
 ```
 
-### 장점
-- ✅ 프로그래머 없이 밸런스 조정
-- ✅ 새 캐릭터 추가 = JSON 파일 복사
-- ✅ Git으로 변경 이력 관리
-- ✅ A/B 테스트 용이
-
-</details>
-
-<details>
-<summary><b>4. 체력바 시스템 (SpriteRenderer)</b></summary>
-
-### 구현 방식
-WorldSpace Canvas 대신 **SpriteRenderer** 사용
-
+**SubManager 방식:**
 ```csharp
-// Background (회색 바)
-GameObject background;
-SpriteRenderer bgRenderer;
-
-// Foreground (빨간 바)
-GameObject foreground;
-foreground.transform.localScale = new Vector3(healthPercent, 1, 1);
+AttackSubManager : 100줄
+MovableSubManager : 80줄
+DamageableSubManager : 60줄
 ```
 
-### 장점
-- ✅ Canvas 오버헤드 없음
-- ✅ 가벼움 (수백 개 체력바 처리 가능)
-- ✅ 픽셀 퍼펙트 유지
-- ✅ 이벤트 기반 업데이트 (매 프레임 X)
-
-</details>
-
-<details>
-<summary><b>5. 충돌 시스템 (Physics2D)</b></summary>
-
-### 요구사항
-- 적끼리 안 겹침
-- 플레이어-적 안 겹침
-- 플레이어끼리 겹침 OK
-- 총알끼리 충돌 안 함
-
-### 해결
-**Layer Collision Matrix + RigidbodyType**
-
-```
-Layer 설정:
-- Player: Kinematic (isTrigger=false)
-- Enemy: Dynamic (isTrigger=false)
-- Bullet: Dynamic (isTrigger=false)
-- EnemyProjectile: Dynamic (isTrigger=false)
-
-Collision Matrix:
-- Player-Player: ❌
-- Enemy-Enemy: ✅
-- Player-Enemy: ✅
-- Bullet-Bullet: ❌
-- Bullet-EnemyProjectile: ❌
-```
-
-### 기술적 포인트
-- Kinematic ↔ Kinematic = 충돌 안 됨
-- Dynamic ↔ Dynamic = 충돌 됨
-- `OnCollisionEnter2D` 사용 (OnTriggerEnter2D 아님)
-
-</details>
-
-<details>
-<summary><b>6. 볼륨 조절 시스템</b></summary>
-
-### 3단계 볼륨
-```csharp
-GameAudioSettings
-  ├── masterVolume (전체)
-  ├── bgmVolume (배경음악)
-  └── sfxVolume (효과음)
-
-실제 볼륨 = masterVolume * bgmVolume (또는 sfxVolume)
-```
-
-### 저장/로드
-- PlayerPrefs 사용
-- 게임 종료 후에도 유지
-
-### UI
-- 옵션 → 소리 설정
-- 3개 슬라이더 (실시간 조절)
-
-</details>
+**Trade-off:**
+- ✅ 관리 용이 (파일 작음)
+- ⚠️ GameObject당 컴포넌트 많아짐 (성능 미미한 영향)
 
 ---
 
-## 🎯 디자인 결정
+### 2. 이벤트 버스 vs 직접 호출
 
-<details>
-<summary><b>주요 설계 결정 사항</b></summary>
+**직접 호출의 문제:**
+```csharp
+healthBar = GetComponent<HealthBar>();
+healthBar.UpdateHealth(); // 결합됨!
+```
 
-### 1. SubManager vs MonoBehaviour
-**결정**: SubManager 패턴 채택
+**이벤트 버스:**
+```csharp
+Publish(event); // 누가 듣는지 모름
+```
 
-**이유**:
-- 기능별 모듈화 (단일 책임)
-- JSON으로 조합 가능
-- 코드 재사용성 높음
+**Why 이벤트 버스?**
+- 새 SubManager 추가 시 기존 코드 안 건드림
+- 예: 피격 이펙트 추가 → Subscribe만 하면 끝
 
-### 2. Trigger vs Collision
-**결정**: `isTrigger=false` + `OnCollisionEnter2D`
+---
 
-**이유**:
+### 3. Canvas: 여러 개 vs 하나
+
+**결정:** 화면당 Canvas 생성 (현재)
+
+**Why:**
+- 코드 생성 UI라서 부모 Canvas 찾기 복잡
+- sortingOrder로 계층 관리
+
+**개선 가능:** UIManager에 통합 Canvas (향후)
+
+---
+
+### 4. isTrigger vs Collision
+
+**결정:** `isTrigger=false` + `OnCollisionEnter2D`
+
+**Why:**
 - 물리 충돌 필요 (적끼리 안 겹침)
-- OnCollision이 더 유연함
+- OnTrigger = 충돌 감지만, 밀어내기 불가
+- OnCollision = 충돌 감지 + 물리 반응
 
-### 3. Canvas 구조
-**결정**: UIManager에 통합 Canvas 1개
-
-**이유**:
-- 여러 Canvas = 드로우콜 증가
-- EventSystem 중복 방지
-- 계층 관리 용이
-
-### 4. 체력바: WorldSpace Canvas vs SpriteRenderer
-**결정**: SpriteRenderer
-
-**이유**:
-- Canvas 오버헤드 큼
-- 적이 많으면 성능 문제
-- 간단한 바 형태만 필요
-
-### 5. 오디오: 전역 Manager vs SubManager
-**결정**: SubManager (각 Pawn에 붙음)
-
-**이유**:
-- 기존 패턴과 일관성
-- 이벤트 버스 활용
-- JSON에서 선택적 추가
+**Unity 규칙:**
+- isTrigger=true → 물리 반응 X
+- isTrigger=false + Dynamic → 물리 반응 O
 
 </details>
 
 ---
 
-## 🚀 빌드 & 실행
+## 💡 기술적 하이라이트
 
 <details>
-<summary><b>빌드 방법</b></summary>
+<summary><b>1. 조합 가능한 공격 시스템</b></summary>
 
-### WebGL 빌드
+### 구현
+```csharp
+interface IAttackMethod { bool Execute(...); }
+interface IAttackPattern { void Fire(...); }
+
+AttackSubManager
+{
+    IAttackMethod method; // Projectile, Instant, Area
+    IAttackPattern pattern; // Single, Burst
+}
 ```
-1. File > Build Settings
-2. Platform: WebGL 선택
-3. Build
+
+### 조합 예시
+- `Projectile + Burst` = 3연발 총알
+- `Area + Single` = 광역 폭발
+- `Instant + Single` = 근접 타격
+
+**새 조합 = JSON만 수정**
+
+</details>
+
+<details>
+<summary><b>2. 전략 패턴으로 유연한 이동</b></summary>
+
+### 구현
+```csharp
+MovableSubManager
+{
+    List<IMovementStrategy> strategies;
+    
+    void Update() {
+        foreach (var strategy in enabledStrategies)
+            strategy.Execute();
+    }
+}
 ```
 
-### 로컬 실행
-Unity 에디터에서 Play 버튼
+**전략들:**
+- KeyboardMovementStrategy (플레이어)
+- HomingMovementStrategy (적)
+- DirectionalMovementStrategy (총알)
 
-### 필수 설정
-- Unity 2022.3 LTS 이상
-- TextMeshPro 임포트
-- Layer 설정:
-  - Player (Layer 6)
-  - Enemy (Layer 7)
-  - Bullet (Layer 8)
-  - EnemyProjectile (Layer 9)
+**런타임에 Enable/Disable 가능**
+
+### 활용 예시
+코인: 처음엔 정지 → 플레이어 근처 오면 Homing 활성화
+
+</details>
+
+<details>
+<summary><b>3. 이벤트 기반 사운드/비주얼</b></summary>
+
+### 흐름
+```
+DamageableSubManager (데미지 처리)
+  ↓ Publish
+PawnDamagedEvent
+  ↓ Subscribe
+├─ HitFlashSubManager → 깜빡임
+├─ HealthBarSubManager → 체력바 업데이트
+└─ AudioSubManager → 피격음 재생
+```
+
+**핵심:** DamageableSubManager는 다른 SubManager를 모름
+
+### 확장 예시
+피격 시 이펙트 추가하고 싶다?
+→ `ParticleSubManager` 만들고 Subscribe만 하면 끝
 
 </details>
 
 ---
 
-## 📊 개발 현황
+## 📊 완료된 기능
 
-<details>
-<summary><b>완료된 기능</b></summary>
-
-### 핵심 시스템
-- ✅ Clean Architecture 구조
-- ✅ SubManager 시스템
-- ✅ 이벤트 버스
-- ✅ JSON 레시피 시스템
-
-### 게임 기능
-- ✅ 캐릭터 선택 (10명)
-- ✅ 캠페인 시스템
-- ✅ 공격 시스템 (3가지 Method, 2가지 Pattern)
-- ✅ 적 스폰 (웨이브 기반)
-- ✅ 레벨업 시스템 (4가지 전략)
-- ✅ 아이템 시스템 (전역/장착)
-- ✅ 상점 시스템
+### 게임 시스템
+- ✅ 캐릭터 선택 (10종)
+- ✅ 캠페인 시스템 (여러 스테이지 묶음)
+- ✅ 적 스폰 (웨이브 기반, 가중치 랜덤)
+- ✅ 공격 시스템 (Method × Pattern = 6가지 조합)
+- ✅ 레벨업 (4가지 조건: 킬/시간/데미지/이벤트)
+- ✅ 아이템 (전역/장착, 스탯 보너스)
+- ✅ 상점 (스테이지 클리어 후)
 
 ### 시각/사운드
-- ✅ 체력바 (모든 Pawn)
-- ✅ 피격/사망 사운드
-- ✅ BGM (스테이지별)
-- ✅ 볼륨 조절
+- ✅ 체력바 (SpriteRenderer, 모든 Pawn)
+- ✅ 피격/사망 사운드 (이벤트 기반)
+- ✅ BGM (스테이지별 설정 가능)
+- ✅ 볼륨 조절 (마스터/BGM/효과음)
 
 ### UI
-- ✅ 타이틀 화면
-- ✅ 캐릭터 선택
-- ✅ 캠페인 선택
-- ✅ 일시정지 메뉴
-- ✅ 옵션 (소리 설정)
-- ✅ 상점 화면
-- ✅ 게임오버/클리어
+- ✅ 타이틀, 캐릭터 선택, 캠페인 선택
+- ✅ 일시정지, 옵션 (소리 설정)
+- ✅ 게임오버, 스테이지 클리어
+- ✅ 상점
 
-</details>
-
-<details>
-<summary><b>향후 개선 사항</b></summary>
-
-### 성능
-- [ ] Object Pooling (총알, 적)
-- [ ] UI Canvas 통합 (완전히)
-
-### 게임플레이
-- [ ] 더 많은 캐릭터
-- [ ] 더 많은 스테이지
-- [ ] 보스 패턴
-- [ ] 패시브 스킬
-
-### 기술
-- [ ] 세이브/로드 시스템
-- [ ] 업적 시스템
-- [ ] 멀티플레이어 (선택)
-
-</details>
+**모든 UI 코드로 동적 생성 (프리팹 최소화)**
 
 ---
 
-## 📝 코드 예시
+## 🎯 핵심 코드 예시
 
 <details>
 <summary><b>새 캐릭터 추가 (JSON만)</b></summary>
@@ -732,64 +526,113 @@ Unity 에디터에서 Play 버튼
   "pawnName": "NewCharacter",
   "subManagerSetups": [
     {
-      "$type": "PawnSurvivors.Data.Recipes.DamageableSubManagerSetupData, Assembly-CSharp",
+      "$type": "DamageableSubManagerSetupData",
       "maxHealth": 100
     },
     {
-      "$type": "PawnSurvivors.Data.Recipes.AttackSubManagerSetupData, Assembly-CSharp",
-      "attackMethodType": "Projectile",
+      "$type": "AttackSubManagerSetupData",
+      "attackMethodType": "Area",
       "attackPatternType": "Burst",
-      "projectileRecipeName": "Bullet",
-      "fireRate": 3.0,
-      "damage": 15,
-      "burstCount": 3,
-      "burstDelay": 0.1
+      "fireRate": 2.0,
+      "damage": 20,
+      "attackRange": 5.0,
+      "burstCount": 3
     },
     {
-      "$type": "PawnSurvivors.Data.Recipes.MovableSubManagerSetupData, Assembly-CSharp",
+      "$type": "MovableSubManagerSetupData",
       "strategySetups": [
         {
-          "$type": "PawnSurvivors.Data.Recipes.KeyboardStrategySetupData, Assembly-CSharp",
-          "isEnabledByDefault": true,
+          "$type": "KeyboardStrategySetupData",
           "moveSpeed": 5.0
         }
       ]
     },
     {
-      "$type": "PawnSurvivors.Data.Recipes.HealthBarSubManagerSetupData, Assembly-CSharp",
+      "$type": "HealthBarSubManagerSetupData",
       "barWidth": 1.5
-    },
-    {
-      "$type": "PawnSurvivors.Data.Recipes.AudioSubManagerSetupData, Assembly-CSharp",
-      "hitSounds": ["Audio/Hit0", "Audio/Hit1"],
-      "volume": 1.0
     }
   ]
 }
 ```
 
-**코드 수정 없이 새 캐릭터 완성!**
+**파일 하나 = 새 캐릭터 완성**
+
+</details>
+
+<details>
+<summary><b>이벤트 구독 예시</b></summary>
+
+```csharp
+// AudioSubManager.cs
+public override void SubStart()
+{
+    _pawnManager.Subscribe<PawnDamagedEvent>(OnDamaged);
+    _pawnManager.Subscribe<PawnDeathEvent>(OnDeath);
+}
+
+private void OnDamaged(PawnDamagedEvent evt)
+{
+    if (evt.Target == _pawnManager)
+    {
+        AudioHelper.PlayRandomSound(hitSounds, transform.position);
+    }
+}
+```
+
+**장점:** AudioSubManager 추가/제거해도 DamageableSubManager는 모름
 
 </details>
 
 ---
 
-## 🧑‍💻 개발자
+## 🔍 기술 스택
 
-**포트폴리오 프로젝트**
+**엔진:** Unity 2022.3 LTS (2D)  
+**언어:** C# 9.0+  
+**아키텍처:** Clean Architecture, SOLID 원칙  
+**패턴:** Strategy, Observer, Component, Repository, Factory
 
-Clean Architecture와 디자인 패턴을 실전에 적용한 Unity 2D 게임 프로젝트입니다.
+**주요 라이브러리:**
+- Newtonsoft.Json (JSON 파싱)
+- TextMeshPro (UI 텍스트)
+- Unity Physics2D (충돌)
+
+---
+
+## 🚀 빌드
+
+**WebGL:** `File > Build Settings > WebGL`  
+**필수 설정:** Layer 설정 (Player, Enemy, Bullet, EnemyProjectile)
+
+---
+
+## 📈 향후 개선
+
+**기술적:**
+- [ ] Object Pooling (총알, 적)
+- [ ] UI Canvas 통합
+- [ ] 세이브/로드 시스템
+
+**게임플레이:**
+- [ ] 더 많은 캐릭터 & 스테이지
+- [ ] 보스 패턴 AI
+- [ ] 패시브 스킬 시스템
+
+---
+
+## 🧑‍💻 개발자 노트
+
+이 프로젝트는 **"확장 가능한 게임 아키텍처"**를 목표로 만들어졌습니다.
+
+**핵심 가치:**
+- 데이터 주도 (JSON)
+- 느슨한 결합 (이벤트 버스)
+- 모듈화 (SubManager)
+
+**결과:** 새 기능 추가가 빠르고, 기존 코드 수정이 적음
 
 ---
 
 ## 📜 라이선스
 
 개인 포트폴리오 프로젝트
-
----
-
-## 🔗 참고
-
-- Clean Architecture (Robert C. Martin)
-- Game Programming Patterns (Robert Nystrom)
-- Unity 공식 문서
