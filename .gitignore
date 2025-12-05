@@ -76,3 +76,9 @@ crashlytics-build.properties
 
 # Ignore temporary assets within Resources folder
 Assets/Resources/Temporary/
+
+# Aseprite source files (keep only exported PNGs)
+*.aseprite
+*.ase
+*.aseprite.meta
+*.ase.meta

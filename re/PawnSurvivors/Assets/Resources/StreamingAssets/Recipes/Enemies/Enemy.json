@@ -1,0 +1,60 @@
+{
+  "pawnName": "Enemy",
+  "subManagerSetups": [
+    {
+      "$type": "PawnSurvivors.Data.Recipes.CollisionDamageSubManagerSetupData, Assembly-CSharp",
+      "damage": 5,
+      "destroyOnHit": false
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.DamageableSubManagerSetupData, Assembly-CSharp",
+      "maxHealth": 50
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.HitFlashSubManagerSetupData, Assembly-CSharp",
+      "flashDuration": 0.1
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualSpriteName": "Temporary/Circle",
+      "visualColor": {"r": 0.75, "g": 0.75, "b": 0.75, "a": 1},
+      "shadowPreset": "EnemyShadow",
+      "strategySetups": []
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.MovableSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnSurvivors.Data.Recipes.HomingStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "speed": 2,
+          "targetTag": "Player",
+          "detectionRange": 100,
+          "retargetFrequency": 0.5
+        }
+      ]
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": false,
+      "rigidbodyType": "Dynamic",
+      "gravityScale": 0,
+      "physicsLayerName": "Enemy",
+      "physicsTag": "Enemy"
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.SpawnOnDeathSubManagerSetupData, Assembly-CSharp",
+      "spawnRecipeNames": ["Coin"],
+      "spawnChances": [1.0],
+      "spawnCounts": [1]
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.AudioSubManagerSetupData, Assembly-CSharp",
+      "hitSounds": ["Audio/Hit0", "Audio/Hit1"],
+      "deathSound": "Audio/Dead",
+      "volume": 1.0
+    }
+  ]
+}
+

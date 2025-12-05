@@ -1,0 +1,17 @@
+{
+  "campaigns": [
+    {
+      "id": "main",
+      "name": "메인 캠페인",
+      "description": "기본 난이도로 모든 스테이지를 클리어하세요",
+      "stages": ["DebugStage", "Stage1", "Stage2"]
+    },
+    {
+      "id": "hard",
+      "name": "하드 모드",
+      "description": "더 강한 적들과 싸우세요",
+      "stages": ["Stage1", "Stage2"]
+    }
+  ]
+}
+

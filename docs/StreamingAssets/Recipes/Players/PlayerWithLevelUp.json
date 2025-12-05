@@ -1,0 +1,69 @@
+{
+  "pawnName": "PlayerWithLevelUp",
+  "subManagerSetups": [
+    {
+      "$type": "PawnSurvivors.Data.Recipes.DamageableSubManagerSetupData, Assembly-CSharp",
+      "maxHealth": 100
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualSpriteName": "Temporary/mini",
+      "visualSpriteIndex": 0,
+      "visualColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "shadowPreset": "PlayerShadow",
+      "strategySetups": [
+        {
+          "$type": "PawnSurvivors.Data.Recipes.BounceAnimationStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "bounceHeight": 0.1,
+          "bounceSpeed": 8.0,
+          "movementThreshold": 0.1
+        }
+      ]
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": true,
+      "rigidbodyType": "Kinematic",
+      "gravityScale": 0,
+      "physicsLayerName": "Player",
+      "physicsTag": "Player"
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.InvincibilitySubManagerSetupData, Assembly-CSharp",
+      "invincibilityDuration": 1.0,
+      "blinkInterval": 0.1
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
+      "projectileRecipeName": "Bullet",
+      "fireRate": 2.0
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.PlayerAttackInputSubManagerSetupData, Assembly-CSharp"
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.LevelUpSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnSurvivors.Data.Recipes.KillCountStrategySetup, Assembly-CSharp",
+          "targetLevel": 2,
+          "conditionDescription": "적 3명 처치",
+          "rewardDescription": "체력 +20, 데미지 1.5배",
+          "requiredKills": 3,
+          "healthIncrease": 20,
+          "damageMultiplier": 1.5,
+          "speedIncrease": 0,
+          "fireRateMultiplier": 1.0
+        }
+      ]
+    }
+  ]
+}
+

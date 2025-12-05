@@ -1,60 +1,243 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
 using PawnSurvivors.Managers;
+using PawnSurvivors.Domain.Usecases;
+using PawnSurvivors.Player;
 
 public class StageManager : MonoBehaviour
 {
     private CreationManager _creationManager;
+    private PawnSurvivors.Data.DataSources.StageDataSource _stageDataSource;
+    private StageManagementUseCase _stageManagementUseCase;
     private StageData _currentStageData;
 
-    private float _spawnTimer = 0f;
-    private float _spawnInterval; // StageData에서 초기화
-    private float _spawnRadius; // StageData에서 초기화
-    private float _spawnDistanceFromCamera; // StageData에서 초기화
+    private float _stageElapsedTime = 0f;
+    private float _spawnRadius;
+    private float _spawnDistanceFromCamera;
+    
+    // 웨이브별 타이머 관리
+    private Dictionary<EnemyWave, float> _waveTimers = new Dictionary<EnemyWave, float>();
+    private Dictionary<EnemyWave, bool> _waveSpawnedOnce = new Dictionary<EnemyWave, bool>();
 
-    public void Initialize(CreationManager creationManager, StageData stageData)
+    /// <summary>
+    /// StageManager를 초기화합니다. (의존성 주입)
+    /// </summary>
+    public void Initialize(CreationManager creationManager, PawnSurvivors.Data.DataSources.StageDataSource stageDataSource, StageManagementUseCase stageManagementUseCase)
     {
         _creationManager = creationManager;
-        _currentStageData = stageData;
-
-        // stageData를 사용하여 변수 초기화
-        _spawnInterval = _currentStageData.spawnInterval;
-        _spawnRadius = _currentStageData.spawnRadius;
-        _spawnDistanceFromCamera = _currentStageData.spawnDistanceFromCamera;
-
-        // 간격에 따라 초기 스폰 타이머 설정
-        _spawnTimer = _spawnInterval; 
+        _stageDataSource = stageDataSource;
+        _stageManagementUseCase = stageManagementUseCase;
     }
 
-    public void StartStage()
-    {
-        Debug.Log("Stage Started!");
-    }
 
-    public void UpdateStage()
+    /// <summary>
+    /// 스테이지를 시작합니다. (전체 라이프사이클 담당)
+    /// </summary>
+    /// <param name="stageName">시작할 스테이지 이름</param>
+    /// <param name="resetSession">세션 데이터를 리셋할지 여부</param>
+    public void StartStage(string stageName, bool resetSession = true)
     {
-        _spawnTimer -= Time.deltaTime;
-        if (_spawnTimer <= 0f)
+        // UseCase를 통해 스테이지 시작 준비
+        if (_stageManagementUseCase != null)
         {
-            SpawnEnemy();
-            _spawnTimer = _spawnInterval;
+            _stageManagementUseCase.PrepareStageStart(stageName, resetSession);
+        }
+        
+        LogManager.LogInfo(LogCategory.Stage, $"스테이지 시작: {stageName} (세션 리셋: {resetSession})");
+        
+        // 배경 타일맵 생성
+        if (GameManager.Instance != null && GameManager.Instance.BackgroundTilemapManager != null)
+        {
+            GameManager.Instance.BackgroundTilemapManager.CreateBackgroundTilemap();
+        }
+        
+        // PlayerController가 없으면 생성 (상점에서 올 때는 기존 것 유지)
+        if (GameManager.Instance != null)
+        {
+            if (GameManager.Instance.PlayerController == null)
+            {
+                // 새로 생성 (첫 스테이지)
+                GameManager.Instance.CreatePlayerController();
+            }
+            else
+            {
+                // 기존 플레이어 준비 (다음 스테이지)
+                GameManager.Instance.PrepareExistingPlayers();
+            }
+        }
+
+        // 스테이지 로드 및 초기화
+        if (_stageDataSource != null)
+        {
+            StageData stageData = _stageDataSource.GetStage(stageName);
+            if (stageData != null)
+            {
+                InitializeStageData(stageData);
+                StartStageInternal();
+                LogManager.LogInfo(LogCategory.Stage, $"Stage '{stageName}' started.");
+            }
+            else
+            {
+                LogManager.LogError(LogCategory.Stage, $"StageData for '{stageName}' not found! Cannot start stage.");
+            }
+        }
+        else
+        {
+            LogManager.LogError(LogCategory.Stage, "StageDataSource가 초기화되지 않았습니다!");
         }
     }
 
-    private void SpawnEnemy()
+    /// <summary>
+    /// 스테이지 데이터로 초기화합니다.
+    /// </summary>
+    private void InitializeStageData(StageData stageData)
     {
-        if (_creationManager == null) return;
+        _currentStageData = stageData;
 
-        PawnCore.Recipes.Json.PawnRecipeData enemyRecipe = _creationManager.GetRecipe("Enemy");
+        // stageData를 사용하여 변수 초기화
+        _spawnRadius = _currentStageData.spawnRadius;
+        _spawnDistanceFromCamera = _currentStageData.spawnDistanceFromCamera;
+
+        // 웨이브 타이머 초기화
+        _waveTimers.Clear();
+        _waveSpawnedOnce.Clear();
+        if (_currentStageData.enemyWaves != null)
+        {
+            foreach (var wave in _currentStageData.enemyWaves)
+            {
+                _waveTimers[wave] = wave.spawnInterval; // 첫 스폰까지의 시간
+                _waveSpawnedOnce[wave] = false;
+            }
+        }
+
+        _stageElapsedTime = 0f;
+    }
+
+    /// <summary>
+    /// 스테이지 시작 내부 로직 (시간 리셋, ProjectileShooter 리셋 등)
+    /// </summary>
+    private void StartStageInternal()
+    {
+        LogManager.LogInfo(LogCategory.Stage, $"Stage '{_currentStageData.stageName}' Started!");
+        _stageElapsedTime = 0f;
+        
+        // LifecycleManager의 게임 시간도 리셋
+        if (GameManager.Instance?.LifecycleManager != null)
+        {
+            GameManager.Instance.LifecycleManager.ResetGameTime();
+        }
+        
+        // BGM 재생
+        if (GameManager.Instance != null && !string.IsNullOrEmpty(_currentStageData.bgmName))
+        {
+            GameManager.Instance.PlayBGM(_currentStageData.bgmName);
+        }
+        
+        // ✅ 공격 SubManager들의 상태 리셋은 OnEnable에서 자동 처리됨
+        // AttackSubManager, ProjectileShooterSubManager, InstantAttackSubManager 모두
+        // OnEnable에서 _nextFireTime = 0f 처리하므로 별도 호출 불필요
+    }
+
+
+    public void UpdateStage()
+    {
+        if (_currentStageData == null || _creationManager == null) return;
+
+        float deltaTime = GetGameDeltaTime();
+        _stageElapsedTime += deltaTime;
+
+        // 각 웨이브 처리
+        if (_currentStageData.enemyWaves != null)
+        {
+            foreach (var wave in _currentStageData.enemyWaves)
+            {
+                ProcessWave(wave, deltaTime);
+            }
+        }
+    }
+    
+    private float GetGameDeltaTime()
+    {
+        if (GameManager.Instance?.LifecycleManager != null)
+        {
+            return GameManager.Instance.LifecycleManager.GameDeltaTime;
+        }
+        return Time.deltaTime; // 폴백
+    }
+
+    private void ProcessWave(EnemyWave wave, float deltaTime)
+    {
+        // 웨이브 시간 범위 체크
+        if (_stageElapsedTime < wave.startTime) return;
+        if (wave.endTime >= 0f && _stageElapsedTime > wave.endTime) return;
+
+        // 한 번만 소환하는 경우 체크
+        if (wave.spawnOnce && _waveSpawnedOnce[wave]) return;
+
+        // 타이머 업데이트
+        _waveTimers[wave] -= deltaTime;
+        
+        if (_waveTimers[wave] <= 0f)
+        {
+            SpawnEnemyFromWave(wave);
+            _waveTimers[wave] = wave.spawnInterval;
+            
+            if (wave.spawnOnce)
+            {
+                _waveSpawnedOnce[wave] = true;
+            }
+        }
+    }
+
+    private void SpawnEnemyFromWave(EnemyWave wave)
+    {
+        if (wave.enemyTypes == null || wave.enemyTypes.Count == 0)
+        {
+            LogManager.LogWarning(LogCategory.Stage, $"Wave has no enemy types defined!");
+            return;
+        }
+
+        // 가중치 기반으로 적 선택
+        string selectedEnemyRecipe = SelectEnemyByWeight(wave.enemyTypes);
+        
+        if (string.IsNullOrEmpty(selectedEnemyRecipe))
+        {
+            LogManager.LogError(LogCategory.Stage, "No valid enemy recipe selected!");
+            return;
+        }
+
+        PawnSurvivors.Data.Recipes.PawnRecipeData enemyRecipe = _creationManager.GetRecipe(selectedEnemyRecipe);
         if (enemyRecipe != null)
         {
             Vector3 spawnPosition = GetCircularSpawnPosition();
             _creationManager.CreatePawn(enemyRecipe, spawnPosition, Quaternion.identity);
-            Debug.Log($"Spawned Enemy at {spawnPosition}");
+            LogManager.LogDebug(LogCategory.Stage, $"Spawned {selectedEnemyRecipe} at {spawnPosition}");
         }
         else
         {
-            Debug.LogError("Enemy recipe not found for spawning!");
+            LogManager.LogError(LogCategory.Stage, $"Enemy recipe '{selectedEnemyRecipe}' not found for spawning!");
         }
+    }
+
+    private string SelectEnemyByWeight(List<EnemyType> enemyTypes)
+    {
+        int totalWeight = enemyTypes.Sum(e => e.weight);
+        int randomValue = Random.Range(0, totalWeight);
+        
+        int currentWeight = 0;
+        foreach (var enemyType in enemyTypes)
+        {
+            currentWeight += enemyType.weight;
+            if (randomValue < currentWeight)
+            {
+                return enemyType.recipeName;
+            }
+        }
+        
+        // 폴백: 첫 번째 적
+        return enemyTypes[0].recipeName;
     }
 
     private Vector3 GetCircularSpawnPosition()
@@ -62,7 +245,7 @@ public class StageManager : MonoBehaviour
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            Debug.LogError("Main Camera not found! Cannot calculate circular spawn position. Defaulting to camera Y position.");
+            LogManager.LogError(LogCategory.Stage, "Main Camera not found! Cannot calculate circular spawn position. Defaulting to camera Y position.");
             return new Vector3(0, 0, 0); // Default to origin if camera not found
         }
 
@@ -81,5 +264,21 @@ public class StageManager : MonoBehaviour
         float y = cameraCenter.y + Mathf.Sin(angle) * effectiveRadius;
 
         return new Vector3(x, y, 0);
+    }
+
+    /// <summary>
+    /// 스테이지를 종료합니다.
+    /// </summary>
+    public void EndStage()
+    {
+        LogManager.LogInfo(LogCategory.Stage, $"Stage '{_currentStageData?.stageName}' Ended!");
+        
+        // 웨이브 타이머 초기화
+        _waveTimers.Clear();
+        _waveSpawnedOnce.Clear();
+        
+        // 현재 스테이지 데이터 클리어
+        _currentStageData = null;
+        _stageElapsedTime = 0f;
     }
 }

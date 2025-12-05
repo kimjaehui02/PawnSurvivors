@@ -1,0 +1,33 @@
+{
+  "stageName": "DebugStage",
+  "spawnRadius": 10.0,
+  "spawnDistanceFromCamera": 2.0,
+  "stageDuration": 60.0,
+  "enemyWaves": [
+    {
+      "startTime": 0.0,
+      "endTime": -1,
+      "spawnInterval": 2.0,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 25
+        },
+        {
+          "recipeName": "EnemyElite",
+          "weight": 25
+        },
+        {
+          "recipeName": "EnemyShooter",
+          "weight": 25
+        },
+        {
+          "recipeName": "EnemyBoss",
+          "weight": 25
+        }
+      ]
+    }
+  ]
+}
+

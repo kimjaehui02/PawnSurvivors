@@ -1,0 +1,16 @@
+{
+  "itemId": "EquippedFireRatePlus20",
+  "itemName": "장착형 공격속도 +20%",
+  "itemType": 1,
+  "description": "장착한 캐릭터의 공격 속도가 20% 증가합니다.",
+  "cost": 80,
+  "iconPath": "",
+  "statModifiers": {},
+  "statMultipliers": {
+    "2": 1.20
+  },
+  "upgradeModifiers": {},
+  "itemFunctionType": "",
+  "functionParameters": {}
+}
+

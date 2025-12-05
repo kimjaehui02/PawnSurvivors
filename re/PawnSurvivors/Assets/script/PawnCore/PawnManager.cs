@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using PawnCore.Domain;
+using PawnSurvivors.Domain;
+using PawnSurvivors.Domain.Events;
 
 /// <summary>
 /// 게임 내 개체(Pawn)의 핵심 허브 역할을 하는 중앙 관리자 클래스입니다.
@@ -14,13 +15,28 @@ public class PawnManager : MonoBehaviour
     #region 필드 (Fields)
 
     public PawnData PawnData { get; set; }
+    
+    /// <summary>
+    /// 이 Pawn의 소유자(발사자)입니다. 
+    /// 탄환의 경우 발사한 PawnManager를 저장합니다.
+    /// </summary>
+    public PawnManager Owner { get; set; }
+
+    /// <summary>
+    /// 이벤트 핸들러와 우선순위를 저장하는 래퍼 클래스입니다.
+    /// </summary>
+    private class EventHandler
+    {
+        public Delegate Handler;
+        public EventPriority Priority;
+    }
 
     /// <summary>
     /// 다양한 이벤트 타입에 대한 핸들러를 저장하는 딕셔너리입니다.
     /// Key: 이벤트 타입 (예: typeof(AttackInputEvent))
-    /// Value: 해당 이벤트에 구독된 델리게이트 목록
+    /// Value: 해당 이벤트에 구독된 핸들러 목록 (우선순위 포함)
     /// </summary>
-    private Dictionary<Type, List<Delegate>> _eventHandlers = new();
+    private Dictionary<Type, List<EventHandler>> _eventHandlers = new();
 
     /// <summary>
     /// 이 Pawn에 등록된 모든 하위 관리자(SubManager)의 목록입니다.
@@ -43,6 +59,9 @@ public class PawnManager : MonoBehaviour
         {
             AllPawnManagers.Add(this);
         }
+
+        // PawnDeathEvent 구독 (자신의 사망 처리)
+        Subscribe<PawnDeathEvent>(HandlePawnDeath);
     }
 
     private void OnDisable()
@@ -55,6 +74,32 @@ public class PawnManager : MonoBehaviour
         
         // 메모리 누수를 방지하기 위해 모든 이벤트 구독을 해제합니다.
         _eventHandlers.Clear();
+    }
+
+    /// <summary>
+    /// Pawn 사망 이벤트를 처리합니다.
+    /// </summary>
+    private void HandlePawnDeath(PawnDeathEvent evt)
+    {
+        // 자신의 사망인지 확인
+        if (evt.DeadPawn == this)
+        {
+            // 플레이어 Pawn인지 확인
+            bool isPlayerPawn = GameManager.Instance?.PlayerController != null && 
+                                GameManager.Instance.PlayerController.playerPawns.Contains(gameObject);
+            
+            if (isPlayerPawn)
+            {
+                // 플레이어는 비활성화만 (다음 스테이지에서 부활)
+                gameObject.SetActive(false);
+                GameManager.Instance.PlayerController.OnPlayerPawnDied(gameObject);
+            }
+            else
+            {
+                // 적이나 투사체는 파괴
+                DestroyPawn();
+            }
+        }
     }
 
     #endregion
@@ -127,14 +172,25 @@ public class PawnManager : MonoBehaviour
     /// </summary>
     /// <typeparam name="TEvent">구독할 이벤트의 타입입니다.</typeparam>
     /// <param name="handler">이벤트가 발행될 때 호출될 액션입니다.</param>
-    public void Subscribe<TEvent>(Action<TEvent> handler)
+    /// <param name="priority">이벤트 처리 우선순위입니다. 기본값은 Normal입니다.</param>
+    public void Subscribe<TEvent>(Action<TEvent> handler, EventPriority priority = EventPriority.Normal)
     {
         Type eventType = typeof(TEvent);
         if (!_eventHandlers.ContainsKey(eventType))
         {
-            _eventHandlers[eventType] = new List<Delegate>();
+            _eventHandlers[eventType] = new List<EventHandler>();
         }
-        _eventHandlers[eventType].Add(handler);
+        
+        var eventHandler = new EventHandler
+        {
+            Handler = handler,
+            Priority = priority
+        };
+        
+        _eventHandlers[eventType].Add(eventHandler);
+        
+        // 우선순위 순으로 정렬 (낮은 숫자가 먼저)
+        _eventHandlers[eventType].Sort((a, b) => a.Priority.CompareTo(b.Priority));
     }
 
     /// <summary>
@@ -146,8 +202,8 @@ public class PawnManager : MonoBehaviour
     {
         Type eventType = typeof(TEvent);
         if (_eventHandlers.ContainsKey(eventType))
-        {   
-            _eventHandlers[eventType].Remove(handler);
+        {
+            _eventHandlers[eventType].RemoveAll(eh => eh.Handler.Equals(handler));
             if (_eventHandlers[eventType].Count == 0)
             {
                 _eventHandlers.Remove(eventType);
@@ -156,7 +212,7 @@ public class PawnManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 이벤트를 발행하여 해당 타입에 구독된 모든 핸들러를 호출합니다.
+    /// 이벤트를 발행하여 해당 타입에 구독된 모든 핸들러를 우선순위 순으로 호출합니다.
     /// </summary>
     /// <typeparam name="TEvent">발행할 이벤트의 타입입니다.</typeparam>
     /// <param name="eventData">핸들러에 전달할 이벤트 데이터입니다.</param>
@@ -166,9 +222,10 @@ public class PawnManager : MonoBehaviour
         if (_eventHandlers.ContainsKey(eventType))
         {
             // 반복 중에 핸들러가 구독을 해지하는 경우를 대비하여, 핸들러 목록의 복사본을 만들어 순회합니다.
-            foreach (var handler in _eventHandlers[eventType].ToList()) 
+            // 핸들러는 이미 우선순위 순으로 정렬되어 있습니다.
+            foreach (var eventHandler in _eventHandlers[eventType].ToList()) 
             {
-                (handler as Action<TEvent>)?.Invoke(eventData);
+                (eventHandler.Handler as Action<TEvent>)?.Invoke(eventData);
             }
         }
     }

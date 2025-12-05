@@ -1,0 +1,90 @@
+{
+  "stageName": "Stage2",
+  "spawnRadius": 10.0,
+  "spawnDistanceFromCamera": 2.0,
+  "stageDuration": 180.0,
+  "bgmName": "Audio/BGM",
+  "enemyWaves": [
+    {
+      "startTime": 0.0,
+      "endTime": 30.0,
+      "spawnInterval": 3.0,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "startTime": 30.0,
+      "endTime": 60.0,
+      "spawnInterval": 2.5,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 60
+        },
+        {
+          "recipeName": "EnemyElite",
+          "weight": 40
+        }
+      ]
+    },
+    {
+      "startTime": 60.0,
+      "endTime": 120.0,
+      "spawnInterval": 2.0,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 40
+        },
+        {
+          "recipeName": "EnemyElite",
+          "weight": 30
+        },
+        {
+          "recipeName": "EnemyShooter",
+          "weight": 30
+        }
+      ]
+    },
+    {
+      "startTime": 120.0,
+      "endTime": 150.0,
+      "spawnInterval": 1.5,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 30
+        },
+        {
+          "recipeName": "EnemyElite",
+          "weight": 35
+        },
+        {
+          "recipeName": "EnemyShooter",
+          "weight": 35
+        }
+      ]
+    },
+    {
+      "startTime": 150.0,
+      "endTime": -1,
+      "spawnInterval": 0.0,
+      "spawnOnce": true,
+      "enemyTypes": [
+        {
+          "recipeName": "EnemyBoss",
+          "weight": 100
+        }
+      ]
+    }
+  ]
+}
+

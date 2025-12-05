@@ -1,0 +1,38 @@
+using System.Collections.Generic;
+using PawnSurvivors.Data.DataSources;
+using PawnSurvivors.Data.Recipes;
+using PawnSurvivors.Domain.Repositories;
+
+namespace PawnSurvivors.Data.Repositories
+{
+    /// <summary>
+    /// Pawn 레시피 데이터 접근을 위한 Repository 구현체입니다.
+    /// Data 계층에 위치하며, RecipeDataSource를 통해 데이터에 접근합니다.
+    /// </summary>
+    public class RecipeRepository : IRecipeRepository
+    {
+        private readonly RecipeDataSource _recipeDataSource;
+
+        public RecipeRepository(RecipeDataSource recipeDataSource)
+        {
+            _recipeDataSource = recipeDataSource;
+        }
+
+        /// <summary>
+        /// 레시피 이름으로 레시피 데이터를 가져옵니다.
+        /// </summary>
+        public PawnRecipeData GetRecipe(string recipeName)
+        {
+            return _recipeDataSource.GetRecipe(recipeName);
+        }
+
+        /// <summary>
+        /// 모든 Player 레시피 이름 목록을 가져옵니다.
+        /// </summary>
+        public List<string> GetAllPlayerRecipeNames()
+        {
+            return _recipeDataSource.GetAllPlayerRecipeNames();
+        }
+    }
+}
+

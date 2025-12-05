@@ -1,0 +1,80 @@
+{
+  "pawnName": "PlayerButterWithMultiLevelUp",
+  "subManagerSetups": [
+    {
+      "$type": "PawnSurvivors.Data.Recipes.DamageableSubManagerSetupData, Assembly-CSharp",
+      "maxHealth": 80
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.VisualSubManagerSetupData, Assembly-CSharp",
+      "visualSpriteName": "Asprite/butter",
+      "visualSpriteIndex": -1,
+      "visualColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "shadowPreset": "PlayerShadow",
+      "strategySetups": [
+        {
+          "$type": "PawnSurvivors.Data.Recipes.BounceAnimationStrategySetupData, Assembly-CSharp",
+          "isEnabledByDefault": true,
+          "bounceHeight": 0.1,
+          "bounceSpeed": 8.0,
+          "movementThreshold": 0.1
+        }
+      ]
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.PhysicsSubManagerSetupData, Assembly-CSharp",
+      "colliderType": "Circle2D",
+      "isTrigger": true,
+      "rigidbodyType": "Kinematic",
+      "gravityScale": 0,
+      "physicsLayerName": "Player",
+      "physicsTag": "Player"
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.InvincibilitySubManagerSetupData, Assembly-CSharp",
+      "invincibilityDuration": 1.0,
+      "blinkInterval": 0.1
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.ProjectileShooterSubManagerSetupData, Assembly-CSharp",
+      "projectileRecipeName": "Bullet",
+      "fireRate": 2.5
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.PlayerAttackInputSubManagerSetupData, Assembly-CSharp"
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.LevelUpSubManagerSetupData, Assembly-CSharp",
+      "strategySetups": [
+        {
+          "$type": "PawnSurvivors.Data.Recipes.SurvivalTimeStrategySetup, Assembly-CSharp",
+          "targetLevel": 2,
+          "conditionDescription": "30초 생존",
+          "rewardDescription": "체력 +20, 속도 +1",
+          "requiredSeconds": 30,
+          "healthIncrease": 20,
+          "damageMultiplier": 1.0,
+          "speedIncrease": 1.0,
+          "fireRateMultiplier": 1.0
+        },
+        {
+          "$type": "PawnSurvivors.Data.Recipes.DamageDealtStrategySetup, Assembly-CSharp",
+          "targetLevel": 3,
+          "conditionDescription": "누적 500 데미지",
+          "rewardDescription": "체력 +30, 데미지 2배, 공속 30% 빠르게",
+          "requiredDamage": 500,
+          "healthIncrease": 30,
+          "damageMultiplier": 2.0,
+          "speedIncrease": 0,
+          "fireRateMultiplier": 0.7
+        }
+      ]
+    }
+  ]
+}
+

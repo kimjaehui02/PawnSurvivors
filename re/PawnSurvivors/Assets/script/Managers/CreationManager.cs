@@ -1,40 +1,59 @@
 using UnityEngine;
-using PawnCore.Recipes.Json;
+using PawnSurvivors.Data.Recipes;
 using System.IO;
-using PawnCore.Domain;
+using System.Linq;
+using System.Collections.Generic;
+using PawnSurvivors.Domain;
+using PawnSurvivors.Managers;
+using PawnSurvivors.Data.DataSources;
 
 public class CreationManager : MonoBehaviour
 {
-    private RecipeLoader recipeLoader;
+    private RecipeDataSource _recipeDataSource;
+    private ShadowPresetDataSource _shadowPresetDataSource;
 
     private void Awake()
     {
-        recipeLoader = new RecipeLoader();
-        string recipesPath = Path.Combine(Application.streamingAssetsPath, "Recipes");
-        recipeLoader.LoadRecipes(recipesPath);
+        _recipeDataSource = new RecipeDataSource();
+        // Resources 폴더 경로 사용 (WebGL 호환)
+        string recipesPath = "StreamingAssets/Recipes";
+        _recipeDataSource.LoadRecipes(recipesPath);
+        
+        // ShadowPreset 로드
+        _shadowPresetDataSource = new ShadowPresetDataSource();
+        string shadowPresetsPath = "StreamingAssets/ShadowPresets";
+        _shadowPresetDataSource.LoadPresets(shadowPresetsPath);
+    }
+    
+    /// <summary>
+    /// ShadowPreset을 이름으로 가져옵니다.
+    /// </summary>
+    public ShadowPresetData GetShadowPreset(string presetName)
+    {
+        return _shadowPresetDataSource?.GetPreset(presetName);
     }
 
     public PawnRecipeData GetRecipe(string recipeName)
     {
-        return recipeLoader.GetRecipe(recipeName);
+        return _recipeDataSource.GetRecipe(recipeName);
     }
 
     public GameObject CreatePawn(string recipeName, Vector3 position, Quaternion rotation)
     {
-        PawnRecipeData recipeData = recipeLoader.GetRecipe(recipeName);
+        PawnRecipeData recipeData = _recipeDataSource.GetRecipe(recipeName);
         if (recipeData == null)
         {
-            Debug.LogError($"CreationManager: PawnRecipe with name '{recipeName}' not found.");
+            LogManager.LogError(LogCategory.System, $"PawnRecipe with name '{recipeName}' not found.");
             return null;
         }
         return CreatePawn(recipeData, position, rotation);
     }
 
-    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null)
+    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null, PawnManager owner = null, float overrideDamage = 0f, float overrideSpeed = 0f)
     {
         if (recipeData == null)
         {
-            Debug.LogError("CreationManager: PawnRecipeData is null.");
+            LogManager.LogError(LogCategory.System, "PawnRecipeData is null.");
             return null;
         }
 
@@ -46,6 +65,24 @@ public class CreationManager : MonoBehaviour
         // 3. 필수 PawnManager를 추가하고 PawnData를 초기화합니다.
         PawnManager pawnManager = pawnObject.AddComponent<PawnManager>();
         pawnManager.PawnData = recipeData.ToPawnData();
+        
+        // 레시피 이름 설정 (UI 표시용)
+        pawnManager.PawnData.recipeName = recipeData.pawnName;
+        
+        // 소유자 설정 (탄환의 경우 발사자)
+        pawnManager.Owner = owner;
+        
+        // 발사자의 데미지가 제공되면 투사체의 데미지를 덮어쓰기
+        if (overrideDamage > 0f && pawnManager.PawnData.combatData != null)
+        {
+            pawnManager.PawnData.combatData.damage = overrideDamage;
+        }
+
+        // 발사자의 속도가 제공되면 투사체의 속도를 덮어쓰기
+        if (overrideSpeed > 0f && pawnManager.PawnData.movableData.directionalMovement != null)
+        {
+            pawnManager.PawnData.movableData.directionalMovement.speed = overrideSpeed;
+        }
 
         // 방향이 제공되면 PawnData의 directionalMovement.moveDirection을 재정의합니다.
         if (direction.HasValue && pawnManager.PawnData.movableData.directionalMovement != null)
@@ -71,8 +108,53 @@ public class CreationManager : MonoBehaviour
 
         // PawnData가 완전히 설정된 후 등록된 모든 SubManager를 초기화합니다.
         pawnManager.InitializeSubManagers();
+        
+        // 소유자의 playerIndex를 투사체에 전달 (아이템 효과 계산용)
+        // InitializeSubManagers() 이후에 설정하여 SubManager가 playerIndex를 덮어쓰지 않도록 함
+        if (owner != null && owner.PawnData != null)
+        {
+            if (owner.PawnData.playerIndex >= 0)
+            {
+                pawnManager.PawnData.playerIndex = owner.PawnData.playerIndex;
+                // Debug.Log($"[CreationManager] 투사체 {pawnObject.name}의 playerIndex를 {owner.PawnData.playerIndex}로 설정 (Owner: {owner.name})");
+            }
+        }
+
+        // FloatingEffectManager에 새로 생성된 Pawn 구독
+        if (GameManager.Instance?.FloatingEffectManager != null)
+        {
+            GameManager.Instance.FloatingEffectManager.SubscribeToPawnManager(pawnManager);
+        }
 
         // Debug.Log($"JSON 레시피에서 '{recipeData.pawnName}' 폰을 성공적으로 생성했습니다.");
         return pawnObject;
+    }
+
+    /// <summary>
+    /// 모든 Pawn을 파괴합니다. (메인 메뉴로 돌아갈 때 사용)
+    /// </summary>
+    public void DestroyAllPawns()
+    {
+        // PawnManager.AllPawnManagers의 복사본을 만들어 순회
+        // (파괴 중에 리스트가 수정되므로)
+        var allPawns = PawnManager.AllPawnManagers.ToArray();
+        
+        foreach (var pawnManager in allPawns)
+        {
+            if (pawnManager != null && pawnManager.gameObject != null)
+            {
+                Destroy(pawnManager.gameObject);
+            }
+        }
+        
+        LogManager.LogInfo(LogCategory.System, $"Destroyed {allPawns.Length} pawns.");
+    }
+
+    /// <summary>
+    /// 모든 Player 레시피 이름 목록을 가져옵니다.
+    /// </summary>
+    public List<string> GetAllPlayerRecipeNames()
+    {
+        return _recipeDataSource.GetAllPlayerRecipeNames();
     }
 }
