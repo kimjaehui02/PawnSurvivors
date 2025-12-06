@@ -14,6 +14,12 @@ namespace PawnSurvivors.Data.Recipes
         public string pawnName;
         [SerializeReference]
         public List<SubManagerSetupData> subManagerSetups;
+        
+        /// <summary>
+        /// 캐릭터 강화 설정 (플레이어 캐릭터만 사용)
+        /// null이면 강화 시스템 미사용
+        /// </summary>
+        public CharacterUpgradeSettings upgradeSettings;
 
         public PawnData ToPawnData()
         {
@@ -24,6 +30,56 @@ namespace PawnSurvivors.Data.Recipes
             }
             return pawnData;
         }
+    }
+    
+    /// <summary>
+    /// 캐릭터 강화 설정 (JSON에서 로드)
+    /// </summary>
+    [Serializable]
+    public class CharacterUpgradeSettings
+    {
+        /// <summary>
+        /// 강화 단계별 필요 구매 개수 (예: [3, 6] = 3개 구매 시 1단계, 6개 구매 시 2단계)
+        /// </summary>
+        public int[] requiredPurchaseCounts = new int[] { 3, 6 };
+        
+        /// <summary>
+        /// 강화 단계별 보상 설정
+        /// </summary>
+        [SerializeReference]
+        public List<UpgradeStageReward> stageRewards = new List<UpgradeStageReward>();
+    }
+    
+    /// <summary>
+    /// 강화 단계별 보상 설정
+    /// </summary>
+    [Serializable]
+    public class UpgradeStageReward
+    {
+        /// <summary>
+        /// 강화 단계 (1 = 첫 번째 강화, 2 = 두 번째 강화)
+        /// </summary>
+        public int stage = 1;
+        
+        /// <summary>
+        /// 체력 증가량
+        /// </summary>
+        public float healthIncrease = 0f;
+        
+        /// <summary>
+        /// 데미지 배율 (1.0 = 변화 없음, 1.5 = 50% 증가)
+        /// </summary>
+        public float damageMultiplier = 1f;
+        
+        /// <summary>
+        /// 이동 속도 증가량
+        /// </summary>
+        public float speedIncrease = 0f;
+        
+        /// <summary>
+        /// 공격 속도 배율 (1.0 = 변화 없음, 1.2 = 20% 증가)
+        /// </summary>
+        public float fireRateMultiplier = 1f;
     }
 
     [Serializable]
@@ -561,6 +617,26 @@ namespace PawnSurvivors.Data.Recipes
             }
             
             return levelUpSubManager;
+        }
+    }
+
+    // ========================================
+    // CharacterUpgrade SubManager Setup Data
+    // ========================================
+
+    [Serializable]
+    public class CharacterUpgradeSubManagerSetupData : SubManagerSetupData
+    {
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // CharacterUpgradeSubManager는 PawnData에 저장할 데이터가 없음
+            // 강화는 CharacterUpgradeUseCase에서 관리하고, SubManager는 스탯 적용만 담당
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            CharacterUpgradeSubManager upgradeSubManager = pawnObject.AddComponent<CharacterUpgradeSubManager>();
+            return upgradeSubManager;
         }
     }
 

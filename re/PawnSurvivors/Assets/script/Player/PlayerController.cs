@@ -26,12 +26,15 @@ namespace PawnSurvivors.Player
         public float moveSpeed = 5f;
         
         [Header("대열 설정")]
-        [Tooltip("플레이어 폰들의 대열 위치 (localPosition)")]
+        [Tooltip("플레이어 폰들의 대열 위치 (localPosition) - 정육각형 배치")]
         public Vector3[] formationPositions = new Vector3[]
         {
-            new Vector3(0f, 0f, 0f),    // 중앙
-            new Vector3(1f, -0.5f, 0f), // 오른쪽 뒤
-            new Vector3(-1f, -0.5f, 0f) // 왼쪽 뒤
+            new Vector3(1.000f, 0.000f, 0f),    // V0
+            new Vector3(0.500f, 0.866f, 0f),    // V1
+            new Vector3(-0.500f, 0.866f, 0f),   // V2
+            new Vector3(-1.000f, 0.000f, 0f),   // V3
+            new Vector3(-0.500f, -0.866f, 0f),  // V4
+            new Vector3(0.500f, -0.866f, 0f)   // V5
         };
         
         [Tooltip("자동 대열 생성 사용 여부")]
@@ -301,13 +304,15 @@ namespace PawnSurvivors.Player
                     break;
                     
                 case 6:
-                    // 6명: 정육각형 (위쪽부터)
-                    positions[0] = new Vector3(0f, 1f, 0f);
-                    positions[1] = new Vector3(0.866f, 0.5f, 0f);
-                    positions[2] = new Vector3(0.866f, -0.5f, 0f);
-                    positions[3] = new Vector3(0f, -1f, 0f);
-                    positions[4] = new Vector3(-0.866f, -0.5f, 0f);
-                    positions[5] = new Vector3(-0.866f, 0.5f, 0f);
+                    // 6명: 정육각형 (사용자 지정 좌표)
+                    // V0: (1.000, 0.000), V1: (0.500, 0.866), V2: (-0.500, 0.866)
+                    // V3: (-1.000, 0.000), V4: (-0.500, -0.866), V5: (0.500, -0.866)
+                    positions[0] = new Vector3(1.000f, 0.000f, 0f);
+                    positions[1] = new Vector3(0.500f, 0.866f, 0f);
+                    positions[2] = new Vector3(-0.500f, 0.866f, 0f);
+                    positions[3] = new Vector3(-1.000f, 0.000f, 0f);
+                    positions[4] = new Vector3(-0.500f, -0.866f, 0f);
+                    positions[5] = new Vector3(0.500f, -0.866f, 0f);
                     break;
                     
                 default:

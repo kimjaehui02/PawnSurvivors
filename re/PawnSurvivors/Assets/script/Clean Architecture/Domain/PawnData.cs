@@ -20,6 +20,13 @@ namespace PawnSurvivors.Domain
         public int playerIndex = -1;
         
         /// <summary>
+        /// 캐릭터 강화 레벨 (중복 구매 강화 시스템)
+        /// 같은 캐릭터를 여러 번 구매할 때마다 증가
+        /// 0 = 기본, 1 = 1회 강화, 2 = 2회 강화...
+        /// </summary>
+        public int upgradeLevel = 0;
+        
+        /// <summary>
         /// 레시피 이름 (하위 호환성 및 비플레이어 Pawn용)
         /// characterType이 null이 아닌 경우 characterType.ToString()과 동일
         /// </summary>
@@ -277,6 +284,12 @@ namespace PawnSurvivors.Domain
         
         /// <summary>현재 레벨 (라운드 간 유지)</summary>
         public int currentLevel = 0;
+        
+        /// <summary>
+        /// 캐릭터 강화 레벨 (중복 구매 강화 시스템, 라운드 간 유지)
+        /// 0 = 기본, 1 = 1회 강화, 2 = 2회 강화...
+        /// </summary>
+        public int upgradeLevel = 0;
         
         /// <summary>
         /// 획득한 업그레이드 (업그레이드 이름 -> 레벨)

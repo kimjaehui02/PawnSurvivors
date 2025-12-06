@@ -56,6 +56,7 @@ public class GameManager : MonoBehaviour
     public ItemPoolUseCase ItemPoolUseCase { get; private set; }
     public ShopUseCase ShopUseCase { get; private set; }
     public CharacterSelectionUseCase CharacterSelectionUseCase { get; private set; }
+    public CharacterUpgradeUseCase CharacterUpgradeUseCase { get; private set; }
     public StageFlowUseCase StageFlowUseCase { get; private set; }
     
     /// <summary>
@@ -244,6 +245,9 @@ public class GameManager : MonoBehaviour
         
         // CharacterSelectionUseCase 초기화
         CharacterSelectionUseCase = new CharacterSelectionUseCase(SessionDataRepository);
+        
+        // CharacterUpgradeUseCase 초기화 (RecipeRepository와 SessionDataRepository 필요)
+        CharacterUpgradeUseCase = new CharacterUpgradeUseCase(RecipeRepository, SessionDataRepository);
         
         // StageFlowUseCase 초기화
         StageFlowUseCase = new StageFlowUseCase(SessionDataRepository, _stageListDataSource);

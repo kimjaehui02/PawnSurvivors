@@ -105,6 +105,20 @@ public class CreationManager : MonoBehaviour
                 }
             }
         }
+        
+        // 5. upgradeSettings가 있으면 자동으로 CharacterUpgradeSubManager 추가
+        if (recipeData.upgradeSettings != null)
+        {
+            // 이미 CharacterUpgradeSubManager가 있는지 확인
+            if (pawnObject.GetComponent<CharacterUpgradeSubManager>() == null)
+            {
+                var upgradeSubManager = pawnObject.AddComponent<CharacterUpgradeSubManager>();
+                if (upgradeSubManager is PawnSubManager pawnSubManager)
+                {
+                    pawnManager.RegisterSubManager(pawnSubManager);
+                }
+            }
+        }
 
         // PawnData가 완전히 설정된 후 등록된 모든 SubManager를 초기화합니다.
         pawnManager.InitializeSubManagers();

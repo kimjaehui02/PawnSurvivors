@@ -108,6 +108,17 @@ namespace PawnSurvivors.Domain
     }
 
     /// <summary>
+    /// 게임 설정 상수입니다.
+    /// </summary>
+    public static class GameConstants
+    {
+        /// <summary>
+        /// 최대 보유 가능한 캐릭터 종류 수
+        /// </summary>
+        public const int MAX_CHARACTER_TYPES = 6;
+    }
+
+    /// <summary>
     /// 아이템 기능 타입을 정의하는 enum입니다.
     /// 아이템의 itemFunctionType에서 사용됩니다.
     /// </summary>

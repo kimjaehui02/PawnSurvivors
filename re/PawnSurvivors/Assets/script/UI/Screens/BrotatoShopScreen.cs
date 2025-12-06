@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using PawnSurvivors.Managers;
 using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Usecases;
@@ -1003,6 +1004,28 @@ namespace PawnSurvivors.UI
         }
         
         /// <summary>
+        /// 모든 플레이어 Pawn의 PawnData를 수집합니다.
+        /// </summary>
+        private List<PawnData> GetAllPawnData()
+        {
+            var allPawnData = new List<PawnData>();
+            if (GameManager.Instance?.PlayerController != null && 
+                GameManager.Instance.PlayerController.playerPawns != null)
+            {
+                foreach (var pawn in GameManager.Instance.PlayerController.playerPawns)
+                {
+                    if (pawn == null) continue;
+                    var pawnManager = pawn.GetComponent<PawnManager>();
+                    if (pawnManager != null && pawnManager.PawnData != null)
+                    {
+                        allPawnData.Add(pawnManager.PawnData);
+                    }
+                }
+            }
+            return allPawnData;
+        }
+        
+        /// <summary>
         /// 슬롯의 버튼 상태를 골드에 따라 업데이트합니다.
         /// </summary>
         private void UpdateSlotButtonState(ShopItemSlot slot)
@@ -1048,7 +1071,7 @@ namespace PawnSurvivors.UI
             }
             else if (slot.slotData.slotType == ShopSlotType.Character)
             {
-                // 캐릭터 처리 - 골드 확인
+                // 캐릭터 처리 - 골드 확인 및 최대 6종 제한
                 if (GameManager.Instance?.CurrencyUseCase == null)
                 {
                     slot.buyButton.interactable = false;
@@ -1056,12 +1079,35 @@ namespace PawnSurvivors.UI
                 }
                 
                 int currentGold = GameManager.Instance.CurrencyUseCase.GetGold();
-                bool canBuy = currentGold >= slot.cost && !slot.isPurchased;
+                bool hasEnoughGold = currentGold >= slot.cost;
+                
+                // UseCase를 통해 구매 가능 여부 확인
+                bool canBuyNewCharacter = true;
+                if (slot.slotData.characterRecipeName != null)
+                {
+                    if (System.Enum.TryParse<PlayerCharacter>(slot.slotData.characterRecipeName, true, out var character))
+                    {
+                        var allPawnData = GetAllPawnData();
+                        if (GameManager.Instance?.CharacterUpgradeUseCase != null)
+                        {
+                            canBuyNewCharacter = GameManager.Instance.CharacterUpgradeUseCase.CanPurchaseNewCharacter(character, allPawnData);
+                        }
+                    }
+                }
+                
+                bool canBuy = hasEnoughGold && canBuyNewCharacter && !slot.isPurchased;
                 slot.buyButton.interactable = canBuy;
                 
                 if (slot.costText != null)
                 {
-                    slot.costText.color = canBuy ? Color.green : Color.red;
+                    if (!canBuyNewCharacter)
+                    {
+                        slot.costText.color = Color.gray; // 최대 6종 도달
+                    }
+                    else
+                    {
+                        slot.costText.color = hasEnoughGold ? Color.green : Color.red;
+                    }
                 }
             }
             else
@@ -1331,6 +1377,33 @@ namespace PawnSurvivors.UI
                     return;
                 }
                 
+                // string을 enum으로 변환
+                if (!System.Enum.TryParse<PlayerCharacter>(slot.slotData.characterRecipeName, true, out var character))
+                {
+                    LogManager.LogError(LogCategory.UI, $"캐릭터 이름을 enum으로 변환 실패: {slot.slotData.characterRecipeName}");
+                    return;
+                }
+                
+                // 모든 PawnData 수집 (UseCase에서 사용)
+                var allPawnData = GetAllPawnData();
+                
+                // UseCase를 통해 구매 가능 여부 확인
+                if (GameManager.Instance?.CharacterUpgradeUseCase == null)
+                {
+                    LogManager.LogError(LogCategory.UI, "CharacterUpgradeUseCase가 없습니다.");
+                    return;
+                }
+                
+                if (!GameManager.Instance.CharacterUpgradeUseCase.CanPurchaseNewCharacter(character, allPawnData))
+                {
+                    int currentCount = GameManager.Instance.CharacterUpgradeUseCase.GetUniqueCharacterCount(allPawnData);
+                    LogManager.LogWarning(LogCategory.UI, $"최대 {GameConstants.MAX_CHARACTER_TYPES}종의 캐릭터만 보유할 수 있습니다. 현재: {currentCount}종");
+                    return; // 골드 소비 없이 리턴
+                }
+                
+                // 중복 구매 강화 시스템: 같은 캐릭터가 이미 있는지 확인
+                bool characterExists = GameManager.Instance.CharacterUpgradeUseCase.HasCharacter(character, allPawnData);
+                
                 // 골드 확인
                 if (GameManager.Instance?.CurrencyUseCase == null)
                 {
@@ -1348,21 +1421,45 @@ namespace PawnSurvivors.UI
                 // 골드 차감
                 GameManager.Instance.CurrencyUseCase.SpendGold(slot.cost);
                 
-                // 캐릭터 추가: 실제로 게임에 Pawn 생성
-                if (GameManager.Instance != null)
+                if (characterExists && GameManager.Instance.CharacterUpgradeUseCase != null)
                 {
-                    // GameManager를 통해 실제 Pawn 생성 및 추가
-                    GameObject newPawn = GameManager.Instance.AddPlayerPawn(slot.slotData.characterRecipeName);
+                    // 기존 캐릭터 강화 (구매 개수 증가 및 강화 단계 체크)
+                    bool upgraded = GameManager.Instance.CharacterUpgradeUseCase.OnCharacterPurchased(character, allPawnData);
                     
-                    if (newPawn != null)
+                    if (upgraded)
                     {
-                        LogManager.LogInfo(LogCategory.UI, $"캐릭터 구매 및 추가 성공: {slot.slotData.characterRecipeName} (비용: {slot.cost})");
+                        int purchaseCount = GameManager.Instance.CharacterUpgradeUseCase.GetPurchaseCount(character);
+                        int upgradeStage = GameManager.Instance.CharacterUpgradeUseCase.GetUpgradeStage(character);
+                        LogManager.LogInfo(LogCategory.UI, 
+                            $"캐릭터 강화: {slot.slotData.characterRecipeName} → 구매 {purchaseCount}회, 강화 단계 {upgradeStage} (비용: {slot.cost})");
+                    }
+                    else
+                    {
+                        LogManager.LogWarning(LogCategory.UI, $"캐릭터 강화 실패: {slot.slotData.characterRecipeName}. 골드를 환불합니다.");
+                        GameManager.Instance.CurrencyUseCase.AddGold(slot.cost);
+                        return;
+                    }
+                }
+                else
+                {
+                    // 새 캐릭터 추가: 실제로 게임에 Pawn 생성
+                    if (GameManager.Instance != null)
+                    {
+                        GameObject newPawn = GameManager.Instance.AddPlayerPawn(slot.slotData.characterRecipeName);
                         
-                        // CharacterSelectionUseCase에도 추가 (재시작 시 복원용)
-                        if (GameManager.Instance.CharacterSelectionUseCase != null)
+                        if (newPawn != null)
                         {
-                            // string을 enum으로 변환
-                            if (System.Enum.TryParse<PlayerCharacter>(slot.slotData.characterRecipeName, true, out var character))
+                            LogManager.LogInfo(LogCategory.UI, $"캐릭터 구매 및 추가 성공: {slot.slotData.characterRecipeName} (비용: {slot.cost})");
+                            
+                            // 첫 구매이므로 구매 개수 증가 (강화는 아직 안 됨)
+                            if (GameManager.Instance.CharacterUpgradeUseCase != null)
+                            {
+                                // 첫 구매는 구매 개수만 증가 (강화는 3회부터)
+                                GameManager.Instance.CharacterUpgradeUseCase.IncrementPurchaseCount(character);
+                            }
+                            
+                            // CharacterSelectionUseCase에도 추가 (재시작 시 복원용)
+                            if (GameManager.Instance.CharacterSelectionUseCase != null)
                             {
                                 var availableChars = GameManager.Instance.CharacterSelectionUseCase.GetAvailableCharacters();
                                 if (!availableChars.Contains(character))
@@ -1372,19 +1469,19 @@ namespace PawnSurvivors.UI
                                 }
                             }
                         }
+                        else
+                        {
+                            LogManager.LogError(LogCategory.UI, $"캐릭터 생성 실패: {slot.slotData.characterRecipeName}. 골드를 환불합니다.");
+                            // 골드 환불
+                            GameManager.Instance.CurrencyUseCase.AddGold(slot.cost);
+                            return; // 구매 취소
+                        }
                     }
                     else
                     {
-                        LogManager.LogError(LogCategory.UI, $"캐릭터 생성 실패: {slot.slotData.characterRecipeName}. 골드를 환불합니다.");
-                        // 골드 환불
-                        GameManager.Instance.CurrencyUseCase.AddGold(slot.cost);
-                        return; // 구매 취소
+                        LogManager.LogError(LogCategory.UI, "GameManager가 없습니다.");
+                        return;
                     }
-                }
-                else
-                {
-                    LogManager.LogError(LogCategory.UI, "GameManager가 없습니다.");
-                    return;
                 }
                 
                 // 구매 완료 처리

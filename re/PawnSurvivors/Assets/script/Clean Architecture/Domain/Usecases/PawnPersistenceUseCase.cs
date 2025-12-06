@@ -49,6 +49,9 @@ namespace PawnSurvivors.Domain.Usecases
             // 레벨 저장
             persistentData.currentLevel = currentLevel;
             
+            // 강화 레벨 저장 (중복 구매 강화 시스템)
+            persistentData.upgradeLevel = pawnData.upgradeLevel;
+            
             // 업그레이드 저장 (PawnData에 upgrades 필드가 있는 경우)
             // TODO: PawnData에 upgrades 필드가 추가되면 이 부분을 활성화
             // if (pawnData.upgrades != null)
@@ -94,6 +97,10 @@ namespace PawnSurvivors.Domain.Usecases
             {
                 pawnData.experienceData.currentProgress = persistentData.experienceProgress;
             }
+            
+            // 강화 레벨 복원 (중복 구매 강화 시스템)
+            // 실제 스탯 적용은 CharacterUpgradeSubManager의 SubStart()에서 처리됨
+            pawnData.upgradeLevel = persistentData.upgradeLevel;
             
             // 업그레이드 복원 (PawnData에 upgrades 필드가 있는 경우)
             // TODO: PawnData에 upgrades 필드가 추가되면 이 부분을 활성화
