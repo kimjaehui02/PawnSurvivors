@@ -1308,7 +1308,7 @@ namespace PawnSurvivors.UI
         }
 
         /// <summary>
-        /// 스테이지 클리어 (시간 종료) - 상점으로 이동
+        /// 스테이지 클리어 (시간 종료) - 다음 스테이지가 있으면 상점으로, 없으면 게임 완료 화면으로
         /// </summary>
         public void OnStageClear()
         {
@@ -1317,13 +1317,49 @@ namespace PawnSurvivors.UI
                 // 스테이지 종료 시 남은 적 모두 파괴
                 DestroyAllEnemies();
                 
-                // GameManager를 통해 스테이지 종료 (UseCase 사용)
-                GameManager.Instance.EndStage();
-                
-                // 상점으로 이동 (일시정지는 ShowShopScreen()에서 처리)
-                if (UIManager.Instance != null)
+                // StageFlowUseCase를 통해 스테이지 완료 처리
+                // CompleteStage() 내부에서 다음 스테이지가 있는지 확인하고
+                // - 다음 스테이지가 있으면 → OnStageCompletedToShop 이벤트 발생 → 상점으로
+                // - 다음 스테이지가 없으면 → OnAllStagesCleared 이벤트 발생 → 게임 완료 화면으로
+                if (GameManager.Instance.StageFlowUseCase != null)
                 {
-                    UIManager.Instance.ShowShopScreen();
+                    var currentState = GameManager.Instance.StageFlowUseCase.CurrentState;
+                    LogManager.LogInfo(LogCategory.Stage, $"OnStageClear: CurrentState = {currentState}");
+                    
+                    // CurrentState가 InProgress가 아니면 CompleteStage()가 early return함
+                    // 이 경우 강제로 InProgress로 설정해야 함
+                    if (currentState != StageFlowUseCase.StageState.InProgress)
+                    {
+                        LogManager.LogWarning(LogCategory.Stage, 
+                            $"CurrentState가 InProgress가 아님 ({currentState}). InProgress로 강제 설정");
+                        // StartStage()를 호출하면 OnStageStartRequested 이벤트가 발생하여 
+                        // HandleStageStartRequested가 호출되고 스테이지가 다시 시작됨
+                        // 하지만 HandleStageStartRequested에서 GoToStage()를 호출하지 않도록 수정했으므로
+                        // 스테이지는 다시 시작되지만 State는 전환되지 않음
+                        // 이는 의도하지 않은 동작이므로, 대신 직접 상태만 변경하는 방법을 사용해야 함
+                        // 하지만 CurrentState는 private set이므로 직접 변경 불가
+                        // 따라서 StartStage()를 호출하되, HandleStageStartRequested에서 
+                        // 이미 StageState에 있으면 아무것도 하지 않도록 해야 함
+                        string currentStageName = GameManager.Instance.StageManagementUseCase?.GetCurrentStageName() ?? "Stage1";
+                        GameManager.Instance.StageFlowUseCase.StartStage(currentStageName, resetSession: false);
+                        // StartStage() 호출 후 잠시 대기하여 이벤트 처리 완료 대기
+                        // 하지만 Unity에서는 동기적으로 처리되므로 바로 CompleteStage() 호출 가능
+                    }
+                    
+                    GameManager.Instance.StageFlowUseCase.CompleteStage();
+                    
+                    // 이벤트가 발생하지 않았을 경우를 대비한 Fallback
+                    // 하지만 이벤트가 정상 작동하면 이 코드는 실행되지 않음
+                    UnityEngine.Debug.Log("[StageScreen] CompleteStage() 호출 완료. 이벤트 핸들러가 화면 전환을 처리합니다.");
+                }
+                else
+                {
+                    // Fallback: UseCase가 없으면 기존 방식으로 처리
+                    GameManager.Instance.EndStage();
+                    if (GameStateManager.Instance != null)
+                    {
+                        GameStateManager.Instance.GoToShop();
+                    }
                 }
             }
         }

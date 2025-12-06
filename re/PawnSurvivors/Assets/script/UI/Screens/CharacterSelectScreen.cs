@@ -267,19 +267,22 @@ namespace PawnSurvivors.UI
 
             _characterSelectionUseCase.ConfirmSelection();
             
-            // 세션 데이터에 저장
+            // 세션 데이터에 저장 (단일 소스: CharacterSelectionUseCase)
             _characterSelectionUseCase.SaveSelectedCharacters();
             
+            // GameManager에도 동기화 (하위 호환성, 내부적으로 UseCase 사용)
             if (GameManager.Instance != null)
             {
-                // enum 리스트를 string 리스트로 변환
+                // enum 리스트를 string 리스트로 변환하여 GameManager에 설정
+                // GameManager.SetSelectedCharacters()는 내부적으로 CharacterSelectionUseCase 사용
                 List<string> selectedStrings = selected.Select(c => c.ToString()).ToList();
                 GameManager.Instance.SetSelectedCharacters(selectedStrings);
             }
 
-            if (UIManager.Instance != null)
+            // GameStateManager를 통해 StageSelectState로 전환
+            if (GameStateManager.Instance != null)
             {
-                UIManager.Instance.ShowCampaignSelectScreen();
+                GameStateManager.Instance.GoToStageSelect();
             }
         }
 

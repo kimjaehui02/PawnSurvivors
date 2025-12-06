@@ -242,6 +242,21 @@ namespace PawnSurvivors.UI
         {
             HideAllScreens();
             
+            // 구 프리팹이 할당되어 있으면 제거하고 코드로 생성한 화면 사용
+            if (gameOverScreen != null)
+            {
+                // 기존 GameObject가 프리팹 인스턴스인지 확인
+                // 프리팹 인스턴스는 PrefabUtility로 확인할 수 있지만, 런타임에서는 Destroy하고 새로 생성
+                UnityEngine.Debug.Log("[UIManager] 기존 gameOverScreen 제거하고 새로 생성");
+                Destroy(gameOverScreen);
+                gameOverScreen = null;
+            }
+            
+            // 코드로 생성한 GameOverScreen 사용
+            GameObject gameOverObj = new GameObject("GameOverScreen");
+            gameOverScreen = gameOverObj.AddComponent<GameOverScreen>().gameObject;
+            gameOverScreen.transform.SetParent(transform);
+            
             if (gameOverScreen != null)
             {
                 gameOverScreen.SetActive(true);
@@ -298,26 +313,12 @@ namespace PawnSurvivors.UI
         /// </summary>
         public void ReturnToMainMenu()
         {
-            // 일시정지 해제
-            if (GameManager.Instance?.LifecycleManager != null && 
-                GameManager.Instance.LifecycleManager.IsPaused)
+            // GameStateManager를 통해 CharacterSelectState로 전환
+            // CharacterSelectState.OnEnter()에서 정리 작업 수행
+            if (GameStateManager.Instance != null)
             {
-                GameManager.Instance.LifecycleManager.TogglePause();
+                GameStateManager.Instance.GoToCharacterSelect();
             }
-
-            // 모든 Pawn 파괴
-            if (GameManager.Instance?.CreationManager != null)
-            {
-                GameManager.Instance.CreationManager.DestroyAllPawns();
-            }
-
-            // 스테이지 종료
-            if (GameManager.Instance?.StageManager != null)
-            {
-                GameManager.Instance.EndStage();
-            }
-
-            ShowCharacterSelectScreen();
         }
 
         /// <summary>

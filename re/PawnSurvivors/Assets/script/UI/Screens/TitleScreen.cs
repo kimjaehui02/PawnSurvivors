@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using PawnSurvivors.Managers;
 
 namespace PawnSurvivors.UI
 {
@@ -26,9 +27,10 @@ namespace PawnSurvivors.UI
 
         private void OnStartButtonClicked()
         {
-            if (UIManager.Instance != null)
+            // GameStateManager를 통해 CharacterSelectState로 전환
+            if (GameStateManager.Instance != null)
             {
-                UIManager.Instance.ShowCharacterSelectScreen();
+                GameStateManager.Instance.GoToCharacterSelect();
             }
         }
 

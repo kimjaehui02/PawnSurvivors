@@ -1,33 +1,28 @@
 using UnityEngine;
-using PawnSurvivors.UI;
-using PawnSurvivors.Domain.Usecases;
+using System.Collections.Generic;
+using PawnSurvivors.Domain.States;
 using PawnSurvivors.Managers;
+using PawnSurvivors.UI;
 
 namespace PawnSurvivors.Managers
 {
     /// <summary>
     /// 게임 상태를 관리하는 상태 머신입니다.
-    /// 명확한 상태 전환과 상태별 동작을 보장합니다.
+    /// State 패턴을 사용하여 각 게임 단계를 독립적으로 관리합니다.
+    /// State 간 직접 호출을 금지하고, 오직 Manager를 통해서만 전환합니다.
     /// </summary>
     public class GameStateManager : MonoBehaviour
     {
         public static GameStateManager Instance { get; private set; }
- 
-        public enum GameState
-        {
-            Title,      // 타이틀 화면
-            MainMenu,   // 메인 메뉴 (스테이지 선택)
-            Stage,      // 스테이지 플레이 중
-            Paused,     // 일시정지
-            Shop,       // 상점
-            GameOver,   // 게임 오버
-            StageClear  // 스테이지 클리어
-        }
 
-        [SerializeField] private GameState _currentState = GameState.Title;
-        public GameState CurrentState => _currentState;
+        private IGameState _currentState;
+        private IGameState _previousState;
+        
+        // State 인스턴스 캐싱 (재사용)
+        private Dictionary<System.Type, IGameState> _stateCache = new Dictionary<System.Type, IGameState>();
 
-        private GameState _previousState = GameState.Title;
+        public IGameState CurrentState => _currentState;
+        public string CurrentStateName => _currentState?.StateName ?? "None";
 
         private void Awake()
         {
@@ -42,30 +37,72 @@ namespace PawnSurvivors.Managers
 
         private void Start()
         {
-            // UIManager가 먼저 초기화되도록 약간의 지연 후 초기 상태 설정
-            // 또는 UIManager.Start()에서 GameStateManager가 있으면 초기화하지 않도록 처리
+            // 초기 상태: TitleState
             if (UIManager.Instance != null)
             {
-                ChangeState(GameState.Title);
+                TransitionTo<TitleState>();
             }
         }
 
-        /// <summary>
-        /// 상태를 변경합니다. 유효한 전환만 허용합니다.
-        /// </summary>
-        public bool ChangeState(GameState newState)
+        private void Update()
         {
-            if (!IsValidTransition(_currentState, newState))
+            // 현재 State 업데이트
+            _currentState?.OnUpdate();
+        }
+
+        /// <summary>
+        /// 특정 State 타입으로 전환합니다.
+        /// </summary>
+        public bool TransitionTo<T>() where T : IGameState, new()
+        {
+            IGameState nextState = GetOrCreateState<T>();
+            return TransitionTo(nextState);
+        }
+
+        /// <summary>
+        /// 특정 State 인스턴스로 전환합니다.
+        /// </summary>
+        public bool TransitionTo(IGameState nextState)
+        {
+            if (nextState == null)
             {
+                LogManager.LogError(LogCategory.System, "[GameStateManager] 전환하려는 State가 null입니다.");
                 return false;
             }
 
-            _previousState = _currentState;
-            _currentState = newState;
+            // 같은 State로 전환 시도 시, OnEnter()만 다시 호출 (전환은 허용)
+            if (_currentState != null && _currentState.GetType() == nextState.GetType())
+            {
+                LogManager.LogInfo(LogCategory.System, 
+                    $"[GameStateManager] 같은 State로 전환 시도: {nextState.StateName}. OnEnter()만 재호출.");
+                _currentState.OnEnter();
+                return true;
+            }
 
-            // 상태별 동작 실행
-            OnStateEnter(_currentState);
-            OnStateExit(_previousState);
+            // 전환 가능 여부 확인
+            if (_currentState != null && !_currentState.CanTransitionTo(nextState))
+            {
+                LogManager.LogWarning(LogCategory.System, 
+                    $"[GameStateManager] {_currentState.StateName} → {nextState.StateName} 전환이 허용되지 않습니다.");
+                UnityEngine.Debug.LogWarning($"[GameStateManager] {_currentState.StateName} → {nextState.StateName} 전환이 허용되지 않습니다.");
+                return false;
+            }
+
+            // 이전 State 종료
+            if (_currentState != null)
+            {
+                _currentState.OnExit();
+            }
+
+            // State 전환
+            _previousState = _currentState;
+            _currentState = nextState;
+
+            // 새 State 진입
+            _currentState.OnEnter();
+
+            LogManager.LogInfo(LogCategory.System, 
+                $"[GameStateManager] State 전환: {_previousState?.StateName ?? "None"} → {_currentState.StateName}");
 
             return true;
         }
@@ -75,177 +112,48 @@ namespace PawnSurvivors.Managers
         /// </summary>
         public void ReturnToPreviousState()
         {
-            ChangeState(_previousState);
-        }
-
-        /// <summary>
-        /// 유효한 상태 전환인지 확인합니다.
-        /// </summary>
-        private bool IsValidTransition(GameState from, GameState to)
-        {
-            // 같은 상태로 전환 불가
-            if (from == to) return false;
-
-            // 상태 전환 규칙
-            switch (from)
+            if (_previousState != null)
             {
-                case GameState.Title:
-                    return to == GameState.MainMenu;
-
-                case GameState.MainMenu:
-                    return to == GameState.Stage || to == GameState.Title;
-
-                case GameState.Stage:
-                    return to == GameState.Paused || to == GameState.Shop || 
-                           to == GameState.GameOver || to == GameState.StageClear || 
-                           to == GameState.MainMenu;
-
-                case GameState.Paused:
-                    return to == GameState.Stage || to == GameState.MainMenu;
-
-                case GameState.Shop:
-                    return to == GameState.Stage || to == GameState.MainMenu;
-
-                case GameState.GameOver:
-                    return to == GameState.MainMenu || to == GameState.Stage;
-
-                case GameState.StageClear:
-                    return to == GameState.Shop || to == GameState.MainMenu;
-
-                default:
-                    return false;
+                TransitionTo(_previousState);
             }
         }
 
         /// <summary>
-        /// 상태 진입 시 동작을 처리합니다.
+        /// State 인스턴스를 가져오거나 생성합니다. (캐싱)
         /// </summary>
-        private void OnStateEnter(GameState state)
+        private T GetOrCreateState<T>() where T : IGameState, new()
         {
-            if (UIManager.Instance == null)
+            System.Type stateType = typeof(T);
+            
+            if (!_stateCache.ContainsKey(stateType))
             {
-                LogManager.LogWarning(LogCategory.System, "UIManager.Instance가 null입니다.");
-                return;
+                T newState = new T();
+                _stateCache[stateType] = newState;
             }
-
-            switch (state)
-            {
-                case GameState.Title:
-                    UIManager.Instance.ShowTitleScreen();
-                    break;
-
-                case GameState.MainMenu:
-                    UIManager.Instance.ShowCharacterSelectScreen();
-                    // 게임 상태 초기화
-                    if (GameManager.Instance != null)
-                    {
-                        CleanupGameState();
-                    }
-                    break;
-
-                case GameState.Stage:
-                    UIManager.Instance.ShowStageScreen();
-                    // 일시정지 해제 (일시정지나 상점에서 올 때)
-                    if (_previousState == GameState.Paused || _previousState == GameState.Shop)
-                    {
-                        if (GameManager.Instance?.LifecycleManager != null)
-                        {
-                            if (GameManager.Instance.LifecycleManager.IsPaused)
-                            {
-                                GameManager.Instance.LifecycleManager.TogglePause();
-                            }
-                        }
-                    }
-                    
-                    // 스테이지 시작 (일시정지에서 돌아오는 게 아닐 때만)
-                    if (_previousState != GameState.Paused)
-                    {
-                        if (GameManager.Instance != null)
-                        {
-                            string stageName = GameManager.Instance?.StageManagementUseCase?.GetCurrentStageName() ?? "Stage1";
-                            bool resetSession = _previousState == GameState.MainMenu || _previousState == GameState.Title;
-                            GameManager.Instance.StartStage(stageName, resetSession);
-                        }
-                    }
-                    break;
-
-                case GameState.Paused:
-                    UIManager.Instance.ShowPauseMenu();
-                    // 게임 일시정지
-                    if (GameManager.Instance?.LifecycleManager != null)
-                    {
-                        if (!GameManager.Instance.LifecycleManager.IsPaused)
-                        {
-                            GameManager.Instance.LifecycleManager.TogglePause();
-                        }
-                    }
-                    break;
-
-                case GameState.Shop:
-                    UIManager.Instance.ShowShopScreen();
-                    // 스테이지 종료 처리 (GameManager를 통해 UseCase 사용)
-                    if (GameManager.Instance != null)
-                    {
-                        GameManager.Instance.EndStage();
-                    }
-                    // 상점으로 갈 때 게임 일시정지
-                    if (GameManager.Instance?.LifecycleManager != null)
-                    {
-                        if (!GameManager.Instance.LifecycleManager.IsPaused)
-                        {
-                            GameManager.Instance.LifecycleManager.TogglePause();
-                        }
-                    }
-                    break;
-
-                case GameState.GameOver:
-                    UIManager.Instance.ShowGameOverScreen();
-                    break;
-
-                case GameState.StageClear:
-                    UIManager.Instance.ShowStageClearScreen();
-                    break;
-            }
+            
+            return (T)_stateCache[stateType];
         }
 
         /// <summary>
-        /// 상태 종료 시 동작을 처리합니다.
+        /// 특정 State 인스턴스를 생성합니다. (이전 State 정보 전달용)
         /// </summary>
-        private void OnStateExit(GameState state)
+        private IGameState CreateStateWithContext<T>(IGameState previousState) where T : IGameState
         {
-            switch (state)
+            System.Type stateType = typeof(T);
+            
+            // StageState는 이전 State 정보가 필요
+            if (stateType == typeof(StageState))
             {
-                case GameState.Paused:
-                    // 일시정지 해제는 스테이지로 돌아갈 때만 (OnStateEnter에서 처리)
-                    // 여기서는 UI만 숨김
-                    UIManager.Instance?.HidePauseMenu();
-                    break;
+                return new StageState(previousState);
             }
-        }
-
-        /// <summary>
-        /// 게임 상태를 정리합니다 (메인 메뉴로 돌아갈 때).
-        /// </summary>
-        private void CleanupGameState()
-        {
-            // 일시정지 해제
-            if (GameManager.Instance.LifecycleManager != null && 
-                GameManager.Instance.LifecycleManager.IsPaused)
+            
+            // 다른 State는 기본 생성자 사용
+            if (!_stateCache.ContainsKey(stateType))
             {
-                GameManager.Instance.LifecycleManager.TogglePause();
+                _stateCache[stateType] = System.Activator.CreateInstance<T>();
             }
-
-            // 모든 Pawn 파괴
-            if (GameManager.Instance.CreationManager != null)
-            {
-                GameManager.Instance.CreationManager.DestroyAllPawns();
-            }
-
-            // 스테이지 종료 (GameManager를 통해 UseCase 사용)
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.EndStage();
-            }
+            
+            return _stateCache[stateType];
         }
 
         /// <summary>
@@ -253,67 +161,107 @@ namespace PawnSurvivors.Managers
         /// </summary>
         public void HandleEscapeKey()
         {
-            switch (_currentState)
+            if (_currentState == null) return;
+
+            switch (_currentState.StateName)
             {
-                case GameState.Paused:
+                case "Paused":
                     // 일시정지 해제 -> 스테이지로
-                    ChangeState(GameState.Stage);
+                    GoToStage();
                     break;
 
-                case GameState.Stage:
+                case "Stage":
                     // 일시정지 메뉴 열기
-                    ChangeState(GameState.Paused);
+                    TransitionTo<PausedState>();
                     break;
 
-                case GameState.Shop:
-                    // 상점에서 ESC -> 메인 메뉴로
-                    ChangeState(GameState.MainMenu);
+                case "Shop":
+                    // 상점에서 ESC -> 캐릭터 선택으로
+                    TransitionTo<CharacterSelectState>();
                     break;
 
-                case GameState.GameOver:
-                case GameState.StageClear:
-                    // 메인 메뉴로
-                    ChangeState(GameState.MainMenu);
+                case "GameOver":
+                    // 게임오버에서 ESC -> 캐릭터 선택으로
+                    TransitionTo<CharacterSelectState>();
                     break;
             }
         }
 
-        // 편의 메서드들
-        public void StartStage(string stageName = "Stage1")
+        // ========================================
+        // 편의 메서드들 (State 전환 요청)
+        // ========================================
+
+        /// <summary>
+        /// 타이틀 화면으로 전환합니다.
+        /// </summary>
+        public void GoToTitle()
         {
-            if (GameManager.Instance != null)
-            {
-                // UseCase를 통해 스테이지 이름 설정 (리셋 없이)
-                GameManager.Instance?.StageManagementUseCase?.PrepareStageStart(stageName, shouldResetSession: false);
-            }
-            ChangeState(GameState.Stage);
+            TransitionTo<TitleState>();
         }
 
-        public void PauseGame()
+        /// <summary>
+        /// 캐릭터 선택 화면으로 전환합니다.
+        /// </summary>
+        public void GoToCharacterSelect()
         {
-            if (_currentState == GameState.Stage)
-            {
-                ChangeState(GameState.Paused);
-            }
+            TransitionTo<CharacterSelectState>();
         }
 
-        public void ResumeGame()
+        /// <summary>
+        /// 스테이지 선택 화면으로 전환합니다.
+        /// </summary>
+        public void GoToStageSelect()
         {
-            if (_currentState == GameState.Paused)
-            {
-                ChangeState(GameState.Stage);
-            }
+            TransitionTo<StageSelectState>();
         }
 
+        /// <summary>
+        /// 스테이지로 전환합니다.
+        /// </summary>
+        public void GoToStage()
+        {
+            // 이전 State 정보를 전달하여 StageState 생성
+            // StageState는 매번 새로 생성 (이전 State 정보 필요)
+            IGameState stageState = new StageState(_currentState);
+            TransitionTo(stageState);
+        }
+
+        /// <summary>
+        /// 상점으로 전환합니다.
+        /// </summary>
         public void GoToShop()
         {
-            ChangeState(GameState.Shop);
+            TransitionTo<ShopState>();
         }
 
-        public void GoToMainMenu()
+        /// <summary>
+        /// 게임오버 화면으로 전환합니다.
+        /// </summary>
+        public void GoToGameOver()
         {
-            ChangeState(GameState.MainMenu);
+            TransitionTo<GameOverState>();
+        }
+
+        /// <summary>
+        /// 일시정지 상태로 전환합니다.
+        /// </summary>
+        public void PauseGame()
+        {
+            if (_currentState is StageState)
+            {
+                TransitionTo<PausedState>();
+            }
+        }
+
+        /// <summary>
+        /// 일시정지를 해제하고 스테이지로 돌아갑니다.
+        /// </summary>
+        public void ResumeGame()
+        {
+            if (_currentState is PausedState)
+            {
+                GoToStage();
+            }
         }
     }
 }
-

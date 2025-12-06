@@ -1,8 +1,10 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 using PawnSurvivors.Managers;
 using PawnSurvivors.Data;
 using PawnSurvivors.Data.Repositories;
+using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Repositories;
 using PawnSurvivors.Domain.Usecases;
 using PawnSurvivors.Player;
@@ -58,6 +60,7 @@ public class GameManager : MonoBehaviour
     public CharacterSelectionUseCase CharacterSelectionUseCase { get; private set; }
     public CharacterUpgradeUseCase CharacterUpgradeUseCase { get; private set; }
     public StageFlowUseCase StageFlowUseCase { get; private set; }
+    public GameOverUseCase GameOverUseCase { get; private set; }
     
     /// <summary>
     /// 플레이어 컨트롤러 (입력 받는 중심 오브젝트)
@@ -74,10 +77,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public PawnSurvivors.Data.GameAudioSettings AudioSettings { get; private set; }
     
-    /// <summary>
-    /// 선택된 캐릭터 목록
-    /// </summary>
-    private List<string> _selectedCharacters = new List<string> { "PlayerErpin", "PlayerButter", "PlayerOpal" };
+    // 선택된 캐릭터는 CharacterSelectionUseCase에서 관리 (단일 소스)
     
     /// <summary>
     /// 아이템 풀 데이터 소스 (아이템 JSON 파일 로드)
@@ -114,14 +114,63 @@ public class GameManager : MonoBehaviour
         }
         
         // ========== 초기 플레이어 생성 ==========
-        // 선택된 캐릭터들 생성 (첫 스테이지에만 호출됨)
-        foreach (string characterName in _selectedCharacters)
+        // CharacterSelectionUseCase에서 선택된 캐릭터 가져오기 (단일 소스)
+        if (CharacterSelectionUseCase != null)
         {
-            AddPlayerPawn(characterName);
+            // 세션 데이터에서 선택된 캐릭터 로드
+            CharacterSelectionUseCase.LoadSelectedCharacters();
+            var selectedCharacters = CharacterSelectionUseCase.GetSelectedCharacters();
+            
+            if (selectedCharacters.Count > 0)
+            {
+                foreach (var character in selectedCharacters)
+                {
+                    AddPlayerPawn(character.ToString());
+                }
+                LogManager.LogInfo(LogCategory.System, $"선택된 캐릭터 {selectedCharacters.Count}명 생성 완료");
+            }
+            else
+            {
+                LogManager.LogWarning(LogCategory.System, "선택된 캐릭터가 없습니다. 캐릭터를 선택해주세요.");
+            }
         }
-        
-        LogManager.LogInfo(LogCategory.System, $"총 {_selectedCharacters.Count}명의 플레이어 생성 완료");
+        else
+        {
+            LogManager.LogError(LogCategory.System, "CharacterSelectionUseCase가 없습니다. 플레이어를 생성할 수 없습니다.");
+        }
         // ========== 초기 플레이어 생성 끝 ==========
+        
+        // GameOverUseCase에 게임오버 조건 추가
+        if (GameOverUseCase != null && PlayerController != null)
+        {
+            var allPlayersDeadCondition = new AllPlayersDeadCondition(
+                () => PlayerController.GetPlayerPawns()
+            );
+            allPlayersDeadCondition.Enable();
+            GameOverUseCase.AddCondition(allPlayersDeadCondition);
+            LogManager.LogInfo(LogCategory.System, "[GameManager] GameOverUseCase에 AllPlayersDeadCondition 추가 완료");
+        }
+    }
+
+    /// <summary>
+    /// PlayerController를 제거합니다.
+    /// </summary>
+    public void ClearPlayerController()
+    {
+        if (PlayerController != null)
+        {
+            // 카메라를 먼저 분리 (씬에 계속 존재해야 하므로)
+            Camera mainCamera = Camera.main;
+            if (mainCamera != null && mainCamera.transform.parent == PlayerController.transform)
+            {
+                mainCamera.transform.SetParent(null);
+                // 카메라를 원래 위치로 복원 (씬의 기본 위치)
+                mainCamera.transform.position = new Vector3(0f, 0f, -10f);
+            }
+            
+            Destroy(PlayerController.gameObject);
+            PlayerController = null;
+        }
     }
 
     private void Awake()
@@ -255,6 +304,10 @@ public class GameManager : MonoBehaviour
         StageFlowUseCase.OnStageCompletedToShop += HandleStageCompletedToShop;
         StageFlowUseCase.OnGameOver += HandleGameOver;
         StageFlowUseCase.OnAllStagesCleared += HandleAllStagesCleared;
+        
+        // GameOverUseCase 초기화 (StageFlowUseCase 필요)
+        GameOverUseCase = new GameOverUseCase(StageFlowUseCase);
+        GameOverUseCase.OnGameOverTriggered += HandleGameOver;
 
         // StageManager 초기화 (의존성 주입)
         if (StageManager != null)
@@ -357,14 +410,44 @@ public class GameManager : MonoBehaviour
         LifecycleManager.TogglePause();
     }
 
+    /// <summary>
+    /// 선택된 캐릭터를 설정합니다. (CharacterSelectionUseCase로 위임)
+    /// </summary>
     public void SetSelectedCharacters(List<string> characters)
     {
-        _selectedCharacters = new List<string>(characters);
+        if (CharacterSelectionUseCase == null) return;
+        
+        // string 리스트를 enum 리스트로 변환하여 UseCase에 설정
+        var characterEnums = new List<PlayerCharacter>();
+        foreach (var name in characters)
+        {
+            if (System.Enum.TryParse<PlayerCharacter>(name, true, out var character))
+            {
+                characterEnums.Add(character);
+            }
+        }
+        
+        // UseCase에 선택된 캐릭터 설정 및 저장
+        foreach (var character in characterEnums)
+        {
+            CharacterSelectionUseCase.SelectCharacter(character);
+        }
+        CharacterSelectionUseCase.ConfirmSelection();
+        CharacterSelectionUseCase.SaveSelectedCharacters();
     }
 
+    /// <summary>
+    /// 선택된 캐릭터를 가져옵니다. (CharacterSelectionUseCase에서 가져옴)
+    /// </summary>
     public List<string> GetSelectedCharacters()
     {
-        return new List<string>(_selectedCharacters);
+        if (CharacterSelectionUseCase == null)
+        {
+            return new List<string>();
+        }
+        
+        var selectedCharacters = CharacterSelectionUseCase.GetSelectedCharacters();
+        return selectedCharacters.Select(c => c.ToString()).ToList();
     }
 
     /// <summary>
@@ -512,44 +595,65 @@ public class GameManager : MonoBehaviour
 
     private void HandleStageStartRequested(string stageName)
     {
+        // 스테이지가 이미 실행 중이면 종료 (재시작 또는 상태 리셋)
+        if (StageManager != null && StageManager.IsStageRunning())
+        {
+            EndStage();
+        }
+        
+        // PlayerController가 없으면 생성 (선택된 캐릭터로 pawn 생성)
+        if (PlayerController == null)
+        {
+            CreatePlayerController();
+        }
+        else
+        {
+            // 기존 플레이어 준비 (다음 스테이지 또는 재시작)
+            PrepareExistingPlayers();
+        }
+        
+        // 스테이지 시작
         if (StageManager != null)
         {
             StageManager.StartStage(stageName, resetSession: false);
-        }
-        if (PawnSurvivors.UI.UIManager.Instance != null)
-        {
-            PawnSurvivors.UI.UIManager.Instance.ShowStageScreen();
         }
     }
     
     private void HandleStageCompletedToShop()
     {
+        LogManager.LogInfo(LogCategory.Stage, "HandleStageCompletedToShop() 호출됨");
+        
         EndStage();
-        if (PawnSurvivors.UI.UIManager.Instance != null)
+        
+        // GameStateManager를 통해 ShopState로 전환
+        if (GameStateManager.Instance != null)
         {
-            PawnSurvivors.UI.UIManager.Instance.ShowShopScreen();
+            LogManager.LogInfo(LogCategory.Stage, $"현재 State: {GameStateManager.Instance.CurrentStateName}");
+            GameStateManager.Instance.GoToShop();
+            LogManager.LogInfo(LogCategory.Stage, $"GoToShop() 호출 완료. 새 State: {GameStateManager.Instance.CurrentStateName}");
+        }
+        else
+        {
+            LogManager.LogError(LogCategory.Stage, "GameStateManager.Instance가 null입니다!");
         }
     }
     
     private void HandleGameOver()
     {
-        // 게임오버 시 캐릭터 선택 상태 저장
-        if (CharacterSelectionUseCase != null)
+        // GameStateManager를 통해 GameOverState로 전환
+        // GameOverState.OnEnter()에서 일시정지 및 화면 표시 처리
+        if (GameStateManager.Instance != null)
         {
-            CharacterSelectionUseCase.SaveSelectedCharacters();
-        }
-        
-        if (PawnSurvivors.UI.UIManager.Instance != null)
-        {
-            PawnSurvivors.UI.UIManager.Instance.ShowGameOverScreen();
+            GameStateManager.Instance.GoToGameOver();
         }
     }
     
     private void HandleAllStagesCleared()
     {
-        if (PawnSurvivors.UI.UIManager.Instance != null)
+        // 모든 스테이지 클리어도 GameOver로 처리
+        if (GameStateManager.Instance != null)
         {
-            PawnSurvivors.UI.UIManager.Instance.ShowGameOverScreen();
+            GameStateManager.Instance.GoToGameOver();
         }
     }
 }

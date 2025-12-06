@@ -29,15 +29,53 @@ namespace PawnSurvivors.UI
 
         private void Awake()
         {
+            // UI가 이미 생성되었는지 확인 (GameObject가 재사용될 수 있음)
             if (!_isUICreated)
             {
-                LoadFont();
-                CreateUI();
+                // UI 요소들이 이미 존재하는지 확인
+                if (_titleText == null && transform.Find("MainPanel/TitleText") == null)
+                {
+                    LoadFont();
+                    CreateUI();
+                }
+                else
+                {
+                    // UI 요소들이 이미 있으면 참조만 복원
+                    RestoreUIReferences();
+                }
                 _isUICreated = true;
             }
             
             // 기본적으로 숨김
             gameObject.SetActive(false);
+        }
+        
+        private void RestoreUIReferences()
+        {
+            // UI 요소 참조 복원
+            Transform mainPanel = transform.Find("MainPanel");
+            if (mainPanel != null)
+            {
+                Transform titleObj = mainPanel.Find("TitleText");
+                if (titleObj != null) _titleText = titleObj.GetComponent<TMP_Text>();
+                
+                Transform roundObj = mainPanel.Find("RoundText");
+                if (roundObj != null) _roundText = roundObj.GetComponent<TMP_Text>();
+                
+                Transform charsObj = mainPanel.Find("CharactersText");
+                if (charsObj != null) _charactersText = charsObj.GetComponent<TMP_Text>();
+                
+                Transform itemsObj = mainPanel.Find("ItemsText");
+                if (itemsObj != null) _itemsText = itemsObj.GetComponent<TMP_Text>();
+                
+                Transform retryObj = mainPanel.Find("RetryButton");
+                if (retryObj != null) _retryButton = retryObj.GetComponent<Button>();
+                
+                Transform charSelectObj = mainPanel.Find("CharacterSelectButton");
+                if (charSelectObj != null) _characterSelectButton = charSelectObj.GetComponent<Button>();
+            }
+            
+            _canvas = GetComponent<Canvas>();
         }
 
         private void LoadFont()
@@ -47,14 +85,27 @@ namespace PawnSurvivors.UI
 
         private void CreateUI()
         {
-            // Canvas 생성
-            _canvas = gameObject.AddComponent<Canvas>();
+            // Canvas가 이미 있으면 재사용
+            _canvas = gameObject.GetComponent<Canvas>();
+            if (_canvas == null)
+            {
+                _canvas = gameObject.AddComponent<Canvas>();
+            }
             _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             _canvas.sortingOrder = 200; // 다른 UI보다 위
             
-            gameObject.AddComponent<GraphicRaycaster>();
+            // GraphicRaycaster도 중복 추가 방지
+            if (gameObject.GetComponent<GraphicRaycaster>() == null)
+            {
+                gameObject.AddComponent<GraphicRaycaster>();
+            }
             
-            CanvasScaler scaler = gameObject.AddComponent<CanvasScaler>();
+            // CanvasScaler도 중복 추가 방지
+            CanvasScaler scaler = gameObject.GetComponent<CanvasScaler>();
+            if (scaler == null)
+            {
+                scaler = gameObject.AddComponent<CanvasScaler>();
+            }
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 0.5f;
@@ -221,6 +272,12 @@ namespace PawnSurvivors.UI
 
         private void UpdateGameOverInfo()
         {
+            // UI 요소들이 초기화되지 않았으면 복원 시도
+            if (_roundText == null || _charactersText == null || _itemsText == null)
+            {
+                RestoreUIReferences();
+            }
+            
             // 라운드 정보
             string roundInfo = "라운드: ";
             if (GameManager.Instance?.StageFlowUseCase != null)
@@ -232,7 +289,10 @@ namespace PawnSurvivors.UI
             {
                 roundInfo += "알 수 없음";
             }
-            _roundText.text = roundInfo;
+            if (_roundText != null)
+            {
+                _roundText.text = roundInfo;
+            }
 
             // 캐릭터 정보
             string charactersInfo = "캐릭터:\n";
@@ -252,7 +312,10 @@ namespace PawnSurvivors.UI
             {
                 charactersInfo += "알 수 없음";
             }
-            _charactersText.text = charactersInfo;
+            if (_charactersText != null)
+            {
+                _charactersText.text = charactersInfo;
+            }
 
             // 아이템 정보
             string itemsInfo = "아이템:\n";
@@ -303,7 +366,10 @@ namespace PawnSurvivors.UI
             {
                 itemsInfo += "알 수 없음";
             }
-            _itemsText.text = itemsInfo;
+            if (_itemsText != null)
+            {
+                _itemsText.text = itemsInfo;
+            }
         }
 
         private void OnRetryButtonClicked()
@@ -316,9 +382,11 @@ namespace PawnSurvivors.UI
                 GameManager.Instance.CharacterSelectionUseCase.RestoreFromSaved();
             }
             
-            if (GameManager.Instance?.StageFlowUseCase != null)
+            // 재시작: StageState로 전환 (StageState.OnEnter()에서 RestartStage() 호출)
+            // State 전환을 먼저 하고, State의 OnEnter()에서 스테이지 재시작 처리
+            if (GameStateManager.Instance != null)
             {
-                GameManager.Instance.StageFlowUseCase.RestartStage();
+                GameStateManager.Instance.GoToStage();
             }
             
             gameObject.SetActive(false);
@@ -329,9 +397,10 @@ namespace PawnSurvivors.UI
         {
             Time.timeScale = 1f;
             
-            if (UIManager.Instance != null)
+            // GameStateManager를 통해 CharacterSelectState로 전환
+            if (GameStateManager.Instance != null)
             {
-                UIManager.Instance.ShowCharacterSelectScreen();
+                GameStateManager.Instance.GoToCharacterSelect();
             }
             
             gameObject.SetActive(false);

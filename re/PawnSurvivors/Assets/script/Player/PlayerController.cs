@@ -155,40 +155,17 @@ namespace PawnSurvivors.Player
         public void OnPlayerPawnDied(GameObject pawn)
         {
             Debug.Log($"[PlayerController] Pawn 사망 (비활성화): {pawn.name}");
-            CheckGameOver();
+            
+            // 게임오버 조건 체크는 GameOverUseCase에서 처리
+            if (GameManager.Instance?.GameOverUseCase != null)
+            {
+                GameManager.Instance.GameOverUseCase.CheckConditions();
+            }
         }
         
         public List<GameObject> GetPlayerPawns()
         {
             return playerPawns;
-        }
-        
-        private void CheckGameOver()
-        {
-            // 활성화된 플레이어만 카운트
-            int aliveCount = 0;
-            foreach (var pawn in playerPawns)
-            {
-                if (pawn != null && pawn.activeInHierarchy)
-                {
-                    aliveCount++;
-                }
-            }
-            
-            // 모든 플레이어가 비활성화(사망)되었으면 게임오버
-            if (aliveCount == 0)
-            {
-                PawnSurvivors.Managers.LogManager.LogInfo(PawnSurvivors.Managers.LogCategory.System, $"모든 플레이어가 사망했습니다. 게임 오버! (총 {playerPawns.Count}명)");
-                
-                if (GameManager.Instance?.StageFlowUseCase != null)
-                {
-                    GameManager.Instance.StageFlowUseCase.FailStage();
-                }
-                else
-                {
-                    PawnSurvivors.Managers.LogManager.LogError(PawnSurvivors.Managers.LogCategory.System, "StageFlowUseCase가 null입니다. 게임오버를 처리할 수 없습니다.");
-                }
-            }
         }
         
         /// <summary>

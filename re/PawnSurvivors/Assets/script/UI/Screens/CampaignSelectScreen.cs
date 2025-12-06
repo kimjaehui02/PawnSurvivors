@@ -201,13 +201,21 @@ namespace PawnSurvivors.UI
             }
             
             // 첫 스테이지 시작
+            // 주의: StartStage()는 StageState.OnEnter()에서 호출되므로 여기서는 호출하지 않음
+            // 대신 StageState로 전환만 하고, StageState.OnEnter()에서 StartStage() 호출
             if (campaign.stages.Length > 0 && GameManager.Instance != null)
             {
-                GameManager.Instance.StartStage(campaign.stages[0]);
-                
-                if (UIManager.Instance != null)
+                // 스테이지 이름 설정 (StartStage는 StageState에서 호출)
+                if (GameManager.Instance.StageManagementUseCase != null)
                 {
-                    UIManager.Instance.ShowStageScreen();
+                    GameManager.Instance.StageManagementUseCase.PrepareStageStart(campaign.stages[0], shouldResetSession: false);
+                }
+                
+                // GameStateManager를 통해 StageState로 전환
+                // StageState.OnEnter()에서 StartStage() 호출
+                if (GameStateManager.Instance != null)
+                {
+                    GameStateManager.Instance.GoToStage();
                 }
             }
         }

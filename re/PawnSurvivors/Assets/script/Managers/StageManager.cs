@@ -281,4 +281,12 @@ public class StageManager : MonoBehaviour
         _currentStageData = null;
         _stageElapsedTime = 0f;
     }
+
+    /// <summary>
+    /// 스테이지가 현재 실행 중인지 확인합니다.
+    /// </summary>
+    public bool IsStageRunning()
+    {
+        return _currentStageData != null;
+    }
 }

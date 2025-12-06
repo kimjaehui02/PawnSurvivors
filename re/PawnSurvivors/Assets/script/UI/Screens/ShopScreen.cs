@@ -220,12 +220,13 @@ namespace PawnSurvivors.UI
                 }
                 
                 // 다음 스테이지로 이동
-                if (UIManager.Instance != null)
-                {
-                    UIManager.Instance.ShowStageScreen();
-                }
-                
                 GameManager.Instance.StartStage(nextStageName, resetSession: false);
+                
+                // GameStateManager를 통해 StageState로 전환
+                if (GameStateManager.Instance != null)
+                {
+                    GameStateManager.Instance.GoToStage();
+                }
             }
         }
 
