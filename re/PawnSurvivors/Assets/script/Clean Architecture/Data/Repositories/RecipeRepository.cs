@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using PawnSurvivors.Data.DataSources;
 using PawnSurvivors.Data.Recipes;
+using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Repositories;
 
 namespace PawnSurvivors.Data.Repositories
@@ -19,7 +21,7 @@ namespace PawnSurvivors.Data.Repositories
         }
 
         /// <summary>
-        /// 레시피 이름으로 레시피 데이터를 가져옵니다.
+        /// 레시피 이름으로 레시피 데이터를 가져옵니다. (하위 호환성)
         /// </summary>
         public PawnRecipeData GetRecipe(string recipeName)
         {
@@ -27,11 +29,39 @@ namespace PawnSurvivors.Data.Repositories
         }
 
         /// <summary>
-        /// 모든 Player 레시피 이름 목록을 가져옵니다.
+        /// 플레이어 캐릭터 enum으로 레시피 데이터를 가져옵니다. (enum 기반)
+        /// </summary>
+        public PawnRecipeData GetRecipe(PlayerCharacter character)
+        {
+            string recipeName = character.ToString();
+            return _recipeDataSource.GetRecipe(recipeName);
+        }
+
+        /// <summary>
+        /// 모든 Player 레시피 이름 목록을 가져옵니다. (하위 호환성)
         /// </summary>
         public List<string> GetAllPlayerRecipeNames()
         {
             return _recipeDataSource.GetAllPlayerRecipeNames();
+        }
+
+        /// <summary>
+        /// 모든 플레이어 캐릭터 enum 목록을 가져옵니다. (enum 기반)
+        /// </summary>
+        public List<PlayerCharacter> GetAllPlayerCharacters()
+        {
+            var names = _recipeDataSource.GetAllPlayerRecipeNames();
+            var characters = new List<PlayerCharacter>();
+            
+            foreach (var name in names)
+            {
+                if (System.Enum.TryParse<PlayerCharacter>(name, true, out PlayerCharacter character))
+                {
+                    characters.Add(character);
+                }
+            }
+            
+            return characters;
         }
     }
 }

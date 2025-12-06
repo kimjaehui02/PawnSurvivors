@@ -10,7 +10,7 @@
   },
   "statMultipliers": {},
   "upgradeModifiers": {},
-  "itemFunctionType": "",
+  "itemFunctionType": 0,
   "functionParameters": {}
 }
 

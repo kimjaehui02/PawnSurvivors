@@ -9,12 +9,41 @@ namespace PawnSurvivors.Domain
     [Serializable]
     public class PawnData
     {
-        // 레시피 이름 (UI 표시 등에 사용)
-        public string recipeName;
+        /// <summary>
+        /// 플레이어 캐릭터 타입 (enum 기반)
+        /// null이면 플레이어가 아닌 Pawn (Enemy, Projectile 등)
+        /// </summary>
+        public PlayerCharacter? characterType;
         
         // 플레이어 인덱스 (PlayerController의 playerPawns 리스트에서의 인덱스)
         // 경험치 추적 등에 사용됨 (같은 레시피로 생성된 여러 Pawn도 각각 독립적인 경험치를 가짐)
         public int playerIndex = -1;
+        
+        /// <summary>
+        /// 레시피 이름 (하위 호환성 및 비플레이어 Pawn용)
+        /// characterType이 null이 아닌 경우 characterType.ToString()과 동일
+        /// </summary>
+        public string recipeName
+        {
+            get
+            {
+                if (characterType.HasValue)
+                    return characterType.Value.ToString();
+                return _recipeName;
+            }
+            set
+            {
+                _recipeName = value;
+                // string에서 enum으로 자동 변환 시도
+                if (!string.IsNullOrEmpty(value) && System.Enum.TryParse<PlayerCharacter>(value, true, out var character))
+                {
+                    characterType = character;
+                }
+            }
+        }
+        
+        [SerializeField]
+        private string _recipeName;
         
         // 모듈화된 데이터 (nullable로 필요한 것만 할당)
         public HealthData healthData;
@@ -220,11 +249,28 @@ namespace PawnSurvivors.Domain
     [Serializable]
     public class PawnPersistentData
     {
-        /// <summary>레시피 이름 (어떤 Pawn인지 식별)</summary>
-        public string recipeName;
+        /// <summary>플레이어 캐릭터 타입 (enum 기반)</summary>
+        public PlayerCharacter characterType;
         
         /// <summary>플레이어 인덱스 (같은 레시피의 여러 Pawn 구분)</summary>
         public int playerIndex = -1;
+        
+        /// <summary>
+        /// 레시피 이름 (하위 호환성용)
+        /// characterType.ToString()과 동일
+        /// </summary>
+        public string recipeName
+        {
+            get => characterType.ToString();
+            set
+            {
+                // string에서 enum으로 자동 변환 시도
+                if (!string.IsNullOrEmpty(value) && System.Enum.TryParse<PlayerCharacter>(value, true, out var character))
+                {
+                    characterType = character;
+                }
+            }
+        }
         
         /// <summary>경험치 진행도 (라운드 간 유지)</summary>
         public float experienceProgress = 0f;

@@ -49,6 +49,7 @@ namespace PawnSurvivors.UI
             CanvasScaler scaler = gameObject.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.matchWidthOrHeight = 0.5f; // 다른 화면과 일관성 유지
             
             // 배경 (반투명 검정)
             GameObject bg = new GameObject("Background");

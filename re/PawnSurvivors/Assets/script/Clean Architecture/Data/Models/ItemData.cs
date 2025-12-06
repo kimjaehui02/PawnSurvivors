@@ -50,9 +50,10 @@ namespace PawnSurvivors.Data
         
         /// <summary>
         /// 아이템 기능 타입 (기능이 있는 아이템인 경우)
-        /// 예: "OnKill", "OnHit", "OnDamageTaken" 등
+        /// enum 기반으로 타입 안정성을 제공합니다.
+        /// JSON에서는 int로 직렬화됩니다 (0=None, 1=OnKill, 2=OnHit, 3=OnDamageTaken).
         /// </summary>
-        public string itemFunctionType;
+        public int itemFunctionType = 0; // Domain.ItemFunctionType을 int로 직렬화
         
         /// <summary>
         /// 아이템 기능 파라미터 (기능이 있는 아이템의 추가 데이터)
@@ -104,7 +105,23 @@ namespace PawnSurvivors.Data
         /// </summary>
         public bool HasFunction()
         {
-            return !string.IsNullOrEmpty(itemFunctionType);
+            return itemFunctionType != 0; // 0 = None
+        }
+        
+        /// <summary>
+        /// 아이템 기능 타입을 enum으로 가져옵니다.
+        /// </summary>
+        public ItemFunctionType GetFunctionType()
+        {
+            return (ItemFunctionType)itemFunctionType;
+        }
+        
+        /// <summary>
+        /// 아이템 기능 타입을 enum으로 설정합니다.
+        /// </summary>
+        public void SetFunctionType(ItemFunctionType type)
+        {
+            itemFunctionType = (int)type;
         }
         
         /// <summary>

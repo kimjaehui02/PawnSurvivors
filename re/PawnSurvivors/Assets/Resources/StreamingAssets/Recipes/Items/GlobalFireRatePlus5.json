@@ -10,7 +10,7 @@
     "2": 1.05
   },
   "upgradeModifiers": {},
-  "itemFunctionType": "",
+  "itemFunctionType": 0,
   "functionParameters": {}
 }
 

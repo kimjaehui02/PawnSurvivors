@@ -248,7 +248,7 @@ namespace PawnSurvivors.UI
                 GameOverScreen screen = gameOverScreen.GetComponent<GameOverScreen>();
                 if (screen != null)
                 {
-                    screen.Show(0);
+                    screen.Show();
                 }
             }
         }

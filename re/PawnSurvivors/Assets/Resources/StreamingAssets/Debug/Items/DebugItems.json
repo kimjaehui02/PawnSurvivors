@@ -9,7 +9,7 @@
     "statModifiers": {},
     "statMultipliers": {},
     "upgradeModifiers": {},
-    "itemFunctionType": "",
+    "itemFunctionType": 0,
     "functionParameters": {}
   },
   {
@@ -22,7 +22,7 @@
     "statModifiers": {},
     "statMultipliers": {},
     "upgradeModifiers": {},
-    "itemFunctionType": "",
+    "itemFunctionType": 0,
     "functionParameters": {}
   },
   {
@@ -35,7 +35,7 @@
     "statModifiers": {},
     "statMultipliers": {},
     "upgradeModifiers": {},
-    "itemFunctionType": "",
+    "itemFunctionType": 0,
     "functionParameters": {}
   },
   {
@@ -48,7 +48,7 @@
     "statModifiers": {},
     "statMultipliers": {},
     "upgradeModifiers": {},
-    "itemFunctionType": "",
+    "itemFunctionType": 0,
     "functionParameters": {}
   },
   {
@@ -61,7 +61,7 @@
     "statModifiers": {},
     "statMultipliers": {},
     "upgradeModifiers": {},
-    "itemFunctionType": "",
+    "itemFunctionType": 0,
     "functionParameters": {}
   }
 ]

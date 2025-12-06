@@ -78,6 +78,30 @@ namespace PawnSurvivors.Domain.Repositories
         HashSet<string> GetFlags(string setName);
         
         // ========================================
+        // 플래그 세트 (enum 기반)
+        // ========================================
+        
+        /// <summary>
+        /// enum 기반 플래그를 추가합니다.
+        /// </summary>
+        void AddFlag<T>(string setName, T flag) where T : struct, System.Enum;
+        
+        /// <summary>
+        /// enum 기반 플래그를 제거합니다.
+        /// </summary>
+        void RemoveFlag<T>(string setName, T flag) where T : struct, System.Enum;
+        
+        /// <summary>
+        /// enum 기반 플래그 존재 여부를 확인합니다.
+        /// </summary>
+        bool HasFlag<T>(string setName, T flag) where T : struct, System.Enum;
+        
+        /// <summary>
+        /// enum 기반 플래그 세트를 가져옵니다.
+        /// </summary>
+        HashSet<T> GetFlags<T>(string setName) where T : struct, System.Enum;
+        
+        // ========================================
         // 세션 관리
         // ========================================
         

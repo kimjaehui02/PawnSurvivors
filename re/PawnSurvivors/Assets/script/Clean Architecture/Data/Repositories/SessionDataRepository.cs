@@ -226,6 +226,41 @@ namespace PawnSurvivors.Data.Repositories
         }
 
         // ========================================
+        // 플래그 세트 (enum 기반)
+        // ========================================
+        
+        public void AddFlag<T>(string setName, T flag) where T : struct, System.Enum
+        {
+            _sessionData.AddFlag(setName, flag.ToString());
+        }
+
+        public void RemoveFlag<T>(string setName, T flag) where T : struct, System.Enum
+        {
+            _sessionData.RemoveFlag(setName, flag.ToString());
+        }
+
+        public bool HasFlag<T>(string setName, T flag) where T : struct, System.Enum
+        {
+            return _sessionData.HasFlag(setName, flag.ToString());
+        }
+
+        public HashSet<T> GetFlags<T>(string setName) where T : struct, System.Enum
+        {
+            var stringFlags = _sessionData.GetFlags(setName);
+            var enumFlags = new HashSet<T>();
+            
+            foreach (var flagString in stringFlags)
+            {
+                if (System.Enum.TryParse<T>(flagString, out T enumValue))
+                {
+                    enumFlags.Add(enumValue);
+                }
+            }
+            
+            return enumFlags;
+        }
+        
+        // ========================================
         // 세션 관리
         // ========================================
         

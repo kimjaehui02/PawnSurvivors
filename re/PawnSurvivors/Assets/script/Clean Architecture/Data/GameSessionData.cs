@@ -101,6 +101,7 @@ namespace PawnSurvivors.Data
             flagSets.Clear();
             // playerPawnPersistentData는 유지 (라운드 간 데이터이므로)
             // itemSessionData는 유지 (스테이지 간 아이템 유지)
+            // characterSelectionData는 유지 (재시작 시 같은 캐릭터로 시작)
         }
         
         // ========================================

@@ -26,7 +26,7 @@ namespace PawnSurvivors.Data.DataSources
 
             if (jsonAssets == null || jsonAssets.Length == 0)
             {
-                LogManager.LogWarning(LogCategory.Recipe, $"경로를 찾을 수 없습니다: {resourcePath}");
+                LogManager.LogError(LogCategory.System, $"[ItemPoolDataSource] 경로를 찾을 수 없습니다: {resourcePath}");
                 return;
             }
 
@@ -46,9 +46,7 @@ namespace PawnSurvivors.Data.DataSources
                     if (itemData != null && !string.IsNullOrEmpty(itemData.itemId))
                     {
                         _itemPool[itemData.itemId] = itemData;
-                        LogManager.LogInfo(LogCategory.Recipe, $"아이템 로드: {itemData.itemId} ({itemData.itemName}) from {jsonAsset.name}");
                     }
-                    // itemId가 없으면 아이템이 아닌 파일이므로 조용히 건너뛰기 (경고 제거)
                 }
                 catch (System.Exception)
                 {
@@ -56,9 +54,8 @@ namespace PawnSurvivors.Data.DataSources
                 }
             }
 
-            LogManager.LogInfo(LogCategory.Recipe, $"총 {_itemPool.Count}개의 아이템 로드 완료");
+            LogManager.LogInfo(LogCategory.System, $"[ItemPoolDataSource] 총 {_itemPool.Count}개의 아이템 로드 완료");
         }
-
         /// <summary>
         /// 아이템 ID로 아이템 데이터를 가져옵니다.
         /// </summary>

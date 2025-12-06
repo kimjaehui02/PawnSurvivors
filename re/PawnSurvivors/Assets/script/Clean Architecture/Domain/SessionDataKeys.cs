@@ -88,5 +88,35 @@ namespace PawnSurvivors.Domain
         Health,              // 체력 업그레이드
         Speed,               // 이동 속도 업그레이드
     }
+
+    /// <summary>
+    /// 플레이어 캐릭터를 정의하는 enum입니다.
+    /// 타입 안정성을 위해 문자열 대신 enum을 사용합니다.
+    /// </summary>
+    public enum PlayerCharacter
+    {
+        PlayerBeni,
+        PlayerButter,
+        PlayerElena,
+        PlayerEpica,
+        PlayerErpin,
+        PlayerOpal,
+        PlayerRufo,
+        PlayerSpeaki,
+        PlayerTig,
+        PlayerUi,
+    }
+
+    /// <summary>
+    /// 아이템 기능 타입을 정의하는 enum입니다.
+    /// 아이템의 itemFunctionType에서 사용됩니다.
+    /// </summary>
+    public enum ItemFunctionType
+    {
+        None,           // 기능 없음
+        OnKill,         // 적 처치 시
+        OnHit,          // 공격 시
+        OnDamageTaken,  // 피해 받을 시
+    }
 }
 

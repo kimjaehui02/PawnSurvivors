@@ -91,8 +91,20 @@ public class PawnManager : MonoBehaviour
             if (isPlayerPawn)
             {
                 // 플레이어는 비활성화만 (다음 스테이지에서 부활)
+                PawnSurvivors.Managers.LogManager.LogInfo(PawnSurvivors.Managers.LogCategory.System, 
+                    $"[PawnManager] 플레이어 Pawn 사망: {gameObject.name}");
                 gameObject.SetActive(false);
-                GameManager.Instance.PlayerController.OnPlayerPawnDied(gameObject);
+                
+                // OnPlayerPawnDied 호출 (게임오버 체크 포함)
+                if (GameManager.Instance.PlayerController != null)
+                {
+                    GameManager.Instance.PlayerController.OnPlayerPawnDied(gameObject);
+                }
+                else
+                {
+                    PawnSurvivors.Managers.LogManager.LogError(PawnSurvivors.Managers.LogCategory.System, 
+                        "[PawnManager] PlayerController가 null입니다. 게임오버 체크를 할 수 없습니다.");
+                }
             }
             else
             {

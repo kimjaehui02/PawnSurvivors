@@ -125,6 +125,9 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
+        // 강제 로그 출력 (LogManager 초기화 전에도 작동)
+        UnityEngine.Debug.Log("[GameManager] Awake() 시작");
+        
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -132,6 +135,8 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        UnityEngine.Debug.Log("[GameManager] Instance 설정 완료");
         
         // 세션 데이터 초기화 (Data 계층 내부)
         _sessionData = new GameSessionData();
@@ -524,6 +529,12 @@ public class GameManager : MonoBehaviour
     
     private void HandleGameOver()
     {
+        // 게임오버 시 캐릭터 선택 상태 저장
+        if (CharacterSelectionUseCase != null)
+        {
+            CharacterSelectionUseCase.SaveSelectedCharacters();
+        }
+        
         if (PawnSurvivors.UI.UIManager.Instance != null)
         {
             PawnSurvivors.UI.UIManager.Instance.ShowGameOverScreen();

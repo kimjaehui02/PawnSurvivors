@@ -24,7 +24,7 @@ namespace PawnSurvivors.Domain.Usecases
         /// </summary>
         public void SavePawnPersistentData(PawnData pawnData, int currentLevel)
         {
-            if (pawnData == null) return;
+            if (pawnData == null || !pawnData.characterType.HasValue) return;
 
             string key = _sessionData.GetPawnPersistentDataKey(pawnData.recipeName, pawnData.playerIndex);
             
@@ -33,7 +33,7 @@ namespace PawnSurvivors.Domain.Usecases
             {
                 _sessionData.playerPawnPersistentData[key] = new PawnPersistentData
                 {
-                    recipeName = pawnData.recipeName,
+                    characterType = pawnData.characterType.Value,
                     playerIndex = pawnData.playerIndex
                 };
             }
@@ -123,7 +123,19 @@ namespace PawnSurvivors.Domain.Usecases
         }
 
         /// <summary>
-        /// 특정 Pawn의 영구 데이터를 가져옵니다.
+        /// 특정 Pawn의 영구 데이터를 가져옵니다. (enum 기반, 권장)
+        /// </summary>
+        public PawnPersistentData GetPersistentData(PlayerCharacter character, int playerIndex)
+        {
+            string recipeName = character.ToString();
+            string key = _sessionData.GetPawnPersistentDataKey(recipeName, playerIndex);
+            return _sessionData.playerPawnPersistentData.ContainsKey(key) 
+                ? _sessionData.playerPawnPersistentData[key] 
+                : null;
+        }
+
+        /// <summary>
+        /// 특정 Pawn의 영구 데이터를 가져옵니다. (하위 호환성)
         /// </summary>
         public PawnPersistentData GetPersistentData(string recipeName, int playerIndex)
         {
@@ -142,7 +154,17 @@ namespace PawnSurvivors.Domain.Usecases
         }
 
         /// <summary>
-        /// 특정 레시피의 모든 Pawn 영구 데이터를 가져옵니다.
+        /// 특정 캐릭터의 모든 Pawn 영구 데이터를 가져옵니다. (enum 기반, 권장)
+        /// </summary>
+        public List<PawnPersistentData> GetPersistentDataByCharacter(PlayerCharacter character)
+        {
+            return _sessionData.playerPawnPersistentData.Values
+                .Where(data => data.characterType == character)
+                .ToList();
+        }
+
+        /// <summary>
+        /// 특정 레시피의 모든 Pawn 영구 데이터를 가져옵니다. (하위 호환성)
         /// </summary>
         public List<PawnPersistentData> GetPersistentDataByRecipe(string recipeName)
         {
@@ -152,7 +174,17 @@ namespace PawnSurvivors.Domain.Usecases
         }
 
         /// <summary>
-        /// 플레이어 Pawn의 영구 데이터를 제거합니다.
+        /// 플레이어 Pawn의 영구 데이터를 제거합니다. (enum 기반, 권장)
+        /// </summary>
+        public bool RemovePersistentData(PlayerCharacter character, int playerIndex)
+        {
+            string recipeName = character.ToString();
+            string key = _sessionData.GetPawnPersistentDataKey(recipeName, playerIndex);
+            return _sessionData.playerPawnPersistentData.Remove(key);
+        }
+
+        /// <summary>
+        /// 플레이어 Pawn의 영구 데이터를 제거합니다. (하위 호환성)
         /// </summary>
         public bool RemovePersistentData(string recipeName, int playerIndex)
         {

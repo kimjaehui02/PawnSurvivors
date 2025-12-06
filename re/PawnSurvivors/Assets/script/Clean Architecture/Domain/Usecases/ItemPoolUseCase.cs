@@ -42,8 +42,13 @@ namespace PawnSurvivors.Domain.Usecases
 
             if (allItems.Count == 0)
             {
+                PawnSurvivors.Managers.LogManager.LogWarning(PawnSurvivors.Managers.LogCategory.System, 
+                    "[ItemPoolUseCase] 아이템 풀이 비어있습니다. 아이템이 로드되지 않았을 수 있습니다.");
                 return new List<ItemData>();
             }
+            
+            PawnSurvivors.Managers.LogManager.LogInfo(PawnSurvivors.Managers.LogCategory.System, 
+                $"[ItemPoolUseCase] 총 {allItems.Count}개의 아이템 중에서 선택 중...");
 
             // 보유한 아이템 제외
             var repositoryToUse = itemRepository ?? _itemRepository;

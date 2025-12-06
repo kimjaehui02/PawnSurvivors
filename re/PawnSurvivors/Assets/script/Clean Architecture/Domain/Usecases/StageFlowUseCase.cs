@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using PawnSurvivors.Domain.Repositories;
 using PawnSurvivors.Data.DataSources;
 
@@ -25,12 +26,19 @@ namespace PawnSurvivors.Domain.Usecases
         {
             get
             {
-                string stateString = _sessionRepository.GetCurrentStageState();
-                return Enum.TryParse<StageState>(stateString, out var state) ? state : StageState.NotStarted;
+                var flags = _sessionRepository.GetFlags<StageState>("stageState");
+                return flags.Count > 0 ? flags.First() : StageState.NotStarted;
             }
             private set
             {
-                _sessionRepository.SetCurrentStageState(value.ToString());
+                // 기존 플래그 제거
+                var existingFlags = _sessionRepository.GetFlags<StageState>("stageState");
+                foreach (var flag in existingFlags)
+                {
+                    _sessionRepository.RemoveFlag("stageState", flag);
+                }
+                // 새 상태 추가
+                _sessionRepository.AddFlag("stageState", value);
             }
         }
         
@@ -147,6 +155,7 @@ namespace PawnSurvivors.Domain.Usecases
 
         public void RestartStage()
         {
+            // 재시작 시 세션 리셋 (캐릭터 선택 상태는 GameOverScreen에서 복원)
             string currentStageName = GetCurrentStageName();
             StartStage(currentStageName, resetSession: true);
         }

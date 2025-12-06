@@ -2,7 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using System.Linq;
 using PawnSurvivors.Managers;
+using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Usecases;
 
 namespace PawnSurvivors.UI
@@ -159,8 +161,9 @@ namespace PawnSurvivors.UI
         {
             if (_characterListContainer == null || _characterSelectionUseCase == null) return;
 
-            foreach (string characterName in _characterSelectionUseCase.GetAvailableCharacters())
+            foreach (var character in _characterSelectionUseCase.GetAvailableCharacters())
             {
+                string characterName = character.ToString();
                 GameObject icon = new GameObject($"Icon_{characterName}");
                 icon.transform.SetParent(_characterListContainer.transform, false);
                 
@@ -172,8 +175,8 @@ namespace PawnSurvivors.UI
                 else img.color = new Color(0.3f, 0.3f, 0.3f, 1f);
                 
                 Button btn = icon.AddComponent<Button>();
-                string charName = characterName;
-                btn.onClick.AddListener(() => OnCharacterClicked(charName));
+                PlayerCharacter capturedChar = character; // 클로저 캡처
+                btn.onClick.AddListener(() => OnCharacterClicked(capturedChar));
                 
                 _characterIcons[characterName] = icon;
             }
@@ -199,13 +202,13 @@ namespace PawnSurvivors.UI
             return $"Sprites/player/{korean}";
         }
 
-        private void OnCharacterClicked(string characterName)
+        private void OnCharacterClicked(PlayerCharacter character)
         {
             if (_characterSelectionUseCase == null) return;
 
-            if (_characterSelectionUseCase.IsCharacterSelected(characterName))
+            if (_characterSelectionUseCase.IsCharacterSelected(character))
             {
-                _characterSelectionUseCase.DeselectCharacter(characterName);
+                _characterSelectionUseCase.DeselectCharacter(character);
             }
             else
             {
@@ -216,7 +219,7 @@ namespace PawnSurvivors.UI
                         _characterSelectionUseCase.DeselectCharacter(ch);
                     }
                 }
-                _characterSelectionUseCase.SelectCharacter(characterName);
+                _characterSelectionUseCase.SelectCharacter(character);
             }
             
             UpdateUI();
@@ -259,14 +262,19 @@ namespace PawnSurvivors.UI
         {
             if (_characterSelectionUseCase == null) return;
 
-            List<string> selected = _characterSelectionUseCase.GetSelectedCharacters();
+            var selected = _characterSelectionUseCase.GetSelectedCharacters();
             if (selected.Count < minSelectCount) return;
 
             _characterSelectionUseCase.ConfirmSelection();
             
+            // 세션 데이터에 저장
+            _characterSelectionUseCase.SaveSelectedCharacters();
+            
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.SetSelectedCharacters(selected);
+                // enum 리스트를 string 리스트로 변환
+                List<string> selectedStrings = selected.Select(c => c.ToString()).ToList();
+                GameManager.Instance.SetSelectedCharacters(selectedStrings);
             }
 
             if (UIManager.Instance != null)

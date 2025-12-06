@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using PawnSurvivors.Data.Recipes;
+using PawnSurvivors.Domain;
 
 namespace PawnSurvivors.Domain.Repositories
 {
@@ -10,14 +11,24 @@ namespace PawnSurvivors.Domain.Repositories
     public interface IRecipeRepository
     {
         /// <summary>
-        /// 레시피 이름으로 레시피 데이터를 가져옵니다.
+        /// 레시피 이름으로 레시피 데이터를 가져옵니다. (하위 호환성)
         /// </summary>
         PawnRecipeData GetRecipe(string recipeName);
 
         /// <summary>
-        /// 모든 Player 레시피 이름 목록을 가져옵니다.
+        /// 플레이어 캐릭터 enum으로 레시피 데이터를 가져옵니다. (enum 기반)
+        /// </summary>
+        PawnRecipeData GetRecipe(PlayerCharacter character);
+
+        /// <summary>
+        /// 모든 Player 레시피 이름 목록을 가져옵니다. (하위 호환성)
         /// </summary>
         List<string> GetAllPlayerRecipeNames();
+
+        /// <summary>
+        /// 모든 플레이어 캐릭터 enum 목록을 가져옵니다. (enum 기반)
+        /// </summary>
+        List<PlayerCharacter> GetAllPlayerCharacters();
     }
 }
 

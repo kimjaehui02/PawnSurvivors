@@ -75,33 +75,49 @@ namespace PawnSurvivors.Domain.Usecases
         // ==================== 아이템 + 캐릭터 랜덤 선택 ====================
 
         /// <summary>
-        /// 상점에 표시할 아이템과 캐릭터를 랜덤하게 선택합니다.
+        /// 상점에 표시할 아이템과 캐릭터를 가중치 기반으로 랜덤하게 선택합니다.
         /// </summary>
         /// <param name="count">선택할 총 개수</param>
+        /// <param name="itemWeight">아이템 가중치 (기본 1.0, 높을수록 아이템 확률 증가)</param>
+        /// <param name="characterWeight">캐릭터 가중치 (기본 1.0, 높을수록 캐릭터 확률 증가)</param>
         /// <param name="excludeOwnedItems">보유한 아이템 제외 여부</param>
         /// <param name="excludeItemIds">제외할 아이템 ID 목록</param>
         /// <param name="excludeCharacterNames">제외할 캐릭터 이름 목록</param>
         /// <returns>ShopSlotData 목록 (아이템 또는 캐릭터)</returns>
         public List<ShopSlotData> GetRandomShopSlots(
             int count,
+            float itemWeight = 1.0f,
+            float characterWeight = 1.0f,
             bool excludeOwnedItems = false,
             List<string> excludeItemIds = null,
             List<string> excludeCharacterNames = null)
         {
-            var availableSlots = new List<ShopSlotData>();
+            // 가중치가 0 이하면 기본값으로 설정
+            if (itemWeight <= 0f) itemWeight = 1.0f;
+            if (characterWeight <= 0f) characterWeight = 1.0f;
+
+            var weightedSlots = new List<ShopSlotData>();
 
             // 1. 모든 아이템 가져오기
             List<ItemData> allItems = _itemPoolUseCase.GetRandomShopItems(9999, excludeOwnedItems, _itemRepository, excludeItemIds);
             
-            // 아이템을 ShopSlotData로 변환
+            PawnSurvivors.Managers.LogManager.LogInfo(PawnSurvivors.Managers.LogCategory.System, 
+                $"[ShopUseCase] 아이템 {allItems.Count}개, 캐릭터 가중치: {characterWeight}, 아이템 가중치: {itemWeight}");
+            
+            // 아이템을 가중치만큼 리스트에 추가
             foreach (var item in allItems)
             {
-                availableSlots.Add(new ShopSlotData
+                // 가중치를 정수로 변환 (소수점 처리: 0.5 이상이면 반올림)
+                int weightCount = System.Math.Max(1, (int)System.Math.Round(itemWeight));
+                for (int i = 0; i < weightCount; i++)
                 {
-                    slotType = ShopSlotType.Item,
-                    itemData = item,
-                    characterRecipeName = null
-                });
+                    weightedSlots.Add(new ShopSlotData
+                    {
+                        slotType = ShopSlotType.Item,
+                        itemData = item,
+                        characterRecipeName = null
+                    });
+                }
             }
 
             // 2. 모든 플레이어 캐릭터 가져오기
@@ -116,32 +132,45 @@ namespace PawnSurvivors.Domain.Usecases
                     allCharacters = allCharacters.Where(name => !excludeSet.Contains(name)).ToList();
                 }
 
-                // 캐릭터를 ShopSlotData로 변환
+                // 캐릭터를 가중치만큼 리스트에 추가
                 foreach (var characterName in allCharacters)
                 {
                     var recipe = _recipeRepository.GetRecipe(characterName);
                     if (recipe != null)
                     {
-                        availableSlots.Add(new ShopSlotData
+                        // 가중치를 정수로 변환 (소수점 처리: 0.5 이상이면 반올림)
+                        int weightCount = System.Math.Max(1, (int)System.Math.Round(characterWeight));
+                        for (int i = 0; i < weightCount; i++)
                         {
-                            slotType = ShopSlotType.Character,
-                            itemData = null,
-                            characterRecipeName = characterName,
-                            characterRecipe = recipe
-                        });
+                            weightedSlots.Add(new ShopSlotData
+                            {
+                                slotType = ShopSlotType.Character,
+                                itemData = null,
+                                characterRecipeName = characterName,
+                                characterRecipe = recipe
+                            });
+                        }
                     }
                 }
             }
 
-            // 3. 랜덤 선택
+            // 3. 가중치 기반 랜덤 선택
             var selectedSlots = new List<ShopSlotData>();
-            int selectCount = System.Math.Min(count, availableSlots.Count);
+            int selectCount = System.Math.Min(count, weightedSlots.Count);
 
             for (int i = 0; i < selectCount; i++)
             {
-                int randomIndex = UnityEngine.Random.Range(0, availableSlots.Count);
-                selectedSlots.Add(availableSlots[randomIndex]);
-                availableSlots.RemoveAt(randomIndex); // 중복 방지
+                if (weightedSlots.Count == 0) break;
+
+                int randomIndex = UnityEngine.Random.Range(0, weightedSlots.Count);
+                var selectedSlot = weightedSlots[randomIndex];
+                selectedSlots.Add(selectedSlot);
+                
+                // 중복 방지: 같은 슬롯을 모두 제거 (같은 아이템/캐릭터가 가중치만큼 들어있을 수 있음)
+                weightedSlots.RemoveAll(slot => 
+                    (slot.slotType == ShopSlotType.Item && selectedSlot.slotType == ShopSlotType.Item && slot.itemData.itemId == selectedSlot.itemData.itemId) ||
+                    (slot.slotType == ShopSlotType.Character && selectedSlot.slotType == ShopSlotType.Character && slot.characterRecipeName == selectedSlot.characterRecipeName)
+                );
             }
 
             return selectedSlots;
