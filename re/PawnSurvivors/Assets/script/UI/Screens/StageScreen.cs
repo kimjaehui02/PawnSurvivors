@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.Tilemaps;
 using TMPro;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,9 +31,25 @@ namespace PawnSurvivors.UI
         [SerializeField] private TMP_Text stageTimeText;
         
         [Header("LevelUp UI")]
-        [SerializeField] private RectTransform levelUpContainer; // 모든 캐릭터 정보를 담을 컨테이너
-        [Tooltip("한글 폰트 (나눔고딕 등). 없으면 기본 폰트 사용")]
-        [SerializeField] private TMP_FontAsset koreanFontAsset; // 한글 폰트 에셋
+        [SerializeField] private RectTransform levelUpContainer; // 모든 캐릭터 정보를 담을 컨테이너 (인스펙터에서 할당 가능)
+        
+        [Header("Background Grid")]
+        [SerializeField] private GameObject gridObject; // 배경 타일맵을 생성할 그리드 오브젝트 (인스펙터에서 할당)
+        [SerializeField] private string gridObjectName = "BackgroundGrid"; // 그리드 오브젝트 이름 (gridObject가 null일 때 찾을 이름)
+        
+        [Header("Background Settings")]
+        [SerializeField] private string tileSpriteFolderPath = "Sprites/tiles";
+        [SerializeField] private Vector2Int mapSize = new Vector2Int(50, 50);
+        [SerializeField] private Vector3 cellSize = Vector3.zero;
+        [SerializeField] private int sortingOrder = -10;
+        [SerializeField] private bool useRandomTiles = true;
+        
+        // 폰트는 무조건 "Assets/Resources/Fonts/NanumGothic SDF.asset"만 사용
+        private TMP_FontAsset _koreanFont;
+        
+        // 배경 타일맵 관련
+        private Grid _grid;
+        private Tilemap _backgroundTilemap;
         
         // 동적으로 생성되는 UI 요소들
         private class CharacterLevelUI
@@ -63,6 +80,19 @@ namespace PawnSurvivors.UI
 
 
         #region Unity Lifecycle
+        private void Awake()
+        {
+            // Canvas를 처음부터 제대로 생성/설정
+            SetupCanvas();
+            
+            // 폰트 로드 (무조건 NanumGothic SDF만 사용)
+            _koreanFont = LoadKoreanFont();
+            
+            // LevelUpContainer를 미리 확인/생성 (Update에서 매번 체크하지 않도록)
+            // 인스펙터에서 할당된 것이 있으면 그것을 사용, 없으면 자동 생성
+            EnsureLevelUpContainer();
+        }
+        
         private void Start()
         {
             if (OptionButton != null)
@@ -77,6 +107,53 @@ namespace PawnSurvivors.UI
                 var currencyUI = gameObject.AddComponent<CurrencyUI>();
                 currencyUI.anchorPosition = new Vector2(0.95f, 0.95f); // 우측 상단
             }
+            
+            // 배경 타일맵 생성 (StageScreen이 직접 관리)
+            CreateBackgroundTilemap();
+            
+            // 씬이 로드되면 자동으로 스테이지 시작
+            StartStageIfNeeded();
+        }
+        
+        /// <summary>
+        /// Canvas를 처음부터 제대로 생성/설정합니다.
+        /// 다른 Screen들과 동일한 방식으로 처리합니다.
+        /// </summary>
+        private void SetupCanvas()
+        {
+            // StageScreen 자체에 Canvas가 있으면 사용, 없으면 생성
+            Canvas canvas = gameObject.GetComponent<Canvas>();
+            if (canvas == null)
+            {
+                canvas = gameObject.AddComponent<Canvas>();
+            }
+            
+            // ScreenSpaceOverlay로 설정
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            
+            // GraphicRaycaster 추가
+            if (gameObject.GetComponent<GraphicRaycaster>() == null)
+            {
+                gameObject.AddComponent<GraphicRaycaster>();
+            }
+            
+            // CanvasScaler 추가 및 설정
+            CanvasScaler scaler = gameObject.GetComponent<CanvasScaler>();
+            if (scaler == null)
+            {
+                scaler = gameObject.AddComponent<CanvasScaler>();
+            }
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.matchWidthOrHeight = 0.5f;
+            
+            // EventSystem 확인 및 생성
+            if (EventSystem.current == null)
+            {
+                GameObject eventSystemObj = new GameObject("EventSystem");
+                eventSystemObj.AddComponent<EventSystem>();
+                eventSystemObj.AddComponent<StandaloneInputModule>();
+            }
         }
 
         private void OnEnable()
@@ -84,6 +161,53 @@ namespace PawnSurvivors.UI
             // 스테이지 화면이 활성화될 때마다 타이머 리셋
             _stageEnded = false;
             InitializeStageData();
+        }
+        
+        /// <summary>
+        /// 씬이 로드되면 현재 스테이지를 자동으로 시작합니다.
+        /// 씬은 이전 씬과 독립적으로 작동합니다.
+        /// 세션 데이터에서 스테이지 정보를 가져오고, 없으면 기본값을 사용합니다.
+        /// </summary>
+        private void StartStageIfNeeded()
+        {
+            if (GameManager.Instance == null || GameManager.Instance.StageFlowUseCase == null)
+            {
+                LogManager.LogWarning(LogCategory.Stage, "GameManager 또는 StageFlowUseCase가 없습니다. 스테이지를 시작할 수 없습니다.");
+                return;
+            }
+            
+            // 세션 데이터에서 현재 스테이지 이름 가져오기 (기본값 없이)
+            string currentStageName = null;
+            if (GameManager.Instance.StageManagementUseCase != null)
+            {
+                // 세션 데이터에서 직접 가져오기 (기본값 없이)
+                currentStageName = GameManager.Instance.StageManagementUseCase.GetCurrentStageNameRaw();
+            }
+            
+            // 세션 데이터에 스테이지 정보가 없으면 기본값 사용
+            if (string.IsNullOrEmpty(currentStageName))
+            {
+                currentStageName = _selectedStage; // 기본값 "Stage1"
+                LogManager.LogInfo(LogCategory.Stage, 
+                    $"세션 데이터에 스테이지 정보가 없습니다. 기본값 '{currentStageName}'을 사용합니다. " +
+                    $"(캠페인 선택 없이 직접 스테이지 씬으로 이동한 경우)");
+            }
+            else
+            {
+                LogManager.LogInfo(LogCategory.Stage, 
+                    $"세션 데이터에서 스테이지 정보를 가져왔습니다: '{currentStageName}'");
+            }
+            
+            // 스테이지가 이미 실행 중이면 시작하지 않음
+            if (GameManager.Instance.StageFlowUseCase.CurrentState == StageFlowUseCase.StageState.InProgress)
+            {
+                LogManager.LogInfo(LogCategory.Stage, "스테이지가 이미 실행 중입니다. 재시작하지 않습니다.");
+                return;
+            }
+            
+            // 스테이지 시작 (세션 리셋하지 않음 - 기존 게임 진행 유지)
+            GameManager.Instance.StageFlowUseCase.StartStage(currentStageName, resetSession: false);
+            LogManager.LogInfo(LogCategory.Stage, $"씬 로드 완료. 스테이지 '{currentStageName}' 자동 시작.");
         }
 
         private void Update()
@@ -413,19 +537,20 @@ namespace PawnSurvivors.UI
         }
         
         /// <summary>
-        /// LevelUpContainer가 없으면 자동으로 생성합니다.
+        /// LevelUpContainer를 확인하고, 인스펙터에서 할당되지 않았으면 자동으로 생성합니다.
+        /// StageScreen이 직접 관리합니다.
         /// </summary>
         private void EnsureLevelUpContainer()
         {
-            if (levelUpContainer != null) return;
-            
-            // Canvas 찾기
-            Canvas canvas = GetComponentInParent<Canvas>();
-            if (canvas == null)
+            // 인스펙터에서 할당된 levelUpContainer가 있으면 그것을 사용
+            if (levelUpContainer != null)
             {
-                canvas = FindFirstObjectByType<Canvas>();
+                LogManager.LogInfo(LogCategory.UI, "인스펙터에서 할당된 LevelUpContainer를 사용합니다.");
+                return;
             }
             
+            // StageScreen 자체에 Canvas가 있으므로 그것을 사용
+            Canvas canvas = gameObject.GetComponent<Canvas>();
             if (canvas == null)
             {
                 LogManager.LogError(LogCategory.UI, "Canvas를 찾을 수 없어 LevelUpContainer를 생성할 수 없습니다.");
@@ -455,6 +580,30 @@ namespace PawnSurvivors.UI
             layoutGroup.childForceExpandHeight = false;
             
             LogManager.LogInfo(LogCategory.UI, "LevelUpContainer를 자동으로 생성했습니다.");
+        }
+        
+        /// <summary>
+        /// 폰트를 로드합니다. 무조건 "Assets/Resources/Fonts/NanumGothic SDF.asset"만 사용합니다.
+        /// </summary>
+        private TMP_FontAsset LoadKoreanFont()
+        {
+            // Resources에서 먼저 찾기
+            TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
+            
+            // Resources에 없으면 에디터에서 직접 로드
+            #if UNITY_EDITOR
+            if (font == null)
+            {
+                font = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Resources/Fonts/NanumGothic SDF.asset");
+            }
+            #endif
+            
+            if (font == null)
+            {
+                LogManager.LogWarning(LogCategory.UI, "NanumGothic SDF 폰트를 찾을 수 없습니다. Assets/Resources/Fonts/NanumGothic SDF.asset 파일을 확인하세요.");
+            }
+            
+            return font;
         }
         
         /// <summary>
@@ -560,31 +709,10 @@ namespace PawnSurvivors.UI
             ui.nameAndLevelText.color = Color.white;
             ui.nameAndLevelText.alignment = TextAlignmentOptions.Left;
             
-            // 한글 폰트 적용 (있으면, 없으면 자동으로 찾기)
-            if (koreanFontAsset != null)
+            // 무조건 NanumGothic SDF 폰트 사용
+            if (_koreanFont != null)
             {
-                ui.nameAndLevelText.font = koreanFontAsset;
-            }
-            else
-            {
-                // Resources에서 나눔고딕 폰트 찾기
-                var nanumFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
-                if (nanumFont == null)
-                {
-                    // Resources에 없으면 Assets/Fonts에서 직접 찾기 (에디터 전용)
-                    #if UNITY_EDITOR
-                    nanumFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NanumGothic SDF.asset");
-                    #endif
-                }
-                
-                if (nanumFont != null)
-                {
-                    ui.nameAndLevelText.font = nanumFont;
-                }
-                else
-                {
-                    LogManager.LogWarning(LogCategory.UI, "한글 폰트를 찾을 수 없습니다. Inspector에서 koreanFontAsset을 할당하거나, Assets/Fonts/NanumGothic SDF.asset 파일을 확인하세요.");
-                }
+                ui.nameAndLevelText.font = _koreanFont;
             }
             
             // 이름 텍스트 (상단)
@@ -649,20 +777,10 @@ namespace PawnSurvivors.UI
             ui.healthText.alignment = TextAlignmentOptions.Center; // 중앙 정렬
             ui.healthText.fontStyle = FontStyles.Bold; // 굵게
             
-            // 한글 폰트 적용
-            if (koreanFontAsset != null)
+            // 무조건 NanumGothic SDF 폰트 사용
+            if (_koreanFont != null)
             {
-                ui.healthText.font = koreanFontAsset;
-            }
-            else
-            {
-                var nanumFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
-                #if UNITY_EDITOR
-                if (nanumFont == null)
-                    nanumFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NanumGothic SDF.asset");
-                #endif
-                if (nanumFont != null)
-                    ui.healthText.font = nanumFont;
+                ui.healthText.font = _koreanFont;
             }
             
             // 체력 텍스트를 체력바 전체 영역에 맞춰 배치
@@ -682,20 +800,10 @@ namespace PawnSurvivors.UI
             ui.dpsText.color = Color.cyan;
             ui.dpsText.alignment = TextAlignmentOptions.Left;
             
-            // 한글 폰트 적용
-            if (koreanFontAsset != null)
+            // 무조건 NanumGothic SDF 폰트 사용
+            if (_koreanFont != null)
             {
-                ui.dpsText.font = koreanFontAsset;
-            }
-            else
-            {
-                var nanumFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
-                #if UNITY_EDITOR
-                if (nanumFont == null)
-                    nanumFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NanumGothic SDF.asset");
-                #endif
-                if (nanumFont != null)
-                    ui.dpsText.font = nanumFont;
+                ui.dpsText.font = _koreanFont;
             }
             
             dpsTextRect.anchorMin = new Vector2(0.5f, 1f);
@@ -759,20 +867,10 @@ namespace PawnSurvivors.UI
             ui.progressText.alignment = TextAlignmentOptions.Center; // 중앙 정렬
             ui.progressText.fontStyle = FontStyles.Bold; // 굵게
             
-            // 한글 폰트 적용
-            if (koreanFontAsset != null)
+            // 무조건 NanumGothic SDF 폰트 사용
+            if (_koreanFont != null)
             {
-                ui.progressText.font = koreanFontAsset;
-            }
-            else
-            {
-                var nanumFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
-                #if UNITY_EDITOR
-                if (nanumFont == null)
-                    nanumFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NanumGothic SDF.asset");
-                #endif
-                if (nanumFont != null)
-                    ui.progressText.font = nanumFont;
+                ui.progressText.font = _koreanFont;
             }
             
             // 진행도 텍스트를 진행도 바와 같은 위치에 겹쳐서 배치
@@ -986,9 +1084,10 @@ namespace PawnSurvivors.UI
             titleText.color = Color.white;
             titleText.alignment = TextAlignmentOptions.Left;
             
-            if (koreanFontAsset != null)
+            // 무조건 NanumGothic SDF 폰트 사용
+            if (_koreanFont != null)
             {
-                titleText.font = koreanFontAsset;
+                titleText.font = _koreanFont;
             }
             
             // HorizontalLayoutGroup 추가
@@ -1126,13 +1225,8 @@ namespace PawnSurvivors.UI
         {
             if (_tooltipPanel != null) return;
             
-            // Canvas 찾기
-            Canvas canvas = GetComponentInParent<Canvas>();
-            if (canvas == null)
-            {
-                canvas = FindFirstObjectByType<Canvas>();
-            }
-            
+            // StageScreen 자체에 Canvas가 있으므로 그것을 사용
+            Canvas canvas = gameObject.GetComponent<Canvas>();
             if (canvas == null) return;
             
             // 툴팁 패널 생성
@@ -1162,9 +1256,10 @@ namespace PawnSurvivors.UI
                 _tooltipText.alignment = TextAlignmentOptions.Left;
                 _tooltipText.raycastTarget = false;
                 
-                if (koreanFontAsset != null)
+                // 무조건 NanumGothic SDF 폰트 사용
+                if (_koreanFont != null)
                 {
-                    _tooltipText.font = koreanFontAsset;
+                    _tooltipText.font = _koreanFont;
                 }
             }
             
@@ -1412,6 +1507,151 @@ namespace PawnSurvivors.UI
 
         // StagePause(), OpenOptionMenu(), OptionAndPause() 제거
         // UIManager가 ESC와 일시정지를 중앙에서 관리
+        #endregion
+        
+        #region Background Tilemap
+        
+        /// <summary>
+        /// 그리드 오브젝트를 인스펙터에서 받아서 배경 타일맵을 생성합니다.
+        /// StageScreen이 직접 관리합니다.
+        /// </summary>
+        private void CreateBackgroundTilemap()
+        {
+            // 인스펙터에서 할당된 gridObject가 없으면 이름으로 찾기
+            if (gridObject == null)
+            {
+                gridObject = GameObject.Find(gridObjectName);
+            }
+
+            if (gridObject == null)
+            {
+                LogManager.LogWarning(LogCategory.UI, $"'{gridObjectName}' 오브젝트를 찾을 수 없습니다. 배경 타일맵을 생성하지 않습니다.");
+                return;
+            }
+
+            _grid = gridObject.GetComponent<Grid>();
+            if (_grid == null)
+            {
+                _grid = gridObject.AddComponent<Grid>();
+            }
+
+            Sprite[] tileSprites = Resources.LoadAll<Sprite>(tileSpriteFolderPath);
+            
+            Vector3 calculatedCellSize = cellSize;
+            if (calculatedCellSize == Vector3.zero && tileSprites != null && tileSprites.Length > 0)
+            {
+                Sprite firstSprite = tileSprites[0];
+                if (firstSprite != null)
+                {
+                    float spriteWidth = firstSprite.rect.width / firstSprite.pixelsPerUnit;
+                    float spriteHeight = firstSprite.rect.height / firstSprite.pixelsPerUnit;
+                    calculatedCellSize = new Vector3(spriteWidth, spriteHeight, 0f);
+                }
+            }
+            
+            if (calculatedCellSize == Vector3.zero)
+            {
+                calculatedCellSize = new Vector3(1f, 1f, 0f);
+            }
+
+            _grid.cellSize = calculatedCellSize;
+            _grid.cellLayout = GridLayout.CellLayout.Rectangle;
+
+            Transform tilemapTransform = gridObject.transform.Find("BackgroundTilemap");
+            GameObject tilemapObject;
+            
+            if (tilemapTransform != null)
+            {
+                tilemapObject = tilemapTransform.gameObject;
+            }
+            else
+            {
+                tilemapObject = new GameObject("BackgroundTilemap");
+                tilemapObject.transform.SetParent(gridObject.transform);
+            }
+            
+            _backgroundTilemap = tilemapObject.GetComponent<Tilemap>();
+            if (_backgroundTilemap == null)
+            {
+                _backgroundTilemap = tilemapObject.AddComponent<Tilemap>();
+            }
+            
+            TilemapRenderer renderer = tilemapObject.GetComponent<TilemapRenderer>();
+            if (renderer == null)
+            {
+                renderer = tilemapObject.AddComponent<TilemapRenderer>();
+            }
+            renderer.sortingOrder = sortingOrder;
+
+            _backgroundTilemap.ClearAllTiles();
+            LoadAndPlaceTiles(tileSprites);
+            
+            LogManager.LogInfo(LogCategory.UI, "배경 타일맵을 생성했습니다.");
+        }
+        
+        /// <summary>
+        /// 타일 스프라이트를 로드하고 배치합니다.
+        /// </summary>
+        private void LoadAndPlaceTiles(Sprite[] tileSprites = null)
+        {
+            if (tileSprites == null)
+            {
+                tileSprites = Resources.LoadAll<Sprite>(tileSpriteFolderPath);
+            }
+            
+            if (tileSprites == null || tileSprites.Length == 0)
+            {
+                CreateDefaultTiles();
+                return;
+            }
+
+            Tile[] tiles = new Tile[tileSprites.Length];
+            for (int i = 0; i < tileSprites.Length; i++)
+            {
+                tiles[i] = ScriptableObject.CreateInstance<Tile>();
+                tiles[i].sprite = tileSprites[i];
+            }
+
+            System.Random random = useRandomTiles ? new System.Random() : null;
+            
+            for (int x = -mapSize.x / 2; x < mapSize.x / 2; x++)
+            {
+                for (int y = -mapSize.y / 2; y < mapSize.y / 2; y++)
+                {
+                    Vector3Int position = new Vector3Int(x, y, 0);
+                    Tile selectedTile = (useRandomTiles && tiles.Length > 1) ? tiles[random.Next(0, tiles.Length)] : tiles[0];
+                    _backgroundTilemap.SetTile(position, selectedTile);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 기본 타일을 생성합니다 (스프라이트가 없을 때).
+        /// </summary>
+        private void CreateDefaultTiles()
+        {
+            Texture2D texture = new Texture2D(32, 32);
+            Color[] pixels = new Color[32 * 32];
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                pixels[i] = new Color(0.3f, 0.3f, 0.4f, 1f);
+            }
+            texture.SetPixels(pixels);
+            texture.Apply();
+            
+            Sprite defaultSprite = Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32);
+            Tile tile = ScriptableObject.CreateInstance<Tile>();
+            tile.sprite = defaultSprite;
+
+            for (int x = -mapSize.x / 2; x < mapSize.x / 2; x++)
+            {
+                for (int y = -mapSize.y / 2; y < mapSize.y / 2; y++)
+                {
+                    _backgroundTilemap.SetTile(new Vector3Int(x, y, 0), tile);
+                }
+            }
+        }
+        
         #endregion
 
         #endregion

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using PawnSurvivors.Domain.States;
 using PawnSurvivors.Managers;
@@ -20,6 +21,9 @@ namespace PawnSurvivors.Managers
         
         // State 인스턴스 캐싱 (재사용)
         private Dictionary<System.Type, IGameState> _stateCache = new Dictionary<System.Type, IGameState>();
+        
+        // State → Scene 매핑
+        private Dictionary<System.Type, string> _stateToSceneMap = new Dictionary<System.Type, string>();
 
         public IGameState CurrentState => _currentState;
         public string CurrentStateName => _currentState?.StateName ?? "None";
@@ -33,15 +37,73 @@ namespace PawnSurvivors.Managers
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            
+            // State → Scene 매핑 초기화
+            InitializeSceneMapping();
         }
 
         private void Start()
         {
-            // 초기 상태: TitleState
-            if (UIManager.Instance != null)
+            // 현재 씬에 맞는 State를 자동으로 설정
+            // 씬이 이미 로드되어 있으면 그 씬에 맞는 State로 설정
+            InitializeStateFromCurrentScene();
+        }
+        
+        /// <summary>
+        /// 현재 씬에 맞는 State를 자동으로 설정합니다.
+        /// </summary>
+        private void InitializeStateFromCurrentScene()
+        {
+            string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            
+            // 씬 이름에 맞는 State 찾기
+            foreach (var kvp in _stateToSceneMap)
             {
-                TransitionTo<TitleState>();
+                if (kvp.Value == currentSceneName)
+                {
+                    // 해당 State로 전환 (씬은 이미 로드되어 있으므로 씬 로드 스킵)
+                    IGameState state = GetOrCreateState(kvp.Key);
+                    if (state != null)
+                    {
+                        _currentState = state;
+                        _currentState.OnEnter();
+                        LogManager.LogInfo(LogCategory.System, 
+                            $"현재 씬 '{currentSceneName}'에 맞는 State '{state.StateName}'로 자동 설정됨");
+                        return;
+                    }
+                }
             }
+            
+            // 매칭되는 씬이 없으면 TitleState로 (기본값)
+            LogManager.LogWarning(LogCategory.System, 
+                $"현재 씬 '{currentSceneName}'에 매칭되는 State가 없습니다. TitleState로 설정합니다.");
+            TransitionTo<TitleState>();
+        }
+        
+        /// <summary>
+        /// State 타입으로 State 인스턴스를 가져오거나 생성합니다.
+        /// </summary>
+        private IGameState GetOrCreateState(System.Type stateType)
+        {
+            if (!_stateCache.ContainsKey(stateType))
+            {
+                _stateCache[stateType] = System.Activator.CreateInstance(stateType) as IGameState;
+            }
+            return _stateCache[stateType];
+        }
+        
+        /// <summary>
+        /// State와 Scene 매핑을 초기화합니다.
+        /// </summary>
+        private void InitializeSceneMapping()
+        {
+            _stateToSceneMap[typeof(TitleState)] = "TitleScene";
+            _stateToSceneMap[typeof(CharacterSelectState)] = "CharacterSelectScene";
+            _stateToSceneMap[typeof(StageSelectState)] = "StageSelectScene";
+            _stateToSceneMap[typeof(StageState)] = "StageScene";
+            _stateToSceneMap[typeof(ShopState)] = "ShopScene";
+            _stateToSceneMap[typeof(GameOverState)] = "GameOverScene";
+            // PausedState는 오버레이이므로 씬 전환 없음
         }
 
         private void Update()
@@ -98,6 +160,18 @@ namespace PawnSurvivors.Managers
             _previousState = _currentState;
             _currentState = nextState;
 
+            // 씬 전환 (해당 State에 씬이 매핑되어 있는 경우)
+            // 이미 같은 씬이면 로드하지 않음
+            string sceneName = GetSceneNameForState(nextState);
+            if (!string.IsNullOrEmpty(sceneName))
+            {
+                string currentSceneName = SceneManager.GetActiveScene().name;
+                if (currentSceneName != sceneName)
+                {
+                    SceneManager.LoadScene(sceneName);
+                }
+            }
+
             // 새 State 진입
             _currentState.OnEnter();
 
@@ -106,6 +180,23 @@ namespace PawnSurvivors.Managers
 
             return true;
         }
+        
+        /// <summary>
+        /// State에 해당하는 씬 이름을 가져옵니다.
+        /// </summary>
+        private string GetSceneNameForState(IGameState state)
+        {
+            if (state == null) return null;
+            
+            System.Type stateType = state.GetType();
+            if (_stateToSceneMap.ContainsKey(stateType))
+            {
+                return _stateToSceneMap[stateType];
+            }
+            
+            return null; // PausedState 등 오버레이 State는 씬 전환 없음
+        }
+        
 
         /// <summary>
         /// 이전 상태로 돌아갑니다.
@@ -134,27 +225,6 @@ namespace PawnSurvivors.Managers
             return (T)_stateCache[stateType];
         }
 
-        /// <summary>
-        /// 특정 State 인스턴스를 생성합니다. (이전 State 정보 전달용)
-        /// </summary>
-        private IGameState CreateStateWithContext<T>(IGameState previousState) where T : IGameState
-        {
-            System.Type stateType = typeof(T);
-            
-            // StageState는 이전 State 정보가 필요
-            if (stateType == typeof(StageState))
-            {
-                return new StageState(previousState);
-            }
-            
-            // 다른 State는 기본 생성자 사용
-            if (!_stateCache.ContainsKey(stateType))
-            {
-                _stateCache[stateType] = System.Activator.CreateInstance<T>();
-            }
-            
-            return _stateCache[stateType];
-        }
 
         /// <summary>
         /// ESC 키 입력을 처리합니다.
@@ -220,10 +290,7 @@ namespace PawnSurvivors.Managers
         /// </summary>
         public void GoToStage()
         {
-            // 이전 State 정보를 전달하여 StageState 생성
-            // StageState는 매번 새로 생성 (이전 State 정보 필요)
-            IGameState stageState = new StageState(_currentState);
-            TransitionTo(stageState);
+            TransitionTo<StageState>();
         }
 
         /// <summary>

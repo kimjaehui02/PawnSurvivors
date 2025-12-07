@@ -97,6 +97,34 @@ namespace PawnSurvivors.UI
                 CreateShopUI();
                 _uiCreated = true;
             }
+            
+            // 씬이 로드되면 자동으로 상점 초기화
+            // 씬은 이전 씬과 독립적으로 작동합니다
+            InitializeShop();
+        }
+        
+        /// <summary>
+        /// 씬이 로드되면 상점 초기화를 수행합니다.
+        /// </summary>
+        private void InitializeShop()
+        {
+            if (GameManager.Instance == null) return;
+            
+            // 스테이지 종료 처리 (실행 중이면)
+            if (GameManager.Instance.StageManager != null && 
+                GameManager.Instance.StageManager.IsStageRunning())
+            {
+                GameManager.Instance.EndStage();
+            }
+            
+            // 상점으로 갈 때 게임 일시정지
+            if (GameManager.Instance.LifecycleManager != null)
+            {
+                if (!GameManager.Instance.LifecycleManager.IsPaused)
+                {
+                    GameManager.Instance.LifecycleManager.TogglePause();
+                }
+            }
         }
 
         private void OnEnable()
@@ -1583,22 +1611,23 @@ namespace PawnSurvivors.UI
                 
                 if (string.IsNullOrEmpty(nextStageName))
                 {
-                    // 마지막 스테이지면 메인 메뉴로 돌아가기 (또는 게임 종료 처리)
+                    // 마지막 스테이지면 게임오버 화면으로 (모든 스테이지 클리어)
                     LogManager.LogInfo(LogCategory.Stage, "모든 스테이지를 완료했습니다!");
-                    if (UIManager.Instance != null)
+                    if (GameStateManager.Instance != null)
                     {
-                        UIManager.Instance.ReturnToMainMenu();
+                        GameStateManager.Instance.GoToGameOver();
                     }
                     return;
                 }
                 
-                // 다음 스테이지로 이동
-                if (UIManager.Instance != null)
+                // 다음 스테이지로 이동: StageState로 전환 (씬 전환)
+                // StageState.OnEnter()에서 스테이지 시작 처리
+                if (GameStateManager.Instance != null)
                 {
-                    UIManager.Instance.ShowStageScreen();
+                    // 다음 스테이지 이름 설정
+                    GameManager.Instance.StageManagementUseCase.PrepareStageStart(nextStageName, shouldResetSession: false);
+                    GameStateManager.Instance.GoToStage();
                 }
-                
-                GameManager.Instance.StartStage(nextStageName, resetSession: false);
             }
         }
         

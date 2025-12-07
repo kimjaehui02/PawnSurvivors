@@ -13,24 +13,9 @@ namespace PawnSurvivors.Domain.States
 
         public void OnEnter()
         {
-            // 게임 일시정지
-            if (GameManager.Instance?.LifecycleManager != null && 
-                !GameManager.Instance.LifecycleManager.IsPaused)
-            {
-                GameManager.Instance.LifecycleManager.TogglePause();
-            }
-            
-            // 게임오버 시 캐릭터 선택 상태 저장
-            if (GameManager.Instance?.CharacterSelectionUseCase != null)
-            {
-                GameManager.Instance.CharacterSelectionUseCase.SaveSelectedCharacters();
-            }
-            
-            // 게임오버 화면 표시
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.ShowGameOverScreen();
-            }
+            // 씬이 로드되면 씬 내부의 초기화 로직이 실행됨
+            // GameOverScene의 MonoBehaviour들이 Awake/Start에서 게임오버 초기화를 처리
+            // State는 씬 전환만 담당하고, 게임 로직은 씬이 독립적으로 처리
         }
 
         public void OnExit()

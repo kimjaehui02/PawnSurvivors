@@ -581,6 +581,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void EndStage()
     {
+        // 플레이어 Pawn의 영구 데이터 저장 (경험치, 레벨 등)
+        SaveAllPawnPersistentData();
+        
         // UseCase를 통해 스테이지 종료 준비
         StageManagementUseCase.PrepareStageEnd();
         
@@ -591,6 +594,35 @@ public class GameManager : MonoBehaviour
         }
         
         LogManager.LogInfo(LogCategory.Stage, "스테이지 종료");
+    }
+    
+    /// <summary>
+    /// 모든 플레이어 Pawn의 영구 데이터를 저장합니다.
+    /// </summary>
+    private void SaveAllPawnPersistentData()
+    {
+        if (PawnPersistenceUseCase == null || PlayerController == null) return;
+        
+        foreach (var pawn in PlayerController.playerPawns)
+        {
+            if (pawn == null) continue;
+            
+            var pawnManager = pawn.GetComponent<PawnManager>();
+            if (pawnManager?.PawnData == null) continue;
+            
+            // LevelUpSubManager에서 현재 레벨 가져오기
+            int currentLevel = 1;
+            var levelUpManager = pawn.GetComponent<LevelUpSubManager>();
+            if (levelUpManager != null)
+            {
+                currentLevel = levelUpManager.GetCurrentLevel();
+            }
+            
+            // 영구 데이터 저장
+            PawnPersistenceUseCase.SavePawnPersistentData(pawnManager.PawnData, currentLevel);
+        }
+        
+        LogManager.LogInfo(LogCategory.System, "모든 플레이어 Pawn의 영구 데이터 저장 완료");
     }
 
     private void HandleStageStartRequested(string stageName)

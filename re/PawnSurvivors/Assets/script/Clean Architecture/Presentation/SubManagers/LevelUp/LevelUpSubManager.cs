@@ -26,6 +26,9 @@ public class LevelUpSubManager : PawnSubManager
 
         Debug.Log($"[LevelUp] {_pawnManager.name} - 총 {_allStrategies.Length}개의 레벨업 전략 발견", this);
 
+        // 저장된 레벨과 경험치 복원
+        RestoreLevelAndProgress();
+
         // 모든 전략 초기화
         foreach (var strategy in _allStrategies)
         {
@@ -52,16 +55,88 @@ public class LevelUpSubManager : PawnSubManager
             Debug.Log($"[LevelUp] {_pawnManager.name} - 전략: {strategyType}, targetLevel={strategy.targetLevel}, {strategyInfo}", this);
         }
 
-        // 첫 번째 전략만 활성화
-        if (_allStrategies.Length > 0)
+        // 저장된 레벨에 맞는 전략 활성화
+        ActivateStrategyForCurrentLevel();
+    }
+    
+    /// <summary>
+    /// 저장된 레벨과 경험치를 복원합니다.
+    /// </summary>
+    private void RestoreLevelAndProgress()
+    {
+        if (_pawnManager?.PawnData == null) return;
+        if (GameManager.Instance?.PawnPersistenceUseCase == null) return;
+        
+        // PawnPersistenceUseCase를 통해 저장된 영구 데이터 가져오기
+        PawnSurvivors.Domain.PawnPersistentData persistentData = null;
+        
+        if (_pawnManager.PawnData.characterType.HasValue)
         {
-            _allStrategies[0].enabled = true;
-            Debug.Log($"[LevelUp] {_pawnManager.name} 레벨 {_currentLevel} - 목표: 레벨 {_allStrategies[0].targetLevel}, 진행도: {_allStrategies[0].GetProgressText()}", this);
+            persistentData = GameManager.Instance.PawnPersistenceUseCase.GetPersistentData(
+                _pawnManager.PawnData.characterType.Value, 
+                _pawnManager.PawnData.playerIndex);
         }
-        else
+        else if (!string.IsNullOrEmpty(_pawnManager.PawnData.recipeName))
+        {
+            persistentData = GameManager.Instance.PawnPersistenceUseCase.GetPersistentData(
+                _pawnManager.PawnData.recipeName, 
+                _pawnManager.PawnData.playerIndex);
+        }
+        
+        if (persistentData == null) return;
+        
+        // 레벨 복원
+        if (persistentData.currentLevel > 0)
+        {
+            _currentLevel = persistentData.currentLevel;
+            Debug.Log($"[LevelUp] {_pawnManager.name} 레벨 복원: {_currentLevel}");
+        }
+        
+        // 경험치는 이미 RestorePawnPersistentData에서 복원되었으므로 확인만
+        if (_pawnManager.PawnData.experienceData != null)
+        {
+            Debug.Log($"[LevelUp] {_pawnManager.name} 경험치 복원됨: {_pawnManager.PawnData.experienceData.currentProgress}");
+        }
+    }
+    
+    /// <summary>
+    /// 현재 레벨에 맞는 전략을 활성화합니다.
+    /// </summary>
+    private void ActivateStrategyForCurrentLevel()
+    {
+        if (_allStrategies == null || _allStrategies.Length == 0)
         {
             Debug.LogWarning($"[LevelUp] {_pawnManager.name}에 레벨업 전략이 없습니다.", this);
+            return;
         }
+        
+        // 현재 레벨 이상의 첫 번째 전략 찾기
+        _currentStrategyIndex = 0;
+        for (int i = 0; i < _allStrategies.Length; i++)
+        {
+            if (_allStrategies[i].targetLevel > _currentLevel)
+            {
+                _currentStrategyIndex = i;
+                break;
+            }
+            else if (_allStrategies[i].targetLevel == _currentLevel)
+            {
+                // 현재 레벨과 같은 전략이면 다음 전략으로
+                _currentStrategyIndex = i + 1;
+                break;
+            }
+        }
+        
+        // 마지막 전략을 넘어가면 최대 레벨
+        if (_currentStrategyIndex >= _allStrategies.Length)
+        {
+            Debug.Log($"[LevelUp] {_pawnManager.name} 최대 레벨 도달: {_currentLevel}");
+            return;
+        }
+        
+        // 찾은 전략 활성화
+        _allStrategies[_currentStrategyIndex].enabled = true;
+        Debug.Log($"[LevelUp] {_pawnManager.name} 레벨 {_currentLevel} - 목표: 레벨 {_allStrategies[_currentStrategyIndex].targetLevel}, 진행도: {_allStrategies[_currentStrategyIndex].GetProgressText()}", this);
     }
 
     public override void SubUpdate()

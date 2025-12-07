@@ -43,12 +43,12 @@ namespace PawnSurvivors.Managers
             
             SetupWorldSpaceCanvas();
             InitializePool();
-            
-            _mainCamera = Camera.main;
-            if (_mainCamera == null)
-            {
-                _mainCamera = FindFirstObjectByType<Camera>();
-            }
+        }
+        
+        private void Start()
+        {
+            // Start에서 카메라를 다시 찾아서 설정 (PlayerController가 생성된 후)
+            EnsureCamera();
         }
 
         private void OnEnable()
@@ -69,6 +69,8 @@ namespace PawnSurvivors.Managers
             if (existingCanvas != null && existingCanvas.renderMode == RenderMode.WorldSpace)
             {
                 worldSpaceCanvas = existingCanvas;
+                // 카메라 재설정
+                EnsureCamera();
                 return;
             }
 
@@ -82,17 +84,38 @@ namespace PawnSurvivors.Managers
             scaler.scaleFactor = 0.001f; // 월드 공간에 맞게 스케일 조정 (더 작게 조정)
             canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
+            // 카메라 설정
+            EnsureCamera();
+
+            RectTransform canvasRect = canvasObj.GetComponent<RectTransform>();
+            canvasRect.sizeDelta = new Vector2(100f, 100f);
+        }
+        
+        /// <summary>
+        /// 카메라를 찾아서 WorldSpace Canvas에 설정합니다.
+        /// </summary>
+        private void EnsureCamera()
+        {
+            if (worldSpaceCanvas == null) return;
+            
+            // 카메라 찾기
             if (_mainCamera == null)
             {
                 _mainCamera = Camera.main;
             }
+            if (_mainCamera == null)
+            {
+                _mainCamera = FindFirstObjectByType<Camera>();
+            }
+            
             if (_mainCamera != null)
             {
                 worldSpaceCanvas.worldCamera = _mainCamera;
             }
-
-            RectTransform canvasRect = canvasObj.GetComponent<RectTransform>();
-            canvasRect.sizeDelta = new Vector2(100f, 100f);
+            else
+            {
+                LogManager.LogWarning(LogCategory.UI, "FloatingEffectManager: 카메라를 찾을 수 없습니다. 데미지 텍스트가 보이지 않을 수 있습니다.");
+            }
         }
 
         private void InitializePool()

@@ -113,6 +113,12 @@ namespace PawnSurvivors.Player
             if (pawnManager != null && pawnManager.PawnData != null)
             {
                 pawnManager.PawnData.playerIndex = index;
+                
+                // 영구 데이터 복원 (경험치, 레벨 등)
+                if (GameManager.Instance?.PawnPersistenceUseCase != null)
+                {
+                    GameManager.Instance.PawnPersistenceUseCase.RestorePawnPersistentData(pawnManager.PawnData);
+                }
             }
             
             // 자동 대열 생성

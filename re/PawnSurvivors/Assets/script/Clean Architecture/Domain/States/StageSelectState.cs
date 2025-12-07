@@ -13,10 +13,8 @@ namespace PawnSurvivors.Domain.States
 
         public void OnEnter()
         {
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.ShowCampaignSelectScreen();
-            }
+            // 씬에 UI가 이미 배치되어 있으므로 UIManager 호출 불필요
+            // 씬 로드는 GameStateManager에서 처리
         }
 
         public void OnExit()

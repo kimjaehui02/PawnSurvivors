@@ -13,38 +13,9 @@ namespace PawnSurvivors.Domain.States
 
         public void OnEnter()
         {
-            UnityEngine.Debug.Log("[ShopState] OnEnter() 호출됨");
-            
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.ShowShopScreen();
-            }
-            
-            // 스테이지 종료 처리 (HandleStageCompletedToShop에서 이미 호출했을 수 있음)
-            // 하지만 중복 호출해도 안전하므로 그대로 둠
-            if (GameManager.Instance != null)
-            {
-                // EndStage()는 이미 HandleStageCompletedToShop에서 호출했을 수 있음
-                // 하지만 안전을 위해 다시 호출 (중복 호출해도 안전)
-                if (!GameManager.Instance.StageManager.IsStageRunning())
-                {
-                    // 스테이지가 실행 중이 아니면 EndStage() 호출하지 않음
-                    UnityEngine.Debug.Log("[ShopState] 스테이지가 이미 종료됨. EndStage() 호출하지 않음");
-                }
-                else
-                {
-                    GameManager.Instance.EndStage();
-                }
-            }
-            
-            // 상점으로 갈 때 게임 일시정지
-            if (GameManager.Instance?.LifecycleManager != null)
-            {
-                if (!GameManager.Instance.LifecycleManager.IsPaused)
-                {
-                    GameManager.Instance.LifecycleManager.TogglePause();
-                }
-            }
+            // 씬이 로드되면 씬 내부의 초기화 로직이 실행됨
+            // ShopScene의 MonoBehaviour들이 Awake/Start에서 상점 초기화를 처리
+            // State는 씬 전환만 담당하고, 게임 로직은 씬이 독립적으로 처리
         }
 
         public void OnExit()

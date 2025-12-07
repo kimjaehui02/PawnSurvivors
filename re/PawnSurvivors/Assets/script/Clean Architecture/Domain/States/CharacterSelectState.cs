@@ -13,15 +13,12 @@ namespace PawnSurvivors.Domain.States
 
         public void OnEnter()
         {
-            if (UIManager.Instance != null)
+            // 씬에 UI가 이미 배치되어 있으므로 UIManager 호출 불필요
+            // 씬 전환 시 Unity가 자동으로 정리하므로 CleanupGameState() 불필요
+            // 단, 게임 상태 리셋만 필요 (UseCase 상태 등)
+            if (GameManager.Instance?.StageFlowUseCase != null)
             {
-                UIManager.Instance.ShowCharacterSelectScreen();
-            }
-            
-            // 게임 상태 초기화 (메인 메뉴로 돌아올 때)
-            if (GameManager.Instance != null)
-            {
-                CleanupGameState();
+                GameManager.Instance.StageFlowUseCase.ResetState();
             }
         }
 
@@ -39,40 +36,6 @@ namespace PawnSurvivors.Domain.States
         {
             // CharacterSelect → StageSelect만 허용
             return nextState is StageSelectState;
-        }
-        
-        private void CleanupGameState()
-        {
-            // 일시정지 해제
-            if (GameManager.Instance.LifecycleManager != null && 
-                GameManager.Instance.LifecycleManager.IsPaused)
-            {
-                GameManager.Instance.LifecycleManager.TogglePause();
-            }
-
-            // 모든 Pawn 파괴
-            if (GameManager.Instance.CreationManager != null)
-            {
-                GameManager.Instance.CreationManager.DestroyAllPawns();
-            }
-            
-            // PlayerController 제거
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.ClearPlayerController();
-            }
-
-            // 스테이지 종료
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.EndStage();
-            }
-            
-            // 스테이지 상태 리셋
-            if (GameManager.Instance?.StageFlowUseCase != null)
-            {
-                GameManager.Instance.StageFlowUseCase.ResetState();
-            }
         }
     }
 }

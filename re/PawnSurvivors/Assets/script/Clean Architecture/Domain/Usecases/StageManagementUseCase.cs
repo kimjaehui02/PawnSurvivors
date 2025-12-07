@@ -42,6 +42,15 @@ namespace PawnSurvivors.Domain.Usecases
             string stageName = _sessionRepository.GetCurrentStageName();
             return string.IsNullOrEmpty(stageName) ? "Stage1" : stageName;
         }
+        
+        /// <summary>
+        /// 세션 데이터에서 현재 스테이지 이름을 가져옵니다. (기본값 없이)
+        /// </summary>
+        /// <returns>현재 스테이지 이름 (없으면 null 또는 빈 문자열)</returns>
+        public string GetCurrentStageNameRaw()
+        {
+            return _sessionRepository.GetCurrentStageName();
+        }
 
         /// <summary>
         /// 스테이지 종료를 준비합니다.

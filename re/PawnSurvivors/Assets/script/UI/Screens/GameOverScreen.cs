@@ -45,9 +45,35 @@ namespace PawnSurvivors.UI
                 }
                 _isUICreated = true;
             }
+        }
+        
+        private void Start()
+        {
+            // 씬이 로드되면 자동으로 게임오버 화면 표시
+            // 씬은 이전 씬과 독립적으로 작동합니다
+            InitializeGameOver();
+        }
+        
+        /// <summary>
+        /// 씬이 로드되면 게임오버 초기화를 수행합니다.
+        /// </summary>
+        private void InitializeGameOver()
+        {
+            // 게임 일시정지
+            if (GameManager.Instance?.LifecycleManager != null && 
+                !GameManager.Instance.LifecycleManager.IsPaused)
+            {
+                GameManager.Instance.LifecycleManager.TogglePause();
+            }
             
-            // 기본적으로 숨김
-            gameObject.SetActive(false);
+            // 게임오버 시 캐릭터 선택 상태 저장
+            if (GameManager.Instance?.CharacterSelectionUseCase != null)
+            {
+                GameManager.Instance.CharacterSelectionUseCase.SaveSelectedCharacters();
+            }
+            
+            // 게임오버 화면 표시
+            Show();
         }
         
         private void RestoreUIReferences()
@@ -69,10 +95,28 @@ namespace PawnSurvivors.UI
                 if (itemsObj != null) _itemsText = itemsObj.GetComponent<TMP_Text>();
                 
                 Transform retryObj = mainPanel.Find("RetryButton");
-                if (retryObj != null) _retryButton = retryObj.GetComponent<Button>();
+                if (retryObj != null)
+                {
+                    _retryButton = retryObj.GetComponent<Button>();
+                    // onClick 리스너 재설정 (프리팹에서 복원된 버튼의 경우)
+                    if (_retryButton != null)
+                    {
+                        _retryButton.onClick.RemoveAllListeners();
+                        _retryButton.onClick.AddListener(OnRetryButtonClicked);
+                    }
+                }
                 
                 Transform charSelectObj = mainPanel.Find("CharacterSelectButton");
-                if (charSelectObj != null) _characterSelectButton = charSelectObj.GetComponent<Button>();
+                if (charSelectObj != null)
+                {
+                    _characterSelectButton = charSelectObj.GetComponent<Button>();
+                    // onClick 리스너 재설정 (프리팹에서 복원된 버튼의 경우)
+                    if (_characterSelectButton != null)
+                    {
+                        _characterSelectButton.onClick.RemoveAllListeners();
+                        _characterSelectButton.onClick.AddListener(OnCharacterSelectButtonClicked);
+                    }
+                }
             }
             
             _canvas = GetComponent<Canvas>();

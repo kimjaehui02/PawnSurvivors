@@ -11,43 +11,156 @@ namespace PawnSurvivors.UI
 {
     public class CharacterSelectScreen : MonoBehaviour
     {
+        /// <summary>
+        /// UI 요소 타입 enum (하드코딩된 string 제거)
+        /// </summary>
+        private enum UIElementType
+        {
+            Background,
+            CharacterList,
+            ConfirmButton,
+            BackButton,
+            SelectedCount
+        }
+        
+        /// <summary>
+        /// UI 요소 참조를 enum으로 관리 (내부적으로도 enum 사용)
+        /// </summary>
+        private Dictionary<UIElementType, GameObject> _uiElements = new Dictionary<UIElementType, GameObject>();
+        
+        private GameObject _characterListContainer => _uiElements.ContainsKey(UIElementType.CharacterList) 
+            ? _uiElements[UIElementType.CharacterList] 
+            : null;
+        private GameObject _confirmButton => _uiElements.ContainsKey(UIElementType.ConfirmButton) 
+            ? _uiElements[UIElementType.ConfirmButton] 
+            : null;
+        private GameObject _backButton => _uiElements.ContainsKey(UIElementType.BackButton) 
+            ? _uiElements[UIElementType.BackButton] 
+            : null;
+        private GameObject _selectedCountText => _uiElements.ContainsKey(UIElementType.SelectedCount) 
+            ? _uiElements[UIElementType.SelectedCount] 
+            : null;
+        
         [Header("Character Settings")]
         [SerializeField] private int minSelectCount = 1;
         [SerializeField] private int maxSelectCount = 1;
 
         private CharacterSelectionUseCase _characterSelectionUseCase;
         private Dictionary<string, GameObject> _characterIcons = new Dictionary<string, GameObject>();
-        
-        private GameObject _characterListContainer;
-        private GameObject _confirmButton;
-        private GameObject _backButton;
-        private GameObject _selectedCountText;
         private TMP_FontAsset _koreanFont;
 
         private void Awake()
         {
+            // 프리팹에 이미 Canvas가 있으므로 추가하지 않음
+            // 씬에 배치된 프리팹은 이미 UI가 생성되어 있음
+            
             _koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
             
-            gameObject.AddComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-            CanvasScaler scaler = gameObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            gameObject.AddComponent<GraphicRaycaster>();
+            // UI 요소들을 자식에서 찾아서 enum으로 매핑
+            InitializeUIElements();
             
-            CreateUI();
-            
-            if (GameManager.Instance?.CharacterSelectionUseCase != null)
+            // UI가 없으면 생성
+            if (!_uiElements.ContainsKey(UIElementType.Background))
             {
-                _characterSelectionUseCase = GameManager.Instance.CharacterSelectionUseCase;
-                LoadCharactersFromJSON();
+                CreateUI();
             }
-
+            
+            // 이벤트 리스너 재설정
+            SetupEventListeners();
+        }
+        
+        private void Start()
+        {
+            // 씬이 독립적으로 작동해야 하므로 Start()에서 캐릭터 로드
+            // GameManager가 준비될 때까지 기다림
+            LoadCharacters();
+        }
+        
+        /// <summary>
+        /// 캐릭터를 불러옵니다. 씬이 독립적으로 작동하므로 스스로 불러와야 합니다.
+        /// </summary>
+        private void LoadCharacters()
+        {
+            // GameManager와 CharacterSelectionUseCase 확인
+            if (GameManager.Instance?.CharacterSelectionUseCase == null)
+            {
+                Debug.LogWarning("[CharacterSelectScreen] GameManager 또는 CharacterSelectionUseCase가 아직 준비되지 않았습니다. 다음 프레임에 다시 시도합니다.");
+                // 다음 프레임에 다시 시도
+                Invoke(nameof(LoadCharacters), 0.1f);
+                return;
+            }
+            
+            _characterSelectionUseCase = GameManager.Instance.CharacterSelectionUseCase;
+            LoadCharactersFromJSON();
             CreateCharacterIcons();
+        }
+        
+        /// <summary>
+        /// 자식 Transform들을 순회하면서 UI 요소를 enum으로 매핑합니다.
+        /// </summary>
+        private void InitializeUIElements()
+        {
+            _uiElements.Clear();
+            
+            // 모든 자식 Transform을 순회 (재귀적으로)
+            MapUIElementsRecursive(transform);
+        }
+        
+        /// <summary>
+        /// 재귀적으로 Transform을 순회하면서 UI 요소를 enum으로 매핑합니다.
+        /// </summary>
+        private void MapUIElementsRecursive(Transform parent)
+        {
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform child = parent.GetChild(i);
+                string childName = child.name;
+                
+                // enum 값과 이름이 일치하는지 확인
+                if (System.Enum.TryParse<UIElementType>(childName, out UIElementType elementType))
+                {
+                    _uiElements[elementType] = child.gameObject;
+                }
+                
+                // 자식도 재귀적으로 확인
+                MapUIElementsRecursive(child);
+            }
+        }
+        
+        /// <summary>
+        /// UI 요소들의 이벤트 리스너를 설정합니다.
+        /// </summary>
+        private void SetupEventListeners()
+        {
+            // BackButton 이벤트 리스너 재설정
+            if (_backButton != null)
+            {
+                Button backBtn = _backButton.GetComponent<Button>();
+                if (backBtn != null)
+                {
+                    backBtn.onClick.RemoveAllListeners();
+                    backBtn.onClick.AddListener(() => { 
+                        if (UIManager.Instance != null) UIManager.Instance.ShowTitleScreen(); 
+                    });
+                }
+            }
+            
+            // ConfirmButton 이벤트 리스너 재설정
+            if (_confirmButton != null)
+            {
+                Button confirmBtn = _confirmButton.GetComponent<Button>();
+                if (confirmBtn != null)
+                {
+                    confirmBtn.onClick.RemoveAllListeners();
+                    confirmBtn.onClick.AddListener(OnConfirmClicked);
+                }
+            }
         }
 
         private void CreateUI()
         {
-            GameObject bg = new GameObject("Background");
+            GameObject bg = new GameObject(UIElementType.Background.ToString());
+            _uiElements[UIElementType.Background] = bg;
             bg.transform.SetParent(transform, false);
             RectTransform bgRect = bg.AddComponent<RectTransform>();
             bgRect.anchorMin = Vector2.zero;
@@ -70,19 +183,20 @@ namespace PawnSurvivors.UI
             titleText.alignment = TextAlignmentOptions.Center;
             if (_koreanFont != null) titleText.font = _koreanFont;
 
-            _backButton = new GameObject("BackButton");
-            _backButton.transform.SetParent(bg.transform, false);
-            RectTransform backRect = _backButton.AddComponent<RectTransform>();
+            GameObject backBtnObj = new GameObject(UIElementType.BackButton.ToString());
+            _uiElements[UIElementType.BackButton] = backBtnObj;
+            backBtnObj.transform.SetParent(bg.transform, false);
+            RectTransform backRect = backBtnObj.AddComponent<RectTransform>();
             backRect.anchorMin = new Vector2(0f, 1f);
             backRect.anchorMax = new Vector2(0f, 1f);
             backRect.pivot = new Vector2(0f, 1f);
             backRect.anchoredPosition = new Vector2(50f, -50f);
             backRect.sizeDelta = new Vector2(150f, 60f);
-            _backButton.AddComponent<Image>().color = new Color(0.2f, 0.2f, 0.2f, 1f);
-            Button backBtn = _backButton.AddComponent<Button>();
+            backBtnObj.AddComponent<Image>().color = new Color(0.2f, 0.2f, 0.2f, 1f);
+            Button backBtn = backBtnObj.AddComponent<Button>();
             backBtn.onClick.AddListener(() => { if (UIManager.Instance != null) UIManager.Instance.ShowTitleScreen(); });
             GameObject backText = new GameObject("Text");
-            backText.transform.SetParent(_backButton.transform, false);
+            backText.transform.SetParent(backBtnObj.transform, false);
             RectTransform backTextRect = backText.AddComponent<RectTransform>();
             backTextRect.anchorMin = Vector2.zero;
             backTextRect.anchorMax = Vector2.one;
@@ -94,49 +208,52 @@ namespace PawnSurvivors.UI
             backTxt.alignment = TextAlignmentOptions.Center;
             if (_koreanFont != null) backTxt.font = _koreanFont;
 
-            _characterListContainer = new GameObject("CharacterList");
-            _characterListContainer.transform.SetParent(bg.transform, false);
-            RectTransform listRect = _characterListContainer.AddComponent<RectTransform>();
+            GameObject listContainer = new GameObject(UIElementType.CharacterList.ToString());
+            _uiElements[UIElementType.CharacterList] = listContainer;
+            listContainer.transform.SetParent(bg.transform, false);
+            RectTransform listRect = listContainer.AddComponent<RectTransform>();
             listRect.anchorMin = new Vector2(0.5f, 0.5f);
             listRect.anchorMax = new Vector2(0.5f, 0.5f);
             listRect.pivot = new Vector2(0.5f, 0.5f);
             listRect.anchoredPosition = Vector2.zero;
             listRect.sizeDelta = new Vector2(1200f, 600f);
-            GridLayoutGroup grid = _characterListContainer.AddComponent<GridLayoutGroup>();
+            GridLayoutGroup grid = listContainer.AddComponent<GridLayoutGroup>();
             // 40:48 비율 유지 (가로 125, 세로 150)
             grid.cellSize = new Vector2(125f, 150f);
             grid.spacing = new Vector2(20f, 20f);
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = 6;
 
-            _selectedCountText = new GameObject("SelectedCount");
-            _selectedCountText.transform.SetParent(bg.transform, false);
-            RectTransform countRect = _selectedCountText.AddComponent<RectTransform>();
+            GameObject selectedCountObj = new GameObject(UIElementType.SelectedCount.ToString());
+            _uiElements[UIElementType.SelectedCount] = selectedCountObj;
+            selectedCountObj.transform.SetParent(bg.transform, false);
+            RectTransform countRect = selectedCountObj.AddComponent<RectTransform>();
             countRect.anchorMin = new Vector2(0.5f, 0f);
             countRect.anchorMax = new Vector2(0.5f, 0f);
             countRect.pivot = new Vector2(0.5f, 0f);
             countRect.anchoredPosition = new Vector2(0f, 150f);
             countRect.sizeDelta = new Vector2(400f, 50f);
-            TMP_Text countTxt = _selectedCountText.AddComponent<TextMeshProUGUI>();
+            TMP_Text countTxt = selectedCountObj.AddComponent<TextMeshProUGUI>();
             countTxt.text = "선택: 0/1";
             countTxt.fontSize = 32;
             countTxt.color = Color.white;
             countTxt.alignment = TextAlignmentOptions.Center;
             if (_koreanFont != null) countTxt.font = _koreanFont;
 
-            _confirmButton = new GameObject("ConfirmButton");
-            _confirmButton.transform.SetParent(bg.transform, false);
-            RectTransform confirmRect = _confirmButton.AddComponent<RectTransform>();
+            GameObject confirmBtnObj = new GameObject(UIElementType.ConfirmButton.ToString());
+            _uiElements[UIElementType.ConfirmButton] = confirmBtnObj;
+            confirmBtnObj.transform.SetParent(bg.transform, false);
+            RectTransform confirmRect = confirmBtnObj.AddComponent<RectTransform>();
             confirmRect.anchorMin = new Vector2(0.5f, 0f);
             confirmRect.anchorMax = new Vector2(0.5f, 0f);
             confirmRect.pivot = new Vector2(0.5f, 0f);
             confirmRect.anchoredPosition = new Vector2(0f, 50f);
             confirmRect.sizeDelta = new Vector2(300f, 80f);
-            _confirmButton.AddComponent<Image>().color = new Color(0.2f, 0.6f, 0.2f, 1f);
-            Button confirmBtn = _confirmButton.AddComponent<Button>();
+            confirmBtnObj.AddComponent<Image>().color = new Color(0.2f, 0.6f, 0.2f, 1f);
+            Button confirmBtn = confirmBtnObj.AddComponent<Button>();
             confirmBtn.onClick.AddListener(OnConfirmClicked);
             GameObject confirmText = new GameObject("Text");
-            confirmText.transform.SetParent(_confirmButton.transform, false);
+            confirmText.transform.SetParent(confirmBtnObj.transform, false);
             RectTransform confirmTextRect = confirmText.AddComponent<RectTransform>();
             confirmTextRect.anchorMin = Vector2.zero;
             confirmTextRect.anchorMax = Vector2.one;

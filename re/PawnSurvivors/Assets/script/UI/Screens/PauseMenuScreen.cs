@@ -158,9 +158,10 @@ namespace PawnSurvivors.UI
 
         private void OnMainMenuClicked()
         {
-            if (UIManager.Instance != null)
+            // GameStateManager를 통해 CharacterSelectState로 전환 (씬 전환)
+            if (GameStateManager.Instance != null)
             {
-                UIManager.Instance.ReturnToMainMenu();
+                GameStateManager.Instance.GoToCharacterSelect();
             }
         }
 
