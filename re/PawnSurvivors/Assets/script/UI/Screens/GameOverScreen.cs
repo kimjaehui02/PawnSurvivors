@@ -308,7 +308,16 @@ namespace PawnSurvivors.UI
         public void Show()
         {
             gameObject.SetActive(true);
-            Time.timeScale = 0f;
+            
+            // 게임 일시정지 (LifecycleManager를 통해)
+            // InitializeGameOver()에서 이미 처리되지만, Show()가 직접 호출될 수 있으므로 여기서도 처리
+            if (GameManager.Instance?.LifecycleManager != null)
+            {
+                if (!GameManager.Instance.LifecycleManager.IsPaused)
+                {
+                    GameManager.Instance.LifecycleManager.TogglePause();
+                }
+            }
 
             // 정보 수집 및 표시
             UpdateGameOverInfo();
@@ -418,28 +427,41 @@ namespace PawnSurvivors.UI
 
         private void OnRetryButtonClicked()
         {
-            Time.timeScale = 1f;
-            
-            // 캐릭터 선택 상태 복원
-            if (GameManager.Instance?.CharacterSelectionUseCase != null)
+            // 게임 재개 (LifecycleManager를 통해)
+            if (GameManager.Instance?.LifecycleManager != null)
             {
-                GameManager.Instance.CharacterSelectionUseCase.RestoreFromSaved();
+                if (GameManager.Instance.LifecycleManager.IsPaused)
+                {
+                    GameManager.Instance.LifecycleManager.TogglePause();
+                }
             }
             
-            // 재시작: StageState로 전환 (StageState.OnEnter()에서 RestartStage() 호출)
-            // State 전환을 먼저 하고, State의 OnEnter()에서 스테이지 재시작 처리
+            // 스테이지 종료 (적 생성 중단)
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.EndStage();
+            }
+            
+            // 재시작: 캐릭터 선택부터 다시 시작
             if (GameStateManager.Instance != null)
             {
-                GameStateManager.Instance.GoToStage();
+                GameStateManager.Instance.GoToCharacterSelect();
             }
             
             gameObject.SetActive(false);
-            LogManager.LogInfo(LogCategory.UI, "Retry Button Clicked");
+            LogManager.LogInfo(LogCategory.UI, "Retry Button Clicked - 캐릭터 선택으로 이동");
         }
 
         private void OnCharacterSelectButtonClicked()
         {
-            Time.timeScale = 1f;
+            // 게임 재개 (LifecycleManager를 통해)
+            if (GameManager.Instance?.LifecycleManager != null)
+            {
+                if (GameManager.Instance.LifecycleManager.IsPaused)
+                {
+                    GameManager.Instance.LifecycleManager.TogglePause();
+                }
+            }
             
             // GameStateManager를 통해 CharacterSelectState로 전환
             if (GameStateManager.Instance != null)

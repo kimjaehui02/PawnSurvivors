@@ -30,10 +30,12 @@ namespace PawnSurvivors.Domain.States
 
         public void OnExit()
         {
-            // 일시정지 해제는 StageState에서 처리
+            // 일시정지 메뉴 숨기기 (updateState=false로 호출하여 무한 루프 방지)
+            // GameStateManager.TransitionTo()에서 이미 상태 전환이 진행 중이므로
+            // HidePauseMenu()에서 다시 GoToStage()를 호출하면 안 됨
             if (UIManager.Instance != null)
             {
-                UIManager.Instance.HidePauseMenu();
+                UIManager.Instance.HidePauseMenu(updateState: false);
             }
         }
 
@@ -44,8 +46,9 @@ namespace PawnSurvivors.Domain.States
 
         public bool CanTransitionTo(IGameState nextState)
         {
-            // Paused → Stage (재개) 또는 CharacterSelect (메인 메뉴) 허용
+            // Paused → Stage (재개), Shop (스테이지 완료 후 상점), CharacterSelect (메인 메뉴) 허용
             return nextState is StageState || 
+                   nextState is ShopState ||
                    nextState is CharacterSelectState;
         }
     }

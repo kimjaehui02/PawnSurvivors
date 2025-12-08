@@ -4,24 +4,22 @@ using PawnSurvivors.Managers;
 namespace PawnSurvivors.UI
 {
     /// <summary>
-    /// UI 화면 전환을 관리하는 매니저입니다.
+    /// 오버레이 UI(PauseMenu, OptionsScreen)를 관리하는 매니저입니다.
+    /// 씬 기반 아키텍처에서는 각 씬의 Screen이 독립적으로 작동하므로,
+    /// UIManager는 씬 위에 표시되는 오버레이 UI만 관리합니다.
     /// GameManager와 같은 GameObject에 컴포넌트로 추가하세요.
-    /// GameStateManager와 함께 작동합니다.
     /// </summary>
     public class UIManager : MonoBehaviour
     {
         public static UIManager Instance { get; private set; }
 
-        [Header("UI Screens")]
-        [SerializeField] private GameObject titleScreen;
-        [SerializeField] private GameObject campaignSelectScreen;
-        [SerializeField] private GameObject stageScreen;
-        [SerializeField] private GameObject pauseMenuScreen;
-        [SerializeField] private GameObject gameOverScreen;
-        [SerializeField] private GameObject stageClearScreen;
-        [SerializeField] private GameObject shopScreen;
-        [SerializeField] private GameObject characterSelectScreen;
-        [SerializeField] private GameObject optionsScreen;
+        [Header("Overlay UI (씬 위에 표시되는 UI)")]
+        [SerializeField] private GameObject _pauseMenuScreen;
+        [SerializeField] private GameObject _optionsScreen;
+        
+        // GameStateManager에서 오버레이 UI 상태 확인용
+        public GameObject pauseMenuScreen => _pauseMenuScreen;
+        public GameObject optionsScreen => _optionsScreen;
 
         private void Awake()
         {
@@ -32,35 +30,50 @@ namespace PawnSurvivors.UI
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
-        }
-
-        private void Start()
-        {
-            // 기존 프리팹 제거하고 코드 기반으로 초기화
-            InitializeScreens();
             
-            ShowTitleScreen();
+            // 씬 전환 시 이벤트 구독
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
         }
         
-        private void InitializeScreens()
+        private void OnDestroy()
         {
-            // 기존 프리팹들 제거
-            if (pauseMenuScreen != null)
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+        
+        /// <summary>
+        /// 씬 전환 시 오버레이 UI를 숨깁니다.
+        /// </summary>
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            // 모든 오버레이 UI 숨기기
+            if (_pauseMenuScreen != null && _pauseMenuScreen.activeSelf)
             {
-                Destroy(pauseMenuScreen);
-                pauseMenuScreen = null;
+                _pauseMenuScreen.SetActive(false);
             }
             
-            if (optionsScreen != null)
+            if (_optionsScreen != null && _optionsScreen.activeSelf)
             {
-                Destroy(optionsScreen);
-                optionsScreen = null;
+                _optionsScreen.SetActive(false);
+            }
+            
+            // AudioSettingsScreen도 찾아서 숨기기
+            GameObject audioSettingsScreen = GameObject.Find("AudioSettingsScreen");
+            if (audioSettingsScreen != null && audioSettingsScreen.activeSelf)
+            {
+                audioSettingsScreen.SetActive(false);
             }
         }
 
         private void Update()
         {
-            // ESC 키 입력 처리
+            // StageScene에서는 StageScreen이 직접 ESC 키를 처리하므로 여기서는 처리하지 않음
+            string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            if (currentSceneName == "StageScene")
+            {
+                return;
+            }
+            
+            // ESC 키 입력 처리 (오버레이 UI만 처리)
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 HandleEscapeKey();
@@ -69,6 +82,16 @@ namespace PawnSurvivors.UI
 
         private void HandleEscapeKey()
         {
+            // StageScene에서는 StageScreen이 직접 ESC 키를 처리하므로 여기서는 처리하지 않음
+            // 다른 씬에서만 오버레이 UI 처리
+            
+            // 현재 씬이 StageScene인지 확인
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "StageScene")
+            {
+                // StageScreen에서 처리하므로 여기서는 아무것도 하지 않음
+                return;
+            }
+            
             // 최우선: 소리 설정 화면 (3개 슬라이더) 찾기
             GameObject audioSettingsScreen = GameObject.Find("AudioSettingsScreen");
             if (audioSettingsScreen != null && audioSettingsScreen.activeSelf)
@@ -80,130 +103,44 @@ namespace PawnSurvivors.UI
             }
             
             // 옵션 화면이 열려있으면 → 일시정지로
-            if (optionsScreen != null && optionsScreen.activeSelf)
+            if (_optionsScreen != null && _optionsScreen.activeSelf)
             {
-                optionsScreen.SetActive(false);
+                _optionsScreen.SetActive(false);
                 ShowPauseMenu();
                 return;
             }
             
             // 일시정지 메뉴가 열려있으면 닫기
-            if (pauseMenuScreen != null && pauseMenuScreen.activeSelf)
+            if (_pauseMenuScreen != null && _pauseMenuScreen.activeSelf)
             {
                 HidePauseMenu();
                 return;
             }
             
-            // 스테이지 화면이 활성화되어 있으면 일시정지 메뉴 열기
-            if (stageScreen != null && stageScreen.activeSelf)
+            // 오버레이 UI가 없으면 GameStateManager에 위임
+            if (GameStateManager.Instance != null)
             {
-                ShowPauseMenu();
-                return;
-            }
-            
-            // 상점 화면이 활성화되어 있으면 일시정지 메뉴 열기
-            if (shopScreen != null && shopScreen.activeSelf)
-            {
-                ShowPauseMenu();
-                return;
+                GameStateManager.Instance.HandleEscapeKey();
             }
         }
 
-        #region Screen Transition Methods
-        
-        /// <summary>
-        /// 타이틀 화면을 표시합니다.
-        /// </summary>
-        public void ShowTitleScreen()
-        {
-            HideAllScreens();
-            if (titleScreen != null)
-                titleScreen.SetActive(true);
-        }
-
-        /// <summary>
-        /// 메인 메뉴 화면을 표시합니다. (스테이지 선택)
-        /// </summary>
-        public void ShowCampaignSelectScreen()
-        {
-            HideAllScreens();
-            
-            if (campaignSelectScreen == null)
-            {
-                GameObject campaignObj = new GameObject("CampaignSelectScreen");
-                campaignObj.AddComponent<CampaignSelectScreen>();
-                campaignSelectScreen = campaignObj;
-                campaignSelectScreen.transform.SetParent(transform);
-                campaignSelectScreen.SetActive(true);
-            }
-            else
-            {
-                campaignSelectScreen.SetActive(true);
-            }
-        }
-
-        /// <summary>
-        /// 캐릭터 선택 화면을 표시합니다.
-        /// </summary>
-        public void ShowCharacterSelectScreen()
-        {
-            HideAllScreens();
-            
-            if (characterSelectScreen == null)
-            {
-                GameObject selectObj = new GameObject("CharacterSelectScreen");
-                CharacterSelectScreen screenComponent = selectObj.AddComponent<CharacterSelectScreen>();
-                characterSelectScreen = selectObj;
-                characterSelectScreen.transform.SetParent(transform);
-                characterSelectScreen.SetActive(true);
-            }
-            else
-            {
-                characterSelectScreen.SetActive(true);
-            }
-            
-            CharacterSelectScreen screen = characterSelectScreen.GetComponent<CharacterSelectScreen>();
-            if (screen != null)
-            {
-                screen.Show();
-            }
-        }
-
-        /// <summary>
-        /// 스테이지 화면을 표시합니다. (게임 플레이 HUD)
-        /// </summary>
-        public void ShowStageScreen()
-        {
-            HideAllScreens();
-            
-            // 게임 재개 (일시정지 상태면 해제)
-            if (GameManager.Instance?.LifecycleManager != null)
-            {
-                if (GameManager.Instance.LifecycleManager.IsPaused)
-                {
-                    GameManager.Instance.LifecycleManager.TogglePause();
-                }
-            }
-            
-            if (stageScreen != null)
-                stageScreen.SetActive(true);
-        }
+        #region Overlay UI Methods
 
         /// <summary>
         /// 일시정지 메뉴를 표시합니다.
         /// </summary>
         public void ShowPauseMenu()
         {
-            if (pauseMenuScreen == null)
+            if (_pauseMenuScreen == null)
             {
                 // 코드로 생성 (프리팹 없이)
-                pauseMenuScreen = new GameObject("PauseMenuScreen");
-                pauseMenuScreen.transform.SetParent(transform);
-                pauseMenuScreen.AddComponent<PauseMenuScreen>();
-                pauseMenuScreen.SetActive(false); // 생성 시 비활성화
+                _pauseMenuScreen = new GameObject("PauseMenuScreen");
+                _pauseMenuScreen.transform.SetParent(transform);
+                _pauseMenuScreen.AddComponent<PauseMenuScreen>();
+                _pauseMenuScreen.SetActive(false); // 생성 시 비활성화
             }
             
-            pauseMenuScreen.SetActive(true);
+            _pauseMenuScreen.SetActive(true);
             
             // LifecycleManager를 통해 일시정지
             if (GameManager.Instance?.LifecycleManager != null)
@@ -218,11 +155,12 @@ namespace PawnSurvivors.UI
         /// <summary>
         /// 일시정지 메뉴를 숨기고 게임을 재개합니다.
         /// </summary>
-        public void HidePauseMenu()
+        /// <param name="updateState">GameStateManager의 상태도 업데이트할지 여부 (기본값: true)</param>
+        public void HidePauseMenu(bool updateState = true)
         {
-            if (pauseMenuScreen != null)
+            if (_pauseMenuScreen != null)
             {
-                pauseMenuScreen.SetActive(false);
+                _pauseMenuScreen.SetActive(false);
                 
                 // LifecycleManager를 통해 게임 재개
                 if (GameManager.Instance?.LifecycleManager != null)
@@ -232,124 +170,35 @@ namespace PawnSurvivors.UI
                         GameManager.Instance.LifecycleManager.TogglePause();
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// 게임 오버 화면을 표시합니다.
-        /// </summary>
-        public void ShowGameOverScreen()
-        {
-            HideAllScreens();
-            
-            // 구 프리팹이 할당되어 있으면 제거하고 코드로 생성한 화면 사용
-            if (gameOverScreen != null)
-            {
-                // 기존 GameObject가 프리팹 인스턴스인지 확인
-                // 프리팹 인스턴스는 PrefabUtility로 확인할 수 있지만, 런타임에서는 Destroy하고 새로 생성
-                UnityEngine.Debug.Log("[UIManager] 기존 gameOverScreen 제거하고 새로 생성");
-                Destroy(gameOverScreen);
-                gameOverScreen = null;
-            }
-            
-            // 코드로 생성한 GameOverScreen 사용
-            GameObject gameOverObj = new GameObject("GameOverScreen");
-            gameOverScreen = gameOverObj.AddComponent<GameOverScreen>().gameObject;
-            gameOverScreen.transform.SetParent(transform);
-            
-            if (gameOverScreen != null)
-            {
-                gameOverScreen.SetActive(true);
-                GameOverScreen screen = gameOverScreen.GetComponent<GameOverScreen>();
-                if (screen != null)
+                
+                // GameStateManager의 상태도 Stage로 전환 (동기화)
+                // 단, PausedState.OnExit()에서 호출될 때는 updateState=false로 호출하여 무한 루프 방지
+                if (updateState && GameStateManager.Instance != null && 
+                    GameStateManager.Instance.CurrentStateName == "Paused")
                 {
-                    screen.Show();
+                    GameStateManager.Instance.GoToStage();
                 }
             }
         }
 
-        /// <summary>
-        /// 스테이지 클리어 화면을 표시합니다.
-        /// </summary>
-        public void ShowStageClearScreen()
-        {
-            HideAllScreens();
-            if (stageClearScreen != null)
-                stageClearScreen.SetActive(true);
-        }
-
-        /// <summary>
-        /// 상점 화면을 표시합니다.
-        /// </summary>
-        public void ShowShopScreen()
-        {
-            HideAllScreens();
-            
-            // 게임 일시정지 (상점 진입 시)
-            if (GameManager.Instance?.LifecycleManager != null)
-            {
-                if (!GameManager.Instance.LifecycleManager.IsPaused)
-                {
-                    GameManager.Instance.LifecycleManager.TogglePause();
-                }
-            }
-            
-            // 상점 화면이 없으면 자동 생성
-            if (shopScreen == null)
-            {
-                GameObject shopObj = new GameObject("BrotatoShopScreen");
-                shopScreen = shopObj.AddComponent<BrotatoShopScreen>().gameObject;
-                shopScreen.transform.SetParent(transform);
-            }
-            
-            if (shopScreen != null)
-            {
-                shopScreen.SetActive(true);
-            }
-        }
-
-        /// <summary>
-        /// 메인 메뉴로 돌아갑니다.
-        /// </summary>
-        public void ReturnToMainMenu()
-        {
-            // GameStateManager를 통해 CharacterSelectState로 전환
-            // CharacterSelectState.OnEnter()에서 정리 작업 수행
-            if (GameStateManager.Instance != null)
-            {
-                GameStateManager.Instance.GoToCharacterSelect();
-            }
-        }
 
         /// <summary>
         /// 옵션 화면을 표시합니다.
         /// </summary>
         public void ShowOptionsScreen()
         {
-            if (optionsScreen == null)
+            if (_optionsScreen == null)
             {
                 // 코드로 생성 (프리팹 없이)
-                optionsScreen = new GameObject("OptionsScreen");
-                optionsScreen.transform.SetParent(transform);
-                optionsScreen.AddComponent<OptionsScreen>();
-                optionsScreen.SetActive(false); // 생성 직후 비활성화 (Awake 호출 후)
+                _optionsScreen = new GameObject("OptionsScreen");
+                _optionsScreen.transform.SetParent(transform);
+                _optionsScreen.AddComponent<OptionsScreen>();
+                _optionsScreen.SetActive(false); // 생성 직후 비활성화 (Awake 호출 후)
             }
             
-            optionsScreen.SetActive(true);
+            _optionsScreen.SetActive(true);
         }
 
-        private void HideAllScreens()
-        {
-            if (titleScreen != null) titleScreen.SetActive(false);
-            if (campaignSelectScreen != null) campaignSelectScreen.SetActive(false);
-            if (characterSelectScreen != null) characterSelectScreen.SetActive(false);
-            if (stageScreen != null) stageScreen.SetActive(false);
-            if (pauseMenuScreen != null) pauseMenuScreen.SetActive(false);
-            if (gameOverScreen != null) gameOverScreen.SetActive(false);
-            if (stageClearScreen != null) stageClearScreen.SetActive(false);
-            if (shopScreen != null) shopScreen.SetActive(false);
-            if (optionsScreen != null) optionsScreen.SetActive(false);
-        }
 
         #endregion
     }

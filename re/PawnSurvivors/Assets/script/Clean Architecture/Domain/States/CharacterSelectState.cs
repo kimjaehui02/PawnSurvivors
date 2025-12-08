@@ -13,9 +13,28 @@ namespace PawnSurvivors.Domain.States
 
         public void OnEnter()
         {
-            // 씬에 UI가 이미 배치되어 있으므로 UIManager 호출 불필요
-            // 씬 전환 시 Unity가 자동으로 정리하므로 CleanupGameState() 불필요
-            // 단, 게임 상태 리셋만 필요 (UseCase 상태 등)
+            // 재시작 시 완전히 새로 시작하기 위해 PlayerController 제거
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ClearPlayerController();
+            }
+            
+            // BGM 정지 (재시작 시 이전 BGM이 남아있지 않도록)
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.StopBGM();
+            }
+            
+            // 게임 일시정지 해제 (재시작 시 정상 상태로)
+            if (GameManager.Instance?.LifecycleManager != null)
+            {
+                if (GameManager.Instance.LifecycleManager.IsPaused)
+                {
+                    GameManager.Instance.LifecycleManager.TogglePause();
+                }
+            }
+            
+            // 게임 상태 리셋 (UseCase 상태 등)
             if (GameManager.Instance?.StageFlowUseCase != null)
             {
                 GameManager.Instance.StageFlowUseCase.ResetState();

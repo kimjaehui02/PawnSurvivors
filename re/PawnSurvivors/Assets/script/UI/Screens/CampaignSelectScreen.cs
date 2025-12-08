@@ -80,6 +80,17 @@ namespace PawnSurvivors.UI
                 if (System.Enum.TryParse<UIElementType>(childName, out UIElementType elementType))
                 {
                     _uiElements[elementType] = child.gameObject;
+                    
+                    // BackButton인 경우 onClick 리스너 재연결
+                    if (elementType == UIElementType.BackButton)
+                    {
+                        Button backButton = child.GetComponent<Button>();
+                        if (backButton != null)
+                        {
+                            backButton.onClick.RemoveAllListeners();
+                            backButton.onClick.AddListener(OnBackButtonClicked);
+                        }
+                    }
                 }
             }
         }

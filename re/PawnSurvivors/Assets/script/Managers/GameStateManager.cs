@@ -241,8 +241,8 @@ namespace PawnSurvivors.Managers
                     break;
 
                 case "Stage":
-                    // 일시정지 메뉴 열기
-                    TransitionTo<PausedState>();
+                    // StageScreen에서 직접 처리하므로 여기서는 아무것도 하지 않음
+                    // StageScreen.HandleEscapeKey()가 호출됨
                     break;
 
                 case "Shop":

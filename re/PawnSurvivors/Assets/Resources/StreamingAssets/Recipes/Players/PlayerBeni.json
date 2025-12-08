@@ -4,7 +4,7 @@
   "subManagerSetups": [
     {
       "$type": "PawnSurvivors.Data.Recipes.DamageableSubManagerSetupData, Assembly-CSharp",
-      "maxHealth": 100
+      "maxHealth": 10
     },
     {
       "$type": "PawnSurvivors.Data.Recipes.InvincibilitySubManagerSetupData, Assembly-CSharp",

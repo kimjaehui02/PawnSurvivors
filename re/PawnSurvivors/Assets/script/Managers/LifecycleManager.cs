@@ -137,10 +137,16 @@ public class LifecycleManager : MonoBehaviour
     /// </summary>
     private void ProcessMainUpdate()
     {
-        // StageManager 업데이트
-        if (GameManager.Instance?.StageManager != null)
+        // StageManager 업데이트 (StageScene에서만)
+        // StageManager는 이제 StageScreen에 있으므로, StageScreen을 찾아서 호출
+        var stageScreen = UnityEngine.Object.FindFirstObjectByType<PawnSurvivors.UI.StageScreen>();
+        if (stageScreen != null)
         {
-            GameManager.Instance.StageManager.UpdateStage();
+            var stageManager = stageScreen.GetComponent<StageManager>();
+            if (stageManager != null)
+            {
+                stageManager.UpdateStage();
+            }
         }
 
         // 모든 Pawn 업데이트 (역순으로 안전하게 순회)

@@ -82,7 +82,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4162605278000882485}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 06fa2eac8a7ad1b4b8b9503d684f213f, type: 3}
   m_Name: 
@@ -99,14 +99,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5af742783ad23174889bf1da7d0eb0ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  titleScreen: {fileID: 0}
-  campaignSelectScreen: {fileID: 0}
-  stageScreen: {fileID: 0}
-  pauseMenuScreen: {fileID: 0}
-  gameOverScreen: {fileID: 0}
-  stageClearScreen: {fileID: 0}
-  shopScreen: {fileID: 0}
-  characterSelectScreen: {fileID: 0}
+  _pauseMenuScreen: {fileID: 0}
+  _optionsScreen: {fileID: 0}
 --- !u!114 &4834791683752127791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119,7 +113,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a594944ae9e5f4298d7e87d51a357f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentState: 0
 --- !u!114 &6532618181828003181
 MonoBehaviour:
   m_ObjectHideFlags: 0

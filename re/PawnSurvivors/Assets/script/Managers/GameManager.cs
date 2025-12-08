@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
 
     public LifecycleManager LifecycleManager { get; private set; }
     public CreationManager CreationManager { get; private set; }
-    public StageManager StageManager { get; private set; }
+    // StageManager는 이제 StageScreen에 있음 (StageScene에서만 사용)
     
     public FloatingEffectManager FloatingEffectManager { get; private set; }
     public BackgroundTilemapManager BackgroundTilemapManager { get; private set; }
@@ -245,7 +245,7 @@ public class GameManager : MonoBehaviour
         // }
         
         CreationManager = GetComponent<CreationManager>();
-        StageManager = GetComponent<StageManager>();
+        // StageManager는 이제 StageScreen에 있음 (StageScene에서만 사용)
         
         // 오디오 설정 로드
         AudioSettings = new PawnSurvivors.Data.GameAudioSettings();
@@ -309,11 +309,7 @@ public class GameManager : MonoBehaviour
         GameOverUseCase = new GameOverUseCase(StageFlowUseCase);
         GameOverUseCase.OnGameOverTriggered += HandleGameOver;
 
-        // StageManager 초기화 (의존성 주입)
-        if (StageManager != null)
-        {
-            StageManager.Initialize(CreationManager, _stageDataSource, StageManagementUseCase);
-        }
+        // StageManager는 이제 StageScreen에서 초기화됨 (StageScene에서만 사용)
 
         if (LifecycleManager == null)
         {
@@ -322,10 +318,6 @@ public class GameManager : MonoBehaviour
         if (CreationManager == null)
         {
             LogManager.LogError(LogCategory.System, "CreationManager component not found on the same GameObject.");
-        }
-        if (StageManager == null)
-        {
-            LogManager.LogError(LogCategory.System, "StageManager component not found on the same GameObject.");
         }
     }
 
@@ -337,13 +329,23 @@ public class GameManager : MonoBehaviour
     /// <param name="resetSession">세션 데이터를 리셋할지 여부 (기본값: true, 상점에서 올 때는 false)</param>
     public void StartStage(string stageName = "DebugStage", bool resetSession = true)
     {
-        if (StageManager != null)
+        // StageManager는 이제 StageScreen에 있음
+        var stageScreen = FindFirstObjectByType<PawnSurvivors.UI.StageScreen>();
+        if (stageScreen != null)
         {
-            StageManager.StartStage(stageName, resetSession);
+            var stageManager = stageScreen.GetComponent<StageManager>();
+            if (stageManager != null)
+            {
+                stageManager.StartStage(stageName, resetSession);
+            }
+            else
+            {
+                LogManager.LogError(LogCategory.System, "StageScreen에 StageManager가 없습니다!");
+            }
         }
         else
         {
-            LogManager.LogError(LogCategory.System, "StageManager가 없습니다!");
+            LogManager.LogError(LogCategory.System, "StageScreen을 찾을 수 없습니다. 스테이지 씬이 로드되지 않았을 수 있습니다.");
         }
     }
 
@@ -503,6 +505,19 @@ public class GameManager : MonoBehaviour
     }
     
     /// <summary>
+    /// BGM을 정지합니다.
+    /// </summary>
+    public void StopBGM()
+    {
+        if (BGMSource != null && BGMSource.isPlaying)
+        {
+            BGMSource.Stop();
+            BGMSource.clip = null;
+            LogManager.LogInfo(LogCategory.System, "BGM 정지");
+        }
+    }
+    
+    /// <summary>
     /// 기존 플레이어들을 다음 스테이지에 대비합니다.
     /// 죽은 플레이어는 부활시키고, 모든 플레이어의 공격 상태를 리셋합니다.
     /// </summary>
@@ -584,13 +599,21 @@ public class GameManager : MonoBehaviour
         // 플레이어 Pawn의 영구 데이터 저장 (경험치, 레벨 등)
         SaveAllPawnPersistentData();
         
+        // BGM 정지
+        StopBGM();
+        
         // UseCase를 통해 스테이지 종료 준비
         StageManagementUseCase.PrepareStageEnd();
         
-        // StageManager 종료 처리
-        if (StageManager != null)
+        // StageManager 종료 처리 (StageScreen에서 찾기)
+        var stageScreen = FindFirstObjectByType<PawnSurvivors.UI.StageScreen>();
+        if (stageScreen != null)
         {
-            StageManager.EndStage();
+            var stageManager = stageScreen.GetComponent<StageManager>();
+            if (stageManager != null)
+            {
+                stageManager.EndStage();
+            }
         }
         
         LogManager.LogInfo(LogCategory.Stage, "스테이지 종료");
@@ -627,27 +650,42 @@ public class GameManager : MonoBehaviour
 
     private void HandleStageStartRequested(string stageName)
     {
-        // 스테이지가 이미 실행 중이면 종료 (재시작 또는 상태 리셋)
-        if (StageManager != null && StageManager.IsStageRunning())
+        // StageManager는 이제 StageScreen에 있으므로, StageScreen을 찾아서 호출
+        var stageScreen = FindFirstObjectByType<PawnSurvivors.UI.StageScreen>();
+        if (stageScreen != null)
         {
-            EndStage();
-        }
-        
-        // PlayerController가 없으면 생성 (선택된 캐릭터로 pawn 생성)
-        if (PlayerController == null)
-        {
-            CreatePlayerController();
+            // StageScreen의 StageManager를 통해 스테이지 시작
+            var stageManager = stageScreen.GetComponent<StageManager>();
+            if (stageManager != null)
+            {
+                // 스테이지가 이미 실행 중이면 종료 (재시작 또는 상태 리셋)
+                if (stageManager.IsStageRunning())
+                {
+                    EndStage();
+                }
+                
+                // PlayerController가 없으면 생성 (선택된 캐릭터로 pawn 생성)
+                if (PlayerController == null)
+                {
+                    CreatePlayerController();
+                }
+                else
+                {
+                    // 기존 플레이어 준비 (다음 스테이지 또는 재시작)
+                    PrepareExistingPlayers();
+                }
+                
+                // 스테이지 시작
+                stageManager.StartStage(stageName, resetSession: false);
+            }
+            else
+            {
+                LogManager.LogError(LogCategory.System, "StageScreen에 StageManager가 없습니다!");
+            }
         }
         else
         {
-            // 기존 플레이어 준비 (다음 스테이지 또는 재시작)
-            PrepareExistingPlayers();
-        }
-        
-        // 스테이지 시작
-        if (StageManager != null)
-        {
-            StageManager.StartStage(stageName, resetSession: false);
+            LogManager.LogWarning(LogCategory.System, "StageScreen을 찾을 수 없습니다. 스테이지 씬이 로드되지 않았을 수 있습니다.");
         }
     }
     

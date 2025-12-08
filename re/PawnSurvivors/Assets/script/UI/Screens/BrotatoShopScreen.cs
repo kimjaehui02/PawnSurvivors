@@ -111,10 +111,15 @@ namespace PawnSurvivors.UI
             if (GameManager.Instance == null) return;
             
             // 스테이지 종료 처리 (실행 중이면)
-            if (GameManager.Instance.StageManager != null && 
-                GameManager.Instance.StageManager.IsStageRunning())
+            // StageManager는 이제 StageScreen에 있음
+            var stageScreen = UnityEngine.Object.FindFirstObjectByType<PawnSurvivors.UI.StageScreen>();
+            if (stageScreen != null)
             {
-                GameManager.Instance.EndStage();
+                var stageManager = stageScreen.GetComponent<StageManager>();
+                if (stageManager != null && stageManager.IsStageRunning())
+                {
+                    GameManager.Instance.EndStage();
+                }
             }
             
             // 상점으로 갈 때 게임 일시정지
@@ -1668,7 +1673,12 @@ namespace PawnSurvivors.UI
             if (_pawnSelectionPanel != null)
             {
                 // 기존 버튼 삭제 후 재생성
-                RefreshPawnButtons();
+                // _buttonsContainer가 null이면 RefreshPawnButtons()가 작동 안 하므로
+                // 패널이 이미 있으면 그대로 사용
+                if (_buttonsContainer != null)
+                {
+                    RefreshPawnButtons();
+                }
                 return;
             }
             

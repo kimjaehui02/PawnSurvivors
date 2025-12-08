@@ -143,7 +143,11 @@ public class StageManager : MonoBehaviour
 
     public void UpdateStage()
     {
+        // 스테이지가 실행 중이 아니면 업데이트하지 않음 (적 생성 중단)
         if (_currentStageData == null || _creationManager == null) return;
+        
+        // 추가 안전 체크: IsStageRunning()으로도 확인
+        if (!IsStageRunning()) return;
 
         float deltaTime = GetGameDeltaTime();
         _stageElapsedTime += deltaTime;

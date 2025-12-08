@@ -51,6 +51,14 @@ namespace PawnSurvivors.UI
         private Grid _grid;
         private Tilemap _backgroundTilemap;
         
+        // StageManager (StageScene에서만 사용)
+        private StageManager _stageManager;
+        
+        /// <summary>
+        /// StageManager 인스턴스를 가져옵니다. (외부 접근용)
+        /// </summary>
+        public StageManager GetStageManager() => _stageManager;
+        
         // 동적으로 생성되는 UI 요소들
         private class CharacterLevelUI
         {
@@ -108,11 +116,47 @@ namespace PawnSurvivors.UI
                 currencyUI.anchorPosition = new Vector2(0.95f, 0.95f); // 우측 상단
             }
             
+            // StageManager 초기화 (StageScene에서만 사용)
+            InitializeStageManager();
+            
             // 배경 타일맵 생성 (StageScreen이 직접 관리)
             CreateBackgroundTilemap();
             
             // 씬이 로드되면 자동으로 스테이지 시작
             StartStageIfNeeded();
+        }
+        
+        /// <summary>
+        /// StageManager를 초기화합니다. (StageScene에서만 사용)
+        /// </summary>
+        private void InitializeStageManager()
+        {
+            // StageManager 컴포넌트 추가
+            _stageManager = gameObject.GetComponent<StageManager>();
+            if (_stageManager == null)
+            {
+                _stageManager = gameObject.AddComponent<StageManager>();
+            }
+            
+            // 의존성 주입
+            if (GameManager.Instance != null)
+            {
+                var stageDataSource = new PawnSurvivors.Data.DataSources.StageDataSource();
+                string stagesPath = "StreamingAssets/Stages";
+                stageDataSource.LoadStages(stagesPath);
+                
+                _stageManager.Initialize(
+                    GameManager.Instance.CreationManager,
+                    stageDataSource,
+                    GameManager.Instance.StageManagementUseCase
+                );
+                
+                LogManager.LogInfo(LogCategory.System, "StageManager 초기화 완료 (StageScreen)");
+            }
+            else
+            {
+                LogManager.LogError(LogCategory.System, "GameManager.Instance가 null입니다. StageManager를 초기화할 수 없습니다.");
+            }
         }
         
         /// <summary>
@@ -215,7 +259,59 @@ namespace PawnSurvivors.UI
             UpdateStageTime();
             UpdateTooltipPosition(); // 툴팁 위치를 마우스에 따라 실시간 업데이트
             UpdateLevelUpProgress();
-            // HandleInput() 제거: UIManager에서 ESC 처리
+            
+            // ESC 키 처리 (스테이지 진행 중에만)
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                HandleEscapeKey();
+            }
+        }
+        
+        /// <summary>
+        /// ESC 키 입력 처리 (스테이지 진행 중에만)
+        /// </summary>
+        private void HandleEscapeKey()
+        {
+            // 최우선: 소리 설정 화면 (3개 슬라이더) 찾기
+            GameObject audioSettingsScreen = GameObject.Find("AudioSettingsScreen");
+            if (audioSettingsScreen != null && audioSettingsScreen.activeSelf)
+            {
+                // 소리 설정 → 옵션으로
+                audioSettingsScreen.SetActive(false);
+                if (UIManager.Instance != null)
+                {
+                    UIManager.Instance.ShowOptionsScreen();
+                }
+                return;
+            }
+            
+            // 옵션 화면이 열려있으면 → 일시정지로
+            if (UIManager.Instance != null && 
+                UIManager.Instance.optionsScreen != null && 
+                UIManager.Instance.optionsScreen.activeSelf)
+            {
+                UIManager.Instance.optionsScreen.SetActive(false);
+                if (UIManager.Instance != null)
+                {
+                    UIManager.Instance.ShowPauseMenu();
+                }
+                return;
+            }
+            
+            // 일시정지 메뉴가 열려있으면 닫기
+            if (UIManager.Instance != null && 
+                UIManager.Instance.pauseMenuScreen != null && 
+                UIManager.Instance.pauseMenuScreen.activeSelf)
+            {
+                UIManager.Instance.HidePauseMenu();
+                return;
+            }
+            
+            // 오버레이 UI가 없으면 일시정지 메뉴 열기
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowPauseMenu();
+            }
         }
         #endregion
 

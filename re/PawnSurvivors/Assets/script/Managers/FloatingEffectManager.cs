@@ -54,11 +54,38 @@ namespace PawnSurvivors.Managers
         private void OnEnable()
         {
             SubscribeToDamageEvents();
+            
+            // 씬 전환 시 카메라 재설정
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
         }
 
         private void OnDisable()
         {
             UnsubscribeFromDamageEvents();
+            
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+        
+        private void OnDestroy()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+        
+        /// <summary>
+        /// 씬 전환 시 카메라를 다시 찾아서 설정합니다.
+        /// </summary>
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            // StageScene에서만 데미지 텍스트 표시
+            if (scene.name == "StageScene")
+            {
+                // 카메라 재설정
+                _mainCamera = null;
+                EnsureCamera();
+                
+                // 이벤트 재구독
+                SubscribeToDamageEvents();
+            }
         }
 
         private void SetupWorldSpaceCanvas()

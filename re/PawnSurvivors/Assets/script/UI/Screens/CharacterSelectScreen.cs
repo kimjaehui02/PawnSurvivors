@@ -140,7 +140,10 @@ namespace PawnSurvivors.UI
                 {
                     backBtn.onClick.RemoveAllListeners();
                     backBtn.onClick.AddListener(() => { 
-                        if (UIManager.Instance != null) UIManager.Instance.ShowTitleScreen(); 
+                        if (GameStateManager.Instance != null) 
+                        {
+                            GameStateManager.Instance.GoToTitle();
+                        }
                     });
                 }
             }
@@ -194,7 +197,12 @@ namespace PawnSurvivors.UI
             backRect.sizeDelta = new Vector2(150f, 60f);
             backBtnObj.AddComponent<Image>().color = new Color(0.2f, 0.2f, 0.2f, 1f);
             Button backBtn = backBtnObj.AddComponent<Button>();
-            backBtn.onClick.AddListener(() => { if (UIManager.Instance != null) UIManager.Instance.ShowTitleScreen(); });
+            backBtn.onClick.AddListener(() => { 
+                if (GameStateManager.Instance != null) 
+                {
+                    GameStateManager.Instance.GoToTitle();
+                }
+            });
             GameObject backText = new GameObject("Text");
             backText.transform.SetParent(backBtnObj.transform, false);
             RectTransform backTextRect = backText.AddComponent<RectTransform>();
