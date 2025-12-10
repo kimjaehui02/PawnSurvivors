@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     public CreationManager CreationManager { get; private set; }
     // StageManager는 이제 StageScreen에 있음 (StageScene에서만 사용)
     
-    public FloatingEffectManager FloatingEffectManager { get; private set; }
+        // FloatingEffectManager는 이제 StageScreen에 있음 (StageScene에서만 사용)
     public BackgroundTilemapManager BackgroundTilemapManager { get; private set; }
     // public AspectRatioManager AspectRatioManager { get; private set; }
     
@@ -223,12 +223,7 @@ public class GameManager : MonoBehaviour
         // 동일한 GameObject에서 구성 요소 가져오기
         LifecycleManager = GetComponent<LifecycleManager>();
         
-        // FloatingEffectManager 초기화
-        FloatingEffectManager = GetComponent<FloatingEffectManager>();
-        if (FloatingEffectManager == null)
-        {
-            FloatingEffectManager = gameObject.AddComponent<FloatingEffectManager>();
-        }
+        // FloatingEffectManager는 이제 StageScreen에 있음 (StageScene에서만 사용)
         
         // BackgroundTilemapManager 초기화
         BackgroundTilemapManager = GetComponent<BackgroundTilemapManager>();

@@ -12,10 +12,8 @@ GameObject:
   - component: {fileID: 3241839106584362204}
   - component: {fileID: 8371159687761310917}
   - component: {fileID: 9022379532149208519}
-  - component: {fileID: 4207047921889413336}
   - component: {fileID: 1493877278870001718}
   - component: {fileID: 4834791683752127791}
-  - component: {fileID: 6532618181828003181}
   - component: {fileID: 1322398282024584162}
   m_Layer: 0
   m_Name: GameManager
@@ -75,18 +73,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f713d3238903b5249a258d42f50ca6db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &4207047921889413336
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4162605278000882485}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 06fa2eac8a7ad1b4b8b9503d684f213f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1493877278870001718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -113,27 +99,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a594944ae9e5f4298d7e87d51a357f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &6532618181828003181
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4162605278000882485}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47445989757d85c45bbd2771cd33988f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  worldSpaceCanvas: {fileID: 0}
-  damageTextColor: {r: 1, g: 0, b: 0, a: 1}
-  damageTextFontSize: 10
-  damageTextDisplayScale: 0.1
-  damageTextMoveDistance: 1
-  damageTextDuration: 0.5
-  damageTextFont: {fileID: 0}
-  defaultParticlePrefabPath: 
-  effectPool: {fileID: 0}
 --- !u!114 &1322398282024584162
 MonoBehaviour:
   m_ObjectHideFlags: 0

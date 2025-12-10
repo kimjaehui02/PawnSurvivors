@@ -134,10 +134,15 @@ public class CreationManager : MonoBehaviour
             }
         }
 
-        // FloatingEffectManager에 새로 생성된 Pawn 구독
-        if (GameManager.Instance?.FloatingEffectManager != null)
+        // FloatingEffectManager에 새로 생성된 Pawn 구독 (StageScreen에서 찾기)
+        var stageScreen = FindFirstObjectByType<PawnSurvivors.UI.StageScreen>();
+        if (stageScreen != null)
         {
-            GameManager.Instance.FloatingEffectManager.SubscribeToPawnManager(pawnManager);
+            var floatingEffectManager = stageScreen.GetComponent<FloatingEffectManager>();
+            if (floatingEffectManager != null)
+            {
+                floatingEffectManager.SubscribeToPawnManager(pawnManager);
+            }
         }
 
         // Debug.Log($"JSON 레시피에서 '{recipeData.pawnName}' 폰을 성공적으로 생성했습니다.");

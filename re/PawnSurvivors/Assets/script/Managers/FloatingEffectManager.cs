@@ -17,6 +17,11 @@ namespace PawnSurvivors.Managers
     {
         [Header("Canvas 설정")]
         [SerializeField] private Canvas worldSpaceCanvas;
+        
+        /// <summary>
+        /// WorldSpace Canvas (외부 접근용)
+        /// </summary>
+        public Canvas WorldSpaceCanvas => worldSpaceCanvas;
 
         [Header("데미지 효과 설정")]
         [SerializeField] private Color damageTextColor = Color.red;
@@ -79,9 +84,21 @@ namespace PawnSurvivors.Managers
             // StageScene에서만 데미지 텍스트 표시
             if (scene.name == "StageScene")
             {
+                // Canvas 재설정 (씬 전환 시 Canvas가 사라질 수 있음)
+                if (worldSpaceCanvas == null)
+                {
+                    SetupWorldSpaceCanvas();
+                }
+                
                 // 카메라 재설정
                 _mainCamera = null;
                 EnsureCamera();
+                
+                // Pool 재초기화 (Canvas가 재생성되었을 수 있음)
+                if (effectPool != null && worldSpaceCanvas != null)
+                {
+                    effectPool.Initialize(worldSpaceCanvas.transform);
+                }
                 
                 // 이벤트 재구독
                 SubscribeToDamageEvents();
@@ -147,6 +164,18 @@ namespace PawnSurvivors.Managers
 
         private void InitializePool()
         {
+            // worldSpaceCanvas가 없으면 먼저 생성
+            if (worldSpaceCanvas == null)
+            {
+                SetupWorldSpaceCanvas();
+            }
+            
+            if (worldSpaceCanvas == null)
+            {
+                LogManager.LogError(LogCategory.UI, "FloatingEffectManager: worldSpaceCanvas를 생성할 수 없습니다.");
+                return;
+            }
+            
             if (effectPool == null)
             {
                 effectPool = gameObject.AddComponent<FloatingEffectPool>();

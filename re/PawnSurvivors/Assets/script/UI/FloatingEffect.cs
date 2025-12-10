@@ -46,6 +46,9 @@ namespace PawnSurvivors.UI
                 return;
             }
 
+            // Canvas 자식인지 확인하고, 아니면 FloatingEffectManager의 Canvas로 이동
+            EnsureCanvasParent();
+
             // 기존 애니메이션 중지
             if (_animationCoroutine != null)
             {
@@ -76,6 +79,44 @@ namespace PawnSurvivors.UI
 
             // 애니메이션 시작
             _animationCoroutine = StartCoroutine(AnimateEffect(data));
+        }
+        
+        /// <summary>
+        /// 이 GameObject가 Canvas의 자식인지 확인하고, 아니면 올바른 Canvas로 이동시킵니다.
+        /// </summary>
+        private void EnsureCanvasParent()
+        {
+            // 현재 부모가 Canvas인지 확인
+            Transform currentParent = transform.parent;
+            if (currentParent != null)
+            {
+                Canvas parentCanvas = currentParent.GetComponentInParent<Canvas>();
+                if (parentCanvas != null && parentCanvas.renderMode == RenderMode.WorldSpace)
+                {
+                    // 이미 WorldSpace Canvas의 자식이면 OK
+                    return;
+                }
+            }
+            
+            // FloatingEffectManager에서 Canvas 가져오기 (StageScreen에서 찾기)
+            var stageScreen = FindFirstObjectByType<PawnSurvivors.UI.StageScreen>();
+            if (stageScreen != null)
+            {
+                var floatingEffectManager = stageScreen.GetComponent<FloatingEffectManager>();
+                if (floatingEffectManager != null)
+                {
+                    Canvas canvas = floatingEffectManager.WorldSpaceCanvas;
+                    if (canvas != null && canvas.renderMode == RenderMode.WorldSpace)
+                    {
+                        transform.SetParent(canvas.transform, false);
+                        LogManager.LogInfo(LogCategory.UI, "FloatingEffect를 FloatingEffectCanvas로 이동했습니다.");
+                        return;
+                    }
+                }
+            }
+            
+            // Canvas를 찾을 수 없으면 경고
+            LogManager.LogWarning(LogCategory.UI, "FloatingEffect: WorldSpace Canvas를 찾을 수 없습니다. Canvas에 포함되지 않을 수 있습니다.");
         }
 
         private void SetupEffectByType(FloatingEffectData data)

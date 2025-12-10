@@ -122,14 +122,7 @@ namespace PawnSurvivors.UI
                 }
             }
             
-            // 상점으로 갈 때 게임 일시정지
-            if (GameManager.Instance.LifecycleManager != null)
-            {
-                if (!GameManager.Instance.LifecycleManager.IsPaused)
-                {
-                    GameManager.Instance.LifecycleManager.TogglePause();
-                }
-            }
+            // 씬이 분리되어 있으므로 일시정지 불필요
         }
 
         private void OnEnable()
@@ -202,8 +195,8 @@ namespace PawnSurvivors.UI
             // 하단 패널들 생성
             CreateBottomPanels();
             
-            // 기본적으로 숨김
-            gameObject.SetActive(false);
+            // _rootPanel은 OnEnable/OnDisable에서 관리
+            // gameObject는 활성화 상태 유지 (비활성화하면 버튼 클릭이 안 됨)
         }
 
         private void LoadKoreanFont()
@@ -471,8 +464,11 @@ namespace PawnSurvivors.UI
                 // 구매 버튼 (전체 슬롯)
                 slot.buyButton = slot.rootObject.AddComponent<Button>();
                 slot.buyButton.targetGraphic = bg; // 배경을 targetGraphic으로 설정
+                slot.buyButton.interactable = true; // 초기값을 true로 설정 (나중에 UpdateSlotButtonState에서 조정)
                 // 클로저 캡처 문제 해결: slotIndex를 사용
                 slot.buyButton.onClick.AddListener(() => OnItemBuyClicked(slotIndex));
+                
+                LogManager.LogInfo(LogCategory.UI, $"슬롯 {slotIndex} 구매 버튼 생성 및 이벤트 연결 완료");
                 
                 // 잠금 버튼 (우측 하단)
                 var lockObj = new GameObject("LockButton");
@@ -1344,7 +1340,13 @@ namespace PawnSurvivors.UI
 
         private void OnItemBuyClicked(int slotIndex)
         {
-            if (slotIndex < 0 || slotIndex >= _itemSlots.Count) return;
+            LogManager.LogInfo(LogCategory.UI, $"OnItemBuyClicked 호출: 슬롯 {slotIndex}");
+            
+            if (slotIndex < 0 || slotIndex >= _itemSlots.Count)
+            {
+                LogManager.LogWarning(LogCategory.UI, $"슬롯 인덱스 범위 초과: {slotIndex}");
+                return;
+            }
             
             var slot = _itemSlots[slotIndex];
             
@@ -1354,6 +1356,8 @@ namespace PawnSurvivors.UI
                 LogManager.LogWarning(LogCategory.UI, $"슬롯 {slotIndex}에 데이터가 없습니다.");
                 return;
             }
+            
+            LogManager.LogInfo(LogCategory.UI, $"슬롯 타입: {slot.slotData.slotType}");
             
             if (slot.slotData.slotType == ShopSlotType.Item)
             {
@@ -1403,6 +1407,8 @@ namespace PawnSurvivors.UI
             }
             else if (slot.slotData.slotType == ShopSlotType.Character)
             {
+                LogManager.LogInfo(LogCategory.UI, $"캐릭터 구매 시도: 슬롯 {slotIndex}");
+                
                 // 캐릭터 구매 처리
                 if (slot.slotData.characterRecipeName == null)
                 {
@@ -1410,12 +1416,16 @@ namespace PawnSurvivors.UI
                     return;
                 }
                 
+                LogManager.LogInfo(LogCategory.UI, $"캐릭터 이름: {slot.slotData.characterRecipeName}");
+                
                 // string을 enum으로 변환
                 if (!System.Enum.TryParse<PlayerCharacter>(slot.slotData.characterRecipeName, true, out var character))
                 {
                     LogManager.LogError(LogCategory.UI, $"캐릭터 이름을 enum으로 변환 실패: {slot.slotData.characterRecipeName}");
                     return;
                 }
+                
+                LogManager.LogInfo(LogCategory.UI, $"캐릭터 enum 변환 성공: {character}");
                 
                 // 모든 PawnData 수집 (UseCase에서 사용)
                 var allPawnData = GetAllPawnData();
@@ -1893,7 +1903,23 @@ namespace PawnSurvivors.UI
                 // 구매한 슬롯 찾아서 구매 완료 표시 및 잠금 해제
                 foreach (var slot in _itemSlots)
                 {
-                    if (slot.itemData != null && slot.itemData.itemId == _pendingItemPurchase.itemId)
+                    // slot.slotData를 우선 확인 (최신 방식)
+                    if (slot.slotData != null && 
+                        slot.slotData.slotType == ShopSlotType.Item &&
+                        slot.slotData.itemData != null && 
+                        slot.slotData.itemData.itemId == _pendingItemPurchase.itemId)
+                    {
+                        slot.isPurchased = true;
+                        slot.isLocked = false; // 구매 시 잠금 해제
+                        if (slot.lockButtonText != null)
+                        {
+                            slot.lockButtonText.text = "E 잠금";
+                        }
+                        UpdateSlotButtonState(slot);
+                        break;
+                    }
+                    // 하위 호환성: slot.itemData 확인
+                    else if (slot.itemData != null && slot.itemData.itemId == _pendingItemPurchase.itemId)
                     {
                         slot.isPurchased = true;
                         slot.isLocked = false; // 구매 시 잠금 해제

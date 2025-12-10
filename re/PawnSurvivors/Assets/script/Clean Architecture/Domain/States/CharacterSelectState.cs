@@ -39,6 +39,18 @@ namespace PawnSurvivors.Domain.States
             {
                 GameManager.Instance.StageFlowUseCase.ResetState();
             }
+            
+            // 캐릭터 선택 초기화 (게임오버 후 재시작 시 선택 해제)
+            if (GameManager.Instance?.CharacterSelectionUseCase != null)
+            {
+                GameManager.Instance.CharacterSelectionUseCase.ClearSelection();
+            }
+            
+            // 전역 아이템 초기화 (재시작 시 전역 아이템 제거)
+            if (GameManager.Instance?.ItemRepository != null)
+            {
+                GameManager.Instance.ItemRepository.ClearAllItems();
+            }
         }
 
         public void OnExit()
