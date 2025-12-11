@@ -1034,12 +1034,16 @@ namespace PawnSurvivors.UI
         
         /// <summary>
         /// 모든 플레이어 Pawn의 PawnData를 수집합니다.
+        /// 씬 전환 후에는 SessionData에서 복원합니다.
         /// </summary>
         private List<PawnData> GetAllPawnData()
         {
             var allPawnData = new List<PawnData>();
-            if (GameManager.Instance?.PlayerController != null && 
-                GameManager.Instance.PlayerController.playerPawns != null)
+
+            // 1. PlayerController가 있으면 직접 가져오기 (StageScene에서)
+            if (GameManager.Instance?.PlayerController != null &&
+                GameManager.Instance.PlayerController.playerPawns != null &&
+                GameManager.Instance.PlayerController.playerPawns.Count > 0)
             {
                 foreach (var pawn in GameManager.Instance.PlayerController.playerPawns)
                 {
@@ -1051,6 +1055,34 @@ namespace PawnSurvivors.UI
                     }
                 }
             }
+            // 2. PlayerController가 없으면 SessionData에서 복원 (ShopScene에서)
+            else if (GameManager.Instance?.PawnPersistenceUseCase != null &&
+                     GameManager.Instance.PawnPersistenceUseCase.HasActivePawns())
+            {
+                var activePawns = GameManager.Instance.PawnPersistenceUseCase.GetActivePawns();
+                foreach (var activePawn in activePawns)
+                {
+                    // ActivePawnData를 PawnData로 변환
+                    var pawnData = new PawnData
+                    {
+                        characterType = activePawn.characterType,
+                        playerIndex = activePawn.playerIndex,
+                        upgradeLevel = activePawn.upgradeLevel,
+                        healthData = new HealthData
+                        {
+                            currentHealth = activePawn.currentHealth,
+                            maxHealth = activePawn.maxHealth
+                        },
+                        experienceData = new ExperienceData
+                        {
+                            currentProgress = activePawn.experienceProgress
+                        }
+                    };
+                    allPawnData.Add(pawnData);
+                }
+                LogManager.LogInfo(LogCategory.UI, $"SessionData에서 {allPawnData.Count}개의 PawnData 복원됨");
+            }
+
             return allPawnData;
         }
         
@@ -1172,12 +1204,10 @@ namespace PawnSurvivors.UI
 
         private void UpdateStats()
         {
-            // 플레이어 Pawn 데이터 가져오기
-            if (GameManager.Instance?.PlayerController == null) return;
-            
-            var playerPawns = GameManager.Instance.PlayerController.playerPawns;
-            if (playerPawns == null || playerPawns.Count == 0) return;
-            
+            // 플레이어 Pawn 데이터 가져오기 (SessionData 기반)
+            var allPawnData = GetAllPawnData();
+            if (allPawnData == null || allPawnData.Count == 0) return;
+
             // 모든 Pawn의 스탯 합산
             float totalMaxHP = 0f;
             float totalCurrentHP = 0f;
@@ -1185,49 +1215,48 @@ namespace PawnSurvivors.UI
             float totalFireRate = 0f;
             int totalLevel = 0;
             int validPawnCount = 0;
-            
-            // ✅ PawnStatCalculator 가져오기
+
+            // PawnStatCalculator 가져오기
             PawnStatCalculator statCalculator = GameManager.Instance?.PawnStatCalculator;
-            
-            foreach (var pawnObj in playerPawns)
+
+            foreach (var pawnData in allPawnData)
             {
-                if (pawnObj == null) continue;
-                
-                var pawnManager = pawnObj.GetComponent<PawnManager>();
-                if (pawnManager?.PawnData == null) continue;
-                
-                var pawnData = pawnManager.PawnData;
+                if (pawnData == null) continue;
                 validPawnCount++;
-                
-                // ✅ HP 합산 (PawnStatCalculator 사용)
+
+                // HP 합산 (PawnStatCalculator 사용)
                 if (pawnData.healthData != null)
                 {
-                    float effectiveMaxHP = statCalculator != null 
-                        ? statCalculator.GetEffectiveMaxHealth(pawnData) 
+                    float effectiveMaxHP = statCalculator != null
+                        ? statCalculator.GetEffectiveMaxHealth(pawnData)
                         : pawnData.healthData.maxHealth;
                     totalMaxHP += effectiveMaxHP;
                     totalCurrentHP += pawnData.healthData.currentHealth;
                 }
-                
-                // ✅ 대미지 합산 (PawnStatCalculator 사용)
+
+                // 대미지 합산 (PawnStatCalculator 사용)
                 if (pawnData.combatData != null)
                 {
-                    float effectiveDamage = statCalculator != null 
-                        ? statCalculator.GetEffectiveDamage(pawnData) 
+                    float effectiveDamage = statCalculator != null
+                        ? statCalculator.GetEffectiveDamage(pawnData)
                         : pawnData.combatData.damage;
-                    float effectiveFireRate = statCalculator != null 
-                        ? statCalculator.GetEffectiveFireRate(pawnData) 
+                    float effectiveFireRate = statCalculator != null
+                        ? statCalculator.GetEffectiveFireRate(pawnData)
                         : pawnData.combatData.fireRate;
-                    
+
                     totalDamage += effectiveDamage;
                     totalFireRate += effectiveFireRate;
                 }
-                
-                // 레벨 합산
-                var levelUpManager = pawnObj.GetComponent<LevelUpSubManager>();
-                if (levelUpManager != null)
+
+                // 레벨은 PersistentData에서 가져오기
+                if (GameManager.Instance?.PawnPersistenceUseCase != null && pawnData.characterType.HasValue)
                 {
-                    totalLevel += levelUpManager.GetCurrentLevel();
+                    var persistentData = GameManager.Instance.PawnPersistenceUseCase.GetPersistentData(
+                        pawnData.characterType.Value, pawnData.playerIndex);
+                    if (persistentData != null)
+                    {
+                        totalLevel += persistentData.currentLevel;
+                    }
                 }
             }
             
@@ -1308,12 +1337,23 @@ namespace PawnSurvivors.UI
         
         private void UpdatePawnsInventory()
         {
-            if (_pawnsTitleText == null || GameManager.Instance?.PlayerController == null) return;
-            
-            var playerPawns = GameManager.Instance.PlayerController.playerPawns;
-            int currentCount = playerPawns != null ? playerPawns.Count : 0;
-            int maxCount = 6;
-            
+            if (_pawnsTitleText == null) return;
+
+            int currentCount = 0;
+
+            // 1. PlayerController가 있으면 직접 가져오기
+            if (GameManager.Instance?.PlayerController != null &&
+                GameManager.Instance.PlayerController.playerPawns != null)
+            {
+                currentCount = GameManager.Instance.PlayerController.playerPawns.Count;
+            }
+            // 2. PlayerController가 없으면 SessionData에서 가져오기
+            else if (GameManager.Instance?.PawnPersistenceUseCase != null)
+            {
+                currentCount = GameManager.Instance.PawnPersistenceUseCase.GetActivePawnCount();
+            }
+
+            int maxCount = GameConstants.MAX_CHARACTER_TYPES;
             _pawnsTitleText.text = $"Pawn ({currentCount}/{maxCount})";
         }
 
@@ -1384,18 +1424,17 @@ namespace PawnSurvivors.UI
                 // 단일장착 아이템인 경우 Pawn 선택 UI 표시
                 if (slot.slotData.itemData.itemType == ItemType.Equipped)
                 {
-                    // Pawn 목록 확인
-                    if (GameManager.Instance?.PlayerController == null || 
-                        GameManager.Instance.PlayerController.playerPawns == null ||
-                        GameManager.Instance.PlayerController.playerPawns.Count == 0)
+                    // Pawn 목록 확인 (SessionData 기반)
+                    var allPawnData = GetAllPawnData();
+                    if (allPawnData == null || allPawnData.Count == 0)
                     {
                         LogManager.LogWarning(LogCategory.UI, "장착할 Pawn이 없습니다.");
                         return;
                     }
-                    
+
                     // 구매 대기 중인 아이템 저장
                     _pendingItemPurchase = slot.slotData.itemData;
-                    
+
                     // Pawn 선택 UI 표시
                     ShowPawnSelectionUI();
                 }
@@ -1485,22 +1524,36 @@ namespace PawnSurvivors.UI
                 }
                 else
                 {
-                    // 새 캐릭터 추가: 실제로 게임에 Pawn 생성
+                    // 새 캐릭터 추가
                     if (GameManager.Instance != null)
                     {
-                        GameObject newPawn = GameManager.Instance.AddPlayerPawn(slot.slotData.characterRecipeName);
-                        
-                        if (newPawn != null)
+                        bool addedSuccessfully = false;
+
+                        // 1. PlayerController가 있으면 직접 Pawn 생성 (StageScene에서)
+                        if (GameManager.Instance.PlayerController != null)
                         {
-                            LogManager.LogInfo(LogCategory.UI, $"캐릭터 구매 및 추가 성공: {slot.slotData.characterRecipeName} (비용: {slot.cost})");
-                            
+                            GameObject newPawn = GameManager.Instance.AddPlayerPawn(slot.slotData.characterRecipeName);
+                            addedSuccessfully = newPawn != null;
+                        }
+                        // 2. PlayerController가 없으면 SessionData에만 추가 (ShopScene에서)
+                        else if (GameManager.Instance.PawnPersistenceUseCase != null)
+                        {
+                            GameManager.Instance.PawnPersistenceUseCase.AddActivePawn(character);
+                            addedSuccessfully = true;
+                            LogManager.LogInfo(LogCategory.UI, $"캐릭터를 SessionData에 추가: {character}");
+                        }
+
+                        if (addedSuccessfully)
+                        {
+                            LogManager.LogInfo(LogCategory.UI, $"캐릭터 구매 성공: {slot.slotData.characterRecipeName} (비용: {slot.cost})");
+
                             // 첫 구매이므로 구매 개수 증가 (강화는 아직 안 됨)
                             if (GameManager.Instance.CharacterUpgradeUseCase != null)
                             {
                                 // 첫 구매는 구매 개수만 증가 (강화는 3회부터)
                                 GameManager.Instance.CharacterUpgradeUseCase.IncrementPurchaseCount(character);
                             }
-                            
+
                             // CharacterSelectionUseCase에도 추가 (재시작 시 복원용)
                             if (GameManager.Instance.CharacterSelectionUseCase != null)
                             {
@@ -1514,7 +1567,7 @@ namespace PawnSurvivors.UI
                         }
                         else
                         {
-                            LogManager.LogError(LogCategory.UI, $"캐릭터 생성 실패: {slot.slotData.characterRecipeName}. 골드를 환불합니다.");
+                            LogManager.LogError(LogCategory.UI, $"캐릭터 추가 실패: {slot.slotData.characterRecipeName}. 골드를 환불합니다.");
                             // 골드 환불
                             GameManager.Instance.CurrencyUseCase.AddGold(slot.cost);
                             return; // 구매 취소
@@ -1653,23 +1706,37 @@ namespace PawnSurvivors.UI
         /// </summary>
         private void ShowPawnSelectionUI()
         {
+            LogManager.LogInfo(LogCategory.UI, "[ShowPawnSelectionUI] 호출됨");
+
             if (_pendingItemPurchase == null)
             {
-                LogManager.LogWarning(LogCategory.UI, "구매 대기 중인 아이템이 없습니다.");
+                LogManager.LogWarning(LogCategory.UI, "[ShowPawnSelectionUI] 구매 대기 중인 아이템이 없습니다.");
                 return;
             }
-            
-            if (GameManager.Instance?.PlayerController == null ||
-                GameManager.Instance.PlayerController.playerPawns == null ||
-                GameManager.Instance.PlayerController.playerPawns.Count == 0)
+
+            LogManager.LogInfo(LogCategory.UI, $"[ShowPawnSelectionUI] 대기 아이템: {_pendingItemPurchase.itemName}");
+
+            // Pawn 데이터 확인 (PlayerController 또는 SessionData 기반)
+            var allPawnData = GetAllPawnData();
+            LogManager.LogInfo(LogCategory.UI, $"[ShowPawnSelectionUI] PawnData 개수: {allPawnData?.Count ?? 0}");
+
+            if (allPawnData == null || allPawnData.Count == 0)
             {
-                LogManager.LogWarning(LogCategory.UI, "선택할 Pawn이 없습니다.");
+                LogManager.LogWarning(LogCategory.UI, "[ShowPawnSelectionUI] 선택할 Pawn이 없습니다.");
                 return;
             }
-            
+
+            LogManager.LogInfo(LogCategory.UI, $"[ShowPawnSelectionUI] Canvas null 여부: {_canvas == null}");
+
             EnsurePawnSelectionPanel();
-            if (_pawnSelectionPanel == null) return;
-            
+
+            if (_pawnSelectionPanel == null)
+            {
+                LogManager.LogError(LogCategory.UI, "[ShowPawnSelectionUI] PawnSelectionPanel 생성 실패!");
+                return;
+            }
+
+            LogManager.LogInfo(LogCategory.UI, "[ShowPawnSelectionUI] 패널 활성화");
             _pawnSelectionPanel.SetActive(true);
         }
         
@@ -1808,45 +1875,41 @@ namespace PawnSurvivors.UI
         private void RefreshPawnButtons()
         {
             if (_buttonsContainer == null) return;
-            
+
             // 기존 버튼 모두 삭제
             for (int i = _buttonsContainer.transform.childCount - 1; i >= 0; i--)
             {
                 Destroy(_buttonsContainer.transform.GetChild(i).gameObject);
             }
-            
-            // 현재 pawn 목록으로 버튼 재생성
-            if (GameManager.Instance?.PlayerController == null || 
-                GameManager.Instance.PlayerController.playerPawns == null)
+
+            // Pawn 데이터 가져오기 (SessionData 기반)
+            var allPawnData = GetAllPawnData();
+            if (allPawnData == null || allPawnData.Count == 0)
             {
                 return;
             }
-            
-            var playerPawns = GameManager.Instance.PlayerController.playerPawns;
-            for (int i = 0; i < playerPawns.Count; i++)
+
+            for (int i = 0; i < allPawnData.Count; i++)
             {
-                var pawn = playerPawns[i];
-                if (pawn == null) continue;
-                
-                var pawnManager = pawn.GetComponent<PawnManager>();
-                if (pawnManager == null || pawnManager.PawnData == null) continue;
-                
-                int playerIndex = pawnManager.PawnData.playerIndex;
-                string pawnName = !string.IsNullOrEmpty(pawnManager.PawnData.recipeName) 
-                    ? pawnManager.PawnData.recipeName 
-                    : pawn.name;
-                
+                var pawnData = allPawnData[i];
+                if (pawnData == null) continue;
+
+                int playerIndex = pawnData.playerIndex;
+                string pawnName = pawnData.characterType.HasValue
+                    ? pawnData.characterType.Value.ToString()
+                    : pawnData.recipeName ?? $"Pawn {i}";
+
                 // 버튼 생성
                 var buttonObj = new GameObject($"PawnButton_{i}");
                 var buttonRect = buttonObj.AddComponent<RectTransform>();
                 buttonObj.transform.SetParent(_buttonsContainer.transform, false);
                 buttonRect.sizeDelta = new Vector2(0f, 60f);
-                
+
                 var button = buttonObj.AddComponent<Button>();
                 var buttonBg = buttonObj.AddComponent<Image>();
                 buttonBg.color = new Color(0.3f, 0.3f, 0.3f, 1f);
                 button.targetGraphic = buttonBg;
-                
+
                 // 버튼 텍스트
                 var buttonTextObj = new GameObject("Text");
                 var buttonTextRect = buttonTextObj.AddComponent<RectTransform>();
@@ -1855,7 +1918,7 @@ namespace PawnSurvivors.UI
                 buttonTextRect.anchorMax = Vector2.one;
                 buttonTextRect.sizeDelta = Vector2.zero;
                 buttonTextRect.anchoredPosition = Vector2.zero;
-                
+
                 var buttonText = buttonTextObj.AddComponent<TextMeshProUGUI>();
                 buttonText.text = pawnName;
                 buttonText.fontSize = 24;
@@ -1863,7 +1926,7 @@ namespace PawnSurvivors.UI
                 buttonText.alignment = TextAlignmentOptions.Center;
                 buttonText.raycastTarget = false;
                 if (_koreanFont != null) buttonText.font = _koreanFont;
-                
+
                 // 클릭 이벤트
                 int capturedIndex = playerIndex;
                 button.onClick.AddListener(() => OnPawnSelected(capturedIndex));

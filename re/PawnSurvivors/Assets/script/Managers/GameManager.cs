@@ -103,7 +103,7 @@ public class GameManager : MonoBehaviour
 
         GameObject playerControllerObj = new GameObject("PlayerController");
         PlayerController = playerControllerObj.AddComponent<PlayerController>();
-        
+
         // 메인 카메라를 PlayerController의 자식으로 설정
         Camera mainCamera = Camera.main;
         if (mainCamera != null)
@@ -112,15 +112,50 @@ public class GameManager : MonoBehaviour
             mainCamera.transform.localPosition = new Vector3(0f, 0f, -10f); // 2D 게임용
             LogManager.LogInfo(LogCategory.System, "메인 카메라가 PlayerController에 붙었습니다.");
         }
-        
-        // ========== 초기 플레이어 생성 ==========
-        // CharacterSelectionUseCase에서 선택된 캐릭터 가져오기 (단일 소스)
-        if (CharacterSelectionUseCase != null)
+
+        // ========== 플레이어 생성 (SessionData 우선) ==========
+        bool pawnsCreated = false;
+
+        // 1. SessionData에 저장된 활성 Pawn이 있으면 복원 (상점에서 돌아올 때)
+        if (PawnPersistenceUseCase != null && PawnPersistenceUseCase.HasActivePawns())
+        {
+            var activePawns = PawnPersistenceUseCase.GetActivePawns();
+            LogManager.LogInfo(LogCategory.System, $"SessionData에서 {activePawns.Count}개의 활성 Pawn 복원 시작");
+
+            foreach (var activePawn in activePawns)
+            {
+                string recipeName = activePawn.characterType.ToString();
+                GameObject newPawn = AddPlayerPawn(recipeName);
+
+                if (newPawn != null)
+                {
+                    // 저장된 상태 복원 (체력, 생존 여부 등)
+                    var pawnManager = newPawn.GetComponent<PawnManager>();
+                    if (pawnManager?.PawnData != null)
+                    {
+                        activePawn.ApplyToPawnData(pawnManager.PawnData);
+
+                        // 죽은 Pawn은 비활성화
+                        if (!activePawn.isAlive)
+                        {
+                            newPawn.SetActive(false);
+                            LogManager.LogInfo(LogCategory.System, $"Pawn 복원 (죽음 상태): {recipeName}");
+                        }
+                    }
+                }
+            }
+
+            pawnsCreated = activePawns.Count > 0;
+            LogManager.LogInfo(LogCategory.System, $"SessionData에서 {activePawns.Count}명의 Pawn 복원 완료");
+        }
+
+        // 2. SessionData에 없으면 CharacterSelectionUseCase에서 가져오기 (첫 스테이지 시작)
+        if (!pawnsCreated && CharacterSelectionUseCase != null)
         {
             // 세션 데이터에서 선택된 캐릭터 로드
             CharacterSelectionUseCase.LoadSelectedCharacters();
             var selectedCharacters = CharacterSelectionUseCase.GetSelectedCharacters();
-            
+
             if (selectedCharacters.Count > 0)
             {
                 foreach (var character in selectedCharacters)
@@ -128,18 +163,16 @@ public class GameManager : MonoBehaviour
                     AddPlayerPawn(character.ToString());
                 }
                 LogManager.LogInfo(LogCategory.System, $"선택된 캐릭터 {selectedCharacters.Count}명 생성 완료");
-            }
-            else
-            {
-                LogManager.LogWarning(LogCategory.System, "선택된 캐릭터가 없습니다. 캐릭터를 선택해주세요.");
+                pawnsCreated = true;
             }
         }
-        else
+
+        if (!pawnsCreated)
         {
-            LogManager.LogError(LogCategory.System, "CharacterSelectionUseCase가 없습니다. 플레이어를 생성할 수 없습니다.");
+            LogManager.LogWarning(LogCategory.System, "생성할 캐릭터가 없습니다. 캐릭터를 선택해주세요.");
         }
-        // ========== 초기 플레이어 생성 끝 ==========
-        
+        // ========== 플레이어 생성 끝 ==========
+
         // GameOverUseCase에 게임오버 조건 추가
         if (GameOverUseCase != null && PlayerController != null)
         {
@@ -620,14 +653,17 @@ public class GameManager : MonoBehaviour
     private void SaveAllPawnPersistentData()
     {
         if (PawnPersistenceUseCase == null || PlayerController == null) return;
-        
+
+        // 활성 Pawn 목록 저장 (씬 전환 시 복원용)
+        PawnPersistenceUseCase.SaveActivePawns(PlayerController.playerPawns);
+
         foreach (var pawn in PlayerController.playerPawns)
         {
             if (pawn == null) continue;
-            
+
             var pawnManager = pawn.GetComponent<PawnManager>();
             if (pawnManager?.PawnData == null) continue;
-            
+
             // LevelUpSubManager에서 현재 레벨 가져오기
             int currentLevel = 1;
             var levelUpManager = pawn.GetComponent<LevelUpSubManager>();
@@ -635,11 +671,11 @@ public class GameManager : MonoBehaviour
             {
                 currentLevel = levelUpManager.GetCurrentLevel();
             }
-            
+
             // 영구 데이터 저장
             PawnPersistenceUseCase.SavePawnPersistentData(pawnManager.PawnData, currentLevel);
         }
-        
+
         LogManager.LogInfo(LogCategory.System, "모든 플레이어 Pawn의 영구 데이터 저장 완료");
     }
 

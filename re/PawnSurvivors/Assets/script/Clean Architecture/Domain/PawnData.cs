@@ -319,4 +319,76 @@ namespace PawnSurvivors.Domain
         Kinematic,
         Static
     }
+
+    /// <summary>
+    /// 현재 활성화된 Pawn의 상태 데이터입니다.
+    /// 씬 전환 시 저장되어 다음 씬에서 Pawn을 복원하는 데 사용됩니다.
+    /// </summary>
+    [Serializable]
+    public class ActivePawnData
+    {
+        /// <summary>플레이어 캐릭터 타입</summary>
+        public PlayerCharacter characterType;
+
+        /// <summary>플레이어 인덱스 (대열 위치)</summary>
+        public int playerIndex;
+
+        /// <summary>현재 체력</summary>
+        public float currentHealth;
+
+        /// <summary>최대 체력</summary>
+        public float maxHealth;
+
+        /// <summary>경험치 진행도</summary>
+        public float experienceProgress;
+
+        /// <summary>캐릭터 강화 레벨</summary>
+        public int upgradeLevel;
+
+        /// <summary>Pawn이 살아있는지 여부</summary>
+        public bool isAlive;
+
+        /// <summary>
+        /// PawnData에서 ActivePawnData를 생성합니다.
+        /// </summary>
+        public static ActivePawnData FromPawnData(PawnData pawnData, bool isAlive = true)
+        {
+            if (pawnData == null || !pawnData.characterType.HasValue)
+                return null;
+
+            return new ActivePawnData
+            {
+                characterType = pawnData.characterType.Value,
+                playerIndex = pawnData.playerIndex,
+                currentHealth = pawnData.healthData?.currentHealth ?? 100f,
+                maxHealth = pawnData.healthData?.maxHealth ?? 100f,
+                experienceProgress = pawnData.experienceData?.currentProgress ?? 0f,
+                upgradeLevel = pawnData.upgradeLevel,
+                isAlive = isAlive
+            };
+        }
+
+        /// <summary>
+        /// ActivePawnData를 PawnData에 적용합니다.
+        /// </summary>
+        public void ApplyToPawnData(PawnData pawnData)
+        {
+            if (pawnData == null) return;
+
+            pawnData.characterType = characterType;
+            pawnData.playerIndex = playerIndex;
+            pawnData.upgradeLevel = upgradeLevel;
+
+            if (pawnData.healthData != null)
+            {
+                pawnData.healthData.currentHealth = currentHealth;
+                pawnData.healthData.maxHealth = maxHealth;
+            }
+
+            if (pawnData.experienceData != null)
+            {
+                pawnData.experienceData.currentProgress = experienceProgress;
+            }
+        }
+    }
 }

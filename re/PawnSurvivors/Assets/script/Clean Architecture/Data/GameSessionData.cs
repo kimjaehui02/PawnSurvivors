@@ -71,6 +71,13 @@ namespace PawnSurvivors.Data
         /// 값: 라운드 간 유지되는 데이터 (경험치, 레벨, 업그레이드 등)
         /// </summary>
         public Dictionary<string, PawnPersistentData> playerPawnPersistentData = new Dictionary<string, PawnPersistentData>();
+
+        /// <summary>
+        /// 현재 활성화된 플레이어 Pawn 목록입니다.
+        /// 씬 전환 시 PlayerController가 파괴되어도 이 데이터로 Pawn을 복원할 수 있습니다.
+        /// 스테이지 종료 시 저장되고, 스테이지 시작 시 복원됩니다.
+        /// </summary>
+        public List<ActivePawnData> activePawnDataList = new List<ActivePawnData>();
         
         // ========================================
         // 아이템 데이터 (스테이지 간 유지)

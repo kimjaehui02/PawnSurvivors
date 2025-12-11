@@ -198,6 +198,103 @@ namespace PawnSurvivors.Domain.Usecases
             string key = _sessionData.GetPawnPersistentDataKey(recipeName, playerIndex);
             return _sessionData.playerPawnPersistentData.Remove(key);
         }
+
+        // ========================================
+        // 활성 Pawn 데이터 관리 (씬 전환 시 사용)
+        // ========================================
+
+        /// <summary>
+        /// 현재 활성화된 모든 Pawn의 상태를 저장합니다.
+        /// 스테이지 종료 시 호출하여 다음 씬에서 복원할 수 있도록 합니다.
+        /// </summary>
+        /// <param name="playerPawns">PlayerController의 playerPawns 리스트</param>
+        public void SaveActivePawns(List<UnityEngine.GameObject> playerPawns)
+        {
+            _sessionData.activePawnDataList.Clear();
+
+            if (playerPawns == null || playerPawns.Count == 0)
+            {
+                UnityEngine.Debug.Log("[PawnPersistenceUseCase] 저장할 활성 Pawn이 없습니다.");
+                return;
+            }
+
+            foreach (var pawn in playerPawns)
+            {
+                if (pawn == null) continue;
+
+                var pawnManager = pawn.GetComponent<PawnManager>();
+                if (pawnManager == null || pawnManager.PawnData == null) continue;
+
+                bool isAlive = pawn.activeInHierarchy;
+                var activePawnData = ActivePawnData.FromPawnData(pawnManager.PawnData, isAlive);
+
+                if (activePawnData != null)
+                {
+                    _sessionData.activePawnDataList.Add(activePawnData);
+                    UnityEngine.Debug.Log($"[PawnPersistenceUseCase] 활성 Pawn 저장: {activePawnData.characterType} (Index: {activePawnData.playerIndex}, Alive: {isAlive})");
+                }
+            }
+
+            UnityEngine.Debug.Log($"[PawnPersistenceUseCase] 총 {_sessionData.activePawnDataList.Count}개의 활성 Pawn 저장 완료");
+        }
+
+        /// <summary>
+        /// 저장된 활성 Pawn 데이터 목록을 가져옵니다.
+        /// 스테이지 시작 시 호출하여 Pawn을 복원하는 데 사용합니다.
+        /// </summary>
+        public List<ActivePawnData> GetActivePawns()
+        {
+            return _sessionData.activePawnDataList;
+        }
+
+        /// <summary>
+        /// 활성 Pawn 목록이 있는지 확인합니다.
+        /// </summary>
+        public bool HasActivePawns()
+        {
+            return _sessionData.activePawnDataList != null && _sessionData.activePawnDataList.Count > 0;
+        }
+
+        /// <summary>
+        /// 활성 Pawn 목록을 초기화합니다.
+        /// 새 게임 시작 시 호출합니다.
+        /// </summary>
+        public void ClearActivePawns()
+        {
+            _sessionData.activePawnDataList.Clear();
+            UnityEngine.Debug.Log("[PawnPersistenceUseCase] 활성 Pawn 목록 초기화됨");
+        }
+
+        /// <summary>
+        /// 새 캐릭터를 활성 Pawn 목록에 추가합니다.
+        /// 상점에서 캐릭터 구매 시 호출합니다.
+        /// </summary>
+        public void AddActivePawn(PlayerCharacter characterType)
+        {
+            int newIndex = _sessionData.activePawnDataList.Count;
+
+            var newPawnData = new ActivePawnData
+            {
+                characterType = characterType,
+                playerIndex = newIndex,
+                currentHealth = 100f, // 기본값, 실제로는 레시피에서 로드 필요
+                maxHealth = 100f,
+                experienceProgress = 0f,
+                upgradeLevel = 0,
+                isAlive = true
+            };
+
+            _sessionData.activePawnDataList.Add(newPawnData);
+            UnityEngine.Debug.Log($"[PawnPersistenceUseCase] 활성 Pawn 추가: {characterType} (Index: {newIndex})");
+        }
+
+        /// <summary>
+        /// 활성 Pawn 개수를 반환합니다.
+        /// </summary>
+        public int GetActivePawnCount()
+        {
+            return _sessionData.activePawnDataList?.Count ?? 0;
+        }
     }
 }
 
