@@ -173,15 +173,15 @@ public class GameManager : MonoBehaviour
         }
         // ========== 플레이어 생성 끝 ==========
 
-        // GameOverUseCase에 게임오버 조건 추가
+        // GameOverUseCase에 게임오버 조건 추가 (메인 캐릭터 사망 시 게임오버)
         if (GameOverUseCase != null && PlayerController != null)
         {
-            var allPlayersDeadCondition = new AllPlayersDeadCondition(
+            var mainCharacterDeadCondition = new MainCharacterDeadCondition(
                 () => PlayerController.GetPlayerPawns()
             );
-            allPlayersDeadCondition.Enable();
-            GameOverUseCase.AddCondition(allPlayersDeadCondition);
-            LogManager.LogInfo(LogCategory.System, "[GameManager] GameOverUseCase에 AllPlayersDeadCondition 추가 완료");
+            mainCharacterDeadCondition.Enable();
+            GameOverUseCase.AddCondition(mainCharacterDeadCondition);
+            LogManager.LogInfo(LogCategory.System, "[GameManager] GameOverUseCase에 MainCharacterDeadCondition 추가 완료");
         }
     }
 
@@ -379,6 +379,7 @@ public class GameManager : MonoBehaviour
 
     /// <summary>
     /// 플레이어블 폰을 추가합니다.
+    /// 첫 번째 캐릭터(index=0)는 메인, 나머지는 서포트로 생성됩니다.
     /// </summary>
     public GameObject AddPlayerPawn(string recipeName, Vector3? worldPosition = null)
     {
@@ -387,23 +388,29 @@ public class GameManager : MonoBehaviour
             LogManager.LogError(LogCategory.System, "PlayerController가 없습니다!");
             return null;
         }
-        
+
         var recipe = CreationManager.GetRecipe(recipeName);
         if (recipe == null)
         {
             LogManager.LogError(LogCategory.System, $"Recipe '{recipeName}'를 찾을 수 없습니다!");
             return null;
         }
-        
+
+        // ✅ 이미 플레이어가 있으면 서포트 캐릭터로 생성
+        // 서포트 캐릭터는 Damageable, HealthBar, Invincibility, Physics 없이 생성
+        bool isSupportCharacter = PlayerController.playerPawns.Count > 0;
+
         Vector3 spawnPos = worldPosition ?? PlayerController.transform.position;
-        GameObject pawn = CreationManager.CreatePawn(recipe, spawnPos, Quaternion.identity);
-        
+        GameObject pawn = CreationManager.CreatePawn(recipe, spawnPos, Quaternion.identity,
+            direction: null, owner: null, overrideDamage: 0f, overrideSpeed: 0f,
+            isSupportCharacter: isSupportCharacter);
+
         if (pawn != null)
         {
             PlayerController.AddPlayerPawn(pawn);
-            LogManager.LogInfo(LogCategory.Pawn, $"플레이어 폰 추가: {recipeName}");
+            LogManager.LogInfo(LogCategory.Pawn, $"플레이어 폰 추가: {recipeName} (서포트: {isSupportCharacter})");
         }
-        
+
         return pawn;
     }
     
@@ -756,5 +763,81 @@ public class GameManager : MonoBehaviour
         {
             GameStateManager.Instance.GoToGameOver();
         }
+    }
+
+    /// <summary>
+    /// 새 게임을 위해 모든 세션 데이터를 초기화합니다.
+    /// 캐릭터 선택으로 돌아갈 때 호출합니다.
+    /// </summary>
+    public void ResetForNewGame()
+    {
+        LogManager.LogInfo(LogCategory.System, "[GameManager] ResetForNewGame() 호출 - 모든 데이터 초기화");
+
+        // 1. 세션 데이터 완전 초기화 (저장된 캐릭터 선택 포함)
+        if (SessionDataRepository != null)
+        {
+            SessionDataRepository.ResetForNewGame();
+        }
+
+        // 2. PlayerController 제거
+        ClearPlayerController();
+
+        // 3. GameOverUseCase 조건 초기화
+        if (GameOverUseCase != null)
+        {
+            GameOverUseCase.ClearConditions();
+        }
+
+        // 4. StageFlowUseCase 상태 초기화
+        if (StageFlowUseCase != null)
+        {
+            StageFlowUseCase.ResetState();
+        }
+
+        // 5. CharacterSelectionUseCase 초기화
+        if (CharacterSelectionUseCase != null)
+        {
+            CharacterSelectionUseCase.ClearSelection();
+        }
+
+        LogManager.LogInfo(LogCategory.System, "[GameManager] ResetForNewGame() 완료");
+    }
+
+    /// <summary>
+    /// 게임오버 후 같은 캐릭터로 재시작합니다.
+    /// Pawn, 아이템 등 게임 진행 데이터는 초기화하지만 캐릭터 선택은 유지합니다.
+    /// </summary>
+    public void ResetForRetry()
+    {
+        LogManager.LogInfo(LogCategory.System, "[GameManager] ResetForRetry() 호출 - 캐릭터 유지하고 재시작");
+
+        // 1. 세션 데이터 초기화 (캐릭터 선택 유지)
+        if (SessionDataRepository != null)
+        {
+            SessionDataRepository.ResetForRetry();
+        }
+
+        // 2. PlayerController 제거
+        ClearPlayerController();
+
+        // 3. GameOverUseCase 조건 초기화
+        if (GameOverUseCase != null)
+        {
+            GameOverUseCase.ClearConditions();
+        }
+
+        // 4. StageFlowUseCase 상태 초기화
+        if (StageFlowUseCase != null)
+        {
+            StageFlowUseCase.ResetState();
+        }
+
+        // 5. CharacterSelectionUseCase - 저장된 캐릭터 복원
+        if (CharacterSelectionUseCase != null)
+        {
+            CharacterSelectionUseCase.LoadSelectedCharacters();
+        }
+
+        LogManager.LogInfo(LogCategory.System, "[GameManager] ResetForRetry() 완료");
     }
 }

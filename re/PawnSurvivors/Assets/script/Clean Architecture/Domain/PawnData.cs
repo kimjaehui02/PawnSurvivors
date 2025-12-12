@@ -25,6 +25,13 @@ namespace PawnSurvivors.Domain
         /// 0 = 기본, 1 = 1회 강화, 2 = 2회 강화...
         /// </summary>
         public int upgradeLevel = 0;
+
+        /// <summary>
+        /// 메인 캐릭터 여부 (playerIndex == 0인 캐릭터)
+        /// 메인 캐릭터만 피격 가능하고, 사망 시 게임오버
+        /// 서포트 캐릭터는 공격만 하고 피격 불가
+        /// </summary>
+        public bool isMainCharacter => playerIndex == 0;
         
         /// <summary>
         /// 레시피 이름 (하위 호환성 및 비플레이어 Pawn용)
@@ -347,6 +354,9 @@ namespace PawnSurvivors.Domain
 
         /// <summary>Pawn이 살아있는지 여부</summary>
         public bool isAlive;
+
+        /// <summary>메인 캐릭터 여부 (playerIndex == 0인 캐릭터)</summary>
+        public bool isMainCharacter => playerIndex == 0;
 
         /// <summary>
         /// PawnData에서 ActivePawnData를 생성합니다.

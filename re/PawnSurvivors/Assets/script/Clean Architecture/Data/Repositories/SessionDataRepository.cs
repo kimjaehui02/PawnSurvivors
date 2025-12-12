@@ -263,10 +263,20 @@ namespace PawnSurvivors.Data.Repositories
         // ========================================
         // 세션 관리
         // ========================================
-        
+
         public void Reset()
         {
             _sessionData.Reset();
+        }
+
+        public void ResetForNewGame()
+        {
+            _sessionData.ResetForNewGame();
+        }
+
+        public void ResetForRetry()
+        {
+            _sessionData.ResetForRetry();
         }
     }
 }

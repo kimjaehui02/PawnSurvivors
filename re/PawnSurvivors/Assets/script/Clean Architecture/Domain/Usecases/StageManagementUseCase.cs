@@ -76,6 +76,36 @@ namespace PawnSurvivors.Domain.Usecases
             string currentStageName = GetCurrentStageName();
             return _stageListDataSource.GetNextStageName(currentStageName);
         }
+
+        /// <summary>
+        /// 현재 라운드(스테이지) 번호를 가져옵니다. (1부터 시작)
+        /// </summary>
+        /// <returns>현재 라운드 번호, 없으면 1</returns>
+        public int GetCurrentRound()
+        {
+            if (_stageListDataSource == null)
+            {
+                return 1;
+            }
+
+            string currentStageName = GetCurrentStageName();
+            int round = _stageListDataSource.GetStageNumber(currentStageName);
+            return round > 0 ? round : 1;
+        }
+
+        /// <summary>
+        /// 전체 라운드(스테이지) 수를 가져옵니다.
+        /// </summary>
+        /// <returns>전체 라운드 수, 없으면 0</returns>
+        public int GetTotalRounds()
+        {
+            if (_stageListDataSource == null)
+            {
+                return 0;
+            }
+
+            return _stageListDataSource.GetTotalStageCount();
+        }
     }
 }
 

@@ -117,19 +117,20 @@ namespace PawnSurvivors.Domain.Usecases
     
     /// <summary>
     /// 모든 플레이어가 사망했을 때 게임오버가 되는 조건입니다.
+    /// (기존 호환성을 위해 유지, 새 시스템에서는 MainCharacterDeadCondition 사용)
     /// </summary>
     public class AllPlayersDeadCondition : IGameOverCondition
     {
         private readonly Func<List<GameObject>> _getPlayerPawns;
         private bool _isEnabled = false;
-        
+
         public event Action<IGameOverCondition> OnConditionMet;
-        
+
         public AllPlayersDeadCondition(Func<List<GameObject>> getPlayerPawns)
         {
             _getPlayerPawns = getPlayerPawns ?? throw new ArgumentNullException(nameof(getPlayerPawns));
         }
-        
+
         public bool Check()
         {
             var playerPawns = _getPlayerPawns();
@@ -137,37 +138,86 @@ namespace PawnSurvivors.Domain.Usecases
             {
                 return false;
             }
-            
+
             // 활성화된 플레이어가 있는지 확인
             int aliveCount = playerPawns.Count(pawn => pawn != null && pawn.activeInHierarchy);
-            
+
             bool isConditionMet = aliveCount == 0;
-            
+
             // 조건이 만족되면 이벤트 발생
             if (isConditionMet && _isEnabled)
             {
                 OnConditionMet?.Invoke(this);
             }
-            
+
             return isConditionMet;
         }
-        
+
         public void Enable()
         {
             if (_isEnabled) return;
-            
+
             _isEnabled = true;
-            
+
             // PlayerController의 Pawn 사망 이벤트를 구독
             // 하지만 PlayerController에 직접 접근하는 것은 Clean Architecture에 맞지 않음
             // 대신 Check()를 주기적으로 호출하거나, 이벤트 기반으로 처리
             // 여기서는 Check()를 수동으로 호출하는 방식 사용
         }
-        
+
         public void Disable()
         {
             if (!_isEnabled) return;
-            
+
+            _isEnabled = false;
+        }
+    }
+
+    /// <summary>
+    /// 메인 캐릭터(playerIndex == 0)가 사망했을 때 게임오버가 되는 조건입니다.
+    /// 새 시스템: 1 메인 + 6 서포트 캐릭터 구조에서 사용
+    /// </summary>
+    public class MainCharacterDeadCondition : IGameOverCondition
+    {
+        private readonly Func<List<GameObject>> _getPlayerPawns;
+        private bool _isEnabled = false;
+
+        public event Action<IGameOverCondition> OnConditionMet;
+
+        public MainCharacterDeadCondition(Func<List<GameObject>> getPlayerPawns)
+        {
+            _getPlayerPawns = getPlayerPawns ?? throw new ArgumentNullException(nameof(getPlayerPawns));
+        }
+
+        public bool Check()
+        {
+            var playerPawns = _getPlayerPawns();
+            if (playerPawns == null || playerPawns.Count == 0)
+            {
+                return false;
+            }
+
+            // 첫 번째 캐릭터(메인)가 비활성화 되었는지 확인
+            bool isMainDead = playerPawns[0] == null || !playerPawns[0].activeInHierarchy;
+
+            // 조건이 만족되면 이벤트 발생
+            if (isMainDead && _isEnabled)
+            {
+                OnConditionMet?.Invoke(this);
+            }
+
+            return isMainDead;
+        }
+
+        public void Enable()
+        {
+            if (_isEnabled) return;
+            _isEnabled = true;
+        }
+
+        public void Disable()
+        {
+            if (!_isEnabled) return;
             _isEnabled = false;
         }
     }

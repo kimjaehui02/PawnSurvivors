@@ -85,16 +85,16 @@ public class PawnManager : MonoBehaviour
         if (evt.DeadPawn == this)
         {
             // 플레이어 Pawn인지 확인
-            bool isPlayerPawn = GameManager.Instance?.PlayerController != null && 
+            bool isPlayerPawn = GameManager.Instance?.PlayerController != null &&
                                 GameManager.Instance.PlayerController.playerPawns.Contains(gameObject);
-            
+
             if (isPlayerPawn)
             {
                 // 플레이어는 비활성화만 (다음 스테이지에서 부활)
-                PawnSurvivors.Managers.LogManager.LogInfo(PawnSurvivors.Managers.LogCategory.System, 
+                PawnSurvivors.Managers.LogManager.LogInfo(PawnSurvivors.Managers.LogCategory.System,
                     $"[PawnManager] 플레이어 Pawn 사망: {gameObject.name}");
                 gameObject.SetActive(false);
-                
+
                 // OnPlayerPawnDied 호출 (게임오버 체크 포함)
                 if (GameManager.Instance.PlayerController != null)
                 {
@@ -102,12 +102,18 @@ public class PawnManager : MonoBehaviour
                 }
                 else
                 {
-                    PawnSurvivors.Managers.LogManager.LogError(PawnSurvivors.Managers.LogCategory.System, 
+                    PawnSurvivors.Managers.LogManager.LogError(PawnSurvivors.Managers.LogCategory.System,
                         "[PawnManager] PlayerController가 null입니다. 게임오버 체크를 할 수 없습니다.");
                 }
             }
             else
             {
+                // 이벤트가 취소되었으면 파괴하지 않음 (DeathEffectSubManager에서 처리)
+                if (evt.IsCancelled)
+                {
+                    return;
+                }
+
                 // 적이나 투사체는 파괴
                 DestroyPawn();
             }

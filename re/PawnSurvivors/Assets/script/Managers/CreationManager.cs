@@ -49,7 +49,7 @@ public class CreationManager : MonoBehaviour
         return CreatePawn(recipeData, position, rotation);
     }
 
-    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null, PawnManager owner = null, float overrideDamage = 0f, float overrideSpeed = 0f)
+    public GameObject CreatePawn(PawnRecipeData recipeData, Vector3 position, Quaternion rotation, Vector3? direction = null, PawnManager owner = null, float overrideDamage = 0f, float overrideSpeed = 0f, bool isSupportCharacter = false)
     {
         if (recipeData == null)
         {
@@ -97,6 +97,27 @@ public class CreationManager : MonoBehaviour
             {
                 if (setup != null)
                 {
+                    // ✅ 서포트 캐릭터는 불필요한 SubManager 스킵
+                    // - DamageableSubManager: 데미지 안 받음
+                    // - HealthBarSubManager: 체력바 불필요
+                    // - InvincibilitySubManager: 데미지 안 받으니 무적도 불필요
+                    // 주의: PhysicsSubManager는 태그 설정이 필요하므로 스킵하지 않음
+                    if (isSupportCharacter)
+                    {
+                        if (setup is DamageableSubManagerSetupData ||
+                            setup is HealthBarSubManagerSetupData ||
+                            setup is InvincibilitySubManagerSetupData)
+                        {
+                            continue; // 스킵
+                        }
+
+                        // PhysicsSubManager는 Collider만 비활성화 (태그는 필요)
+                        if (setup is PhysicsSubManagerSetupData physicsSetup)
+                        {
+                            physicsSetup.colliderType = ColliderType.None;
+                        }
+                    }
+
                     MonoBehaviour subManagerComponent = setup.AddSubManagerComponent(pawnObject);
                     if (subManagerComponent is PawnSubManager pawnSubManager)
                     {

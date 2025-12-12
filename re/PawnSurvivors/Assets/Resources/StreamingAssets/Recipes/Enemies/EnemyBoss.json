@@ -69,6 +69,15 @@
       "hitSounds": ["Audio/Hit0", "Audio/Hit1"],
       "deathSound": "Audio/Dead",
       "volume": 1.2
+    },
+    {
+      "$type": "PawnSurvivors.Data.Recipes.DeathEffectSubManagerSetupData, Assembly-CSharp",
+      "useFadeOut": true,
+      "fadeOutDuration": 0.5,
+      "scaleMultiplier": 1.8,
+      "deathTintColor": [1.0, 0.1, 0.1, 1.0],
+      "particlePrefabPath": "",
+      "particleDuration": 1.5
     }
   ]
 }

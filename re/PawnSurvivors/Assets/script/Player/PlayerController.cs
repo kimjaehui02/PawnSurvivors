@@ -26,16 +26,21 @@ namespace PawnSurvivors.Player
         public float moveSpeed = 5f;
         
         [Header("대열 설정")]
-        [Tooltip("플레이어 폰들의 대열 위치 (localPosition) - 정육각형 배치")]
+        [Tooltip("플레이어 폰들의 대열 위치 (localPosition) - 메인(중앙) + 서포트(6각형)")]
         public Vector3[] formationPositions = new Vector3[]
         {
-            new Vector3(1.000f, 0.000f, 0f),    // V0
-            new Vector3(0.500f, 0.866f, 0f),    // V1
-            new Vector3(-0.500f, 0.866f, 0f),   // V2
-            new Vector3(-1.000f, 0.000f, 0f),   // V3
-            new Vector3(-0.500f, -0.866f, 0f),  // V4
-            new Vector3(0.500f, -0.866f, 0f)   // V5
+            new Vector3(0f, 0f, 0f),            // 메인 캐릭터 (중앙)
+            new Vector3(1.000f, 0.000f, 0f),    // 서포트 V0
+            new Vector3(0.500f, 0.866f, 0f),    // 서포트 V1
+            new Vector3(-0.500f, 0.866f, 0f),   // 서포트 V2
+            new Vector3(-1.000f, 0.000f, 0f),   // 서포트 V3
+            new Vector3(-0.500f, -0.866f, 0f),  // 서포트 V4
+            new Vector3(0.500f, -0.866f, 0f)    // 서포트 V5
         };
+
+        [Header("서포트 캐릭터 설정")]
+        [Tooltip("서포트 캐릭터의 투명도 (0~1, 1=불투명)")]
+        public float supportCharacterAlpha = 0.5f;
         
         [Tooltip("자동 대열 생성 사용 여부")]
         public bool useAutomaticFormation = true;
@@ -92,41 +97,42 @@ namespace PawnSurvivors.Player
         
         /// <summary>
         /// 플레이어 폰을 자식으로 추가하고 대열 위치에 배치합니다.
+        /// 첫 번째 캐릭터(index=0)는 메인으로 중앙에, 나머지는 서포트로 6각형 배치 + 반투명
         /// </summary>
         public void AddPlayerPawn(GameObject pawn)
         {
             if (pawn == null) return;
-            
+
             // 자식으로 설정
             pawn.transform.SetParent(transform);
             pawn.transform.localRotation = Quaternion.identity;
-            
+
             // 크기 설정 (스프라이트, 충돌체, 그림자 모두 자동 스케일됨!)
             pawn.transform.localScale = Vector3.one * pawnScale;
-            
+
             // 리스트에 추가
             playerPawns.Add(pawn);
-            
+
             // PawnData에 인덱스 설정 (경험치 추적 등에 사용)
             int index = playerPawns.Count - 1;
             var pawnManager = pawn.GetComponent<PawnManager>();
             if (pawnManager != null && pawnManager.PawnData != null)
             {
                 pawnManager.PawnData.playerIndex = index;
-                
+
                 // 영구 데이터 복원 (경험치, 레벨 등)
                 if (GameManager.Instance?.PawnPersistenceUseCase != null)
                 {
                     GameManager.Instance.PawnPersistenceUseCase.RestorePawnPersistentData(pawnManager.PawnData);
                 }
             }
-            
+
             // 자동 대열 생성
             if (useAutomaticFormation)
             {
                 UpdateFormationPositions();
             }
-            
+
             // 대열 위치 설정
             if (index < formationPositions.Length)
             {
@@ -137,8 +143,31 @@ namespace PawnSurvivors.Player
                 pawn.transform.localPosition = Vector3.zero;
                 Debug.LogWarning($"[PlayerController] 대열 위치 부족! Pawn {index}를 기본 위치에 배치합니다.");
             }
-            
-            Debug.Log($"[PlayerController] Pawn 추가됨: {pawn.name} at localPosition {pawn.transform.localPosition}, scale {pawnScale}, playerIndex={index}");
+
+            // ✅ 서포트 캐릭터(index > 0)는 반투명 처리
+            if (index > 0)
+            {
+                ApplySupportCharacterAlpha(pawn);
+            }
+
+            Debug.Log($"[PlayerController] Pawn 추가됨: {pawn.name} at localPosition {pawn.transform.localPosition}, scale {pawnScale}, playerIndex={index}, isMain={index == 0}");
+        }
+
+        /// <summary>
+        /// 서포트 캐릭터에 반투명 효과를 적용합니다.
+        /// </summary>
+        private void ApplySupportCharacterAlpha(GameObject pawn)
+        {
+            if (pawn == null) return;
+
+            // SpriteRenderer에서 알파 적용
+            var spriteRenderers = pawn.GetComponentsInChildren<SpriteRenderer>(true);
+            foreach (var sr in spriteRenderers)
+            {
+                Color color = sr.color;
+                color.a = supportCharacterAlpha;
+                sr.color = color;
+            }
         }
         
         /// <summary>
@@ -212,29 +241,60 @@ namespace PawnSurvivors.Player
         
         /// <summary>
         /// 플레이어 수에 따라 자동으로 대열 위치를 생성합니다.
+        /// 새 시스템: 첫 번째(메인)는 중앙, 나머지(서포트)는 6각형 배치
         /// </summary>
         private void UpdateFormationPositions()
         {
             int count = playerPawns.Count;
-            
-            switch (formationType)
+
+            // ✅ 새 시스템: 메인(중앙) + 서포트(6각형)
+            // formationType은 서포트 캐릭터들의 배치에만 영향을 줌
+            formationPositions = GenerateMainPlusSupportFormation(count, polygonRadius);
+        }
+
+        /// <summary>
+        /// 메인 캐릭터(중앙) + 서포트 캐릭터(6각형) 배치를 생성합니다.
+        /// </summary>
+        private Vector3[] GenerateMainPlusSupportFormation(int count, float radius)
+        {
+            if (count == 0) return new Vector3[0];
+
+            Vector3[] positions = new Vector3[count];
+
+            // 첫 번째(메인)는 항상 중앙
+            positions[0] = Vector3.zero;
+
+            // 나머지는 6각형 배치 (최대 6개)
+            if (count > 1)
             {
-                case FormationType.Polygon:
-                    formationPositions = GeneratePolygonFormation(count, polygonRadius);
-                    break;
-                case FormationType.VShape:
-                    formationPositions = GenerateVShapeFormation(count);
-                    break;
-                case FormationType.TwoRows:
-                    formationPositions = GenerateTwoRowsFormation(count);
-                    break;
-                case FormationType.Horizontal:
-                    formationPositions = GenerateHorizontalFormation(count);
-                    break;
-                case FormationType.Circle:
-                    formationPositions = GenerateCircleFormation(count);
-                    break;
+                // 6각형 정규화 좌표 (반지름 1 기준, 오른쪽부터 시계방향)
+                Vector3[] hexPositions = new Vector3[]
+                {
+                    new Vector3(1.000f, 0.000f, 0f),    // V0 (오른쪽)
+                    new Vector3(0.500f, 0.866f, 0f),    // V1 (오른쪽 위)
+                    new Vector3(-0.500f, 0.866f, 0f),   // V2 (왼쪽 위)
+                    new Vector3(-1.000f, 0.000f, 0f),   // V3 (왼쪽)
+                    new Vector3(-0.500f, -0.866f, 0f),  // V4 (왼쪽 아래)
+                    new Vector3(0.500f, -0.866f, 0f)    // V5 (오른쪽 아래)
+                };
+
+                for (int i = 1; i < count && i <= 6; i++)
+                {
+                    positions[i] = hexPositions[i - 1] * radius;
+                }
+
+                // 7개 초과 시 경고 (현재 시스템에서는 7개가 최대)
+                if (count > 7)
+                {
+                    Debug.LogWarning($"[PlayerController] {count}명은 최대 지원 수(7)를 초과합니다. 초과분은 중앙에 배치됩니다.");
+                    for (int i = 7; i < count; i++)
+                    {
+                        positions[i] = Vector3.zero;
+                    }
+                }
             }
+
+            return positions;
         }
         
         /// <summary>

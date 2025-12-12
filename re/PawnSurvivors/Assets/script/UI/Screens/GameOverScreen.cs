@@ -435,21 +435,21 @@ namespace PawnSurvivors.UI
                     GameManager.Instance.LifecycleManager.TogglePause();
                 }
             }
-            
-            // 스테이지 종료 (적 생성 중단)
+
+            // 재시작: 캐릭터 유지하고 게임 데이터만 초기화
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.EndStage();
+                GameManager.Instance.ResetForRetry();
             }
-            
-            // 재시작: 캐릭터 선택부터 다시 시작
+
+            // 바로 스테이지로 이동 (캐릭터 선택 스킵)
             if (GameStateManager.Instance != null)
             {
-                GameStateManager.Instance.GoToCharacterSelect();
+                GameStateManager.Instance.GoToStage();
             }
-            
+
             gameObject.SetActive(false);
-            LogManager.LogInfo(LogCategory.UI, "Retry Button Clicked - 캐릭터 선택으로 이동");
+            LogManager.LogInfo(LogCategory.UI, "Retry Button Clicked - 같은 캐릭터로 재시작");
         }
 
         private void OnCharacterSelectButtonClicked()
@@ -462,15 +462,21 @@ namespace PawnSurvivors.UI
                     GameManager.Instance.LifecycleManager.TogglePause();
                 }
             }
-            
+
+            // 새 게임을 위한 완전 초기화 (Pawn, 아이템, 세션 데이터 모두 초기화)
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ResetForNewGame();
+            }
+
             // GameStateManager를 통해 CharacterSelectState로 전환
             if (GameStateManager.Instance != null)
             {
                 GameStateManager.Instance.GoToCharacterSelect();
             }
-            
+
             gameObject.SetActive(false);
-            LogManager.LogInfo(LogCategory.UI, "Character Select Button Clicked");
+            LogManager.LogInfo(LogCategory.UI, "Character Select Button Clicked - 새 게임 시작");
         }
     }
 }

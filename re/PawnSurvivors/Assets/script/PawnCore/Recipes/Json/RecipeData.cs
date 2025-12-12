@@ -843,6 +843,62 @@ namespace PawnSurvivors.Data.Recipes
     }
 
     // ========================================
+    // DeathEffect SubManager Setup Data
+    // ========================================
+
+    [Serializable]
+    public class DeathEffectSubManagerSetupData : SubManagerSetupData
+    {
+        [Tooltip("페이드아웃 사용 여부")]
+        public bool useFadeOut = true;
+
+        [Tooltip("페이드아웃 지속 시간")]
+        public float fadeOutDuration = 0.3f;
+
+        [Tooltip("사망 시 스케일 변화 (1.0 = 변화 없음, 1.5 = 1.5배로 커짐)")]
+        public float scaleMultiplier = 1.2f;
+
+        [Tooltip("사망 시 색상 변화 (R, G, B, A)")]
+        public float[] deathTintColor = new float[] { 1f, 1f, 1f, 1f }; // White
+
+        [Tooltip("파티클 프리팹 경로 (Resources 폴더 기준, 비어있으면 기본 효과만 사용)")]
+        public string particlePrefabPath = "";
+
+        [Tooltip("파티클 지속 시간")]
+        public float particleDuration = 1f;
+
+        public override void ApplyToPawnData(PawnData pawnData)
+        {
+            // DeathEffectSubManager는 PawnData에 저장할 데이터가 없음
+            // 모든 설정은 컴포넌트 자체에서 관리
+        }
+
+        public override MonoBehaviour AddSubManagerComponent(GameObject pawnObject)
+        {
+            PawnSurvivors.Presentation.SubManagers.Visual.DeathEffectSubManager subManager =
+                pawnObject.AddComponent<PawnSurvivors.Presentation.SubManagers.Visual.DeathEffectSubManager>();
+            subManager.useFadeOut = useFadeOut;
+            subManager.fadeOutDuration = fadeOutDuration;
+            subManager.scaleMultiplier = scaleMultiplier;
+
+            // 색상 배열을 Color로 변환
+            if (deathTintColor != null && deathTintColor.Length >= 4)
+            {
+                subManager.deathTintColor = new Color(
+                    deathTintColor[0],
+                    deathTintColor[1],
+                    deathTintColor[2],
+                    deathTintColor[3]
+                );
+            }
+
+            subManager.particlePrefabPath = particlePrefabPath ?? "";
+            subManager.particleDuration = particleDuration;
+            return subManager;
+        }
+    }
+
+    // ========================================
     // Audio SubManager Setup Data
     // ========================================
 

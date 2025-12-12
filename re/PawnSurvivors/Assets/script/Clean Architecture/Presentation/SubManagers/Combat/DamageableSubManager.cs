@@ -15,17 +15,17 @@ public class DamageableSubManager : PawnSubManager
     public override void SubStart()
     {
         _pawnData = _pawnManager.PawnData;
-        
+
         // HealthData 가져오기 또는 생성
         var healthData = _pawnData.GetOrCreateHealthData();
-        
+
         // ✅ PawnStatCalculator를 사용하여 실제 최대 체력 계산
         float effectiveMaxHealth = healthData.maxHealth; // 기본값
         if (GameManager.Instance?.PawnStatCalculator != null)
         {
             effectiveMaxHealth = GameManager.Instance.PawnStatCalculator.GetEffectiveMaxHealth(_pawnData);
         }
-        
+
         healthData.currentHealth = effectiveMaxHealth;
 
         // DamageEvent 구독 (일반 우선순위)
@@ -64,10 +64,10 @@ public class DamageableSubManager : PawnSubManager
         // HealthData가 없으면 무시
         if (_pawnData?.healthData == null) return;
 
-            // ✅ 비즈니스 로직은 UseCases에 위임
-            var (actualDamage, newHealth, isFatal) = CombatUsecases.ApplyDamage(_pawnData.healthData, evt.Amount);
+        // ✅ 비즈니스 로직은 UseCases에 위임
+        var (actualDamage, newHealth, isFatal) = CombatUsecases.ApplyDamage(_pawnData.healthData, evt.Amount);
 
-            // Debug.Log($"{_pawnManager.name} took {actualDamage} damage. Current health: {newHealth}");
+        // Debug.Log($"{_pawnManager.name} took {actualDamage} damage. Current health: {newHealth}");
 
         // ✅ 공격자의 경험치(experienceData.currentProgress) 직접 업데이트
         // 적에게 데미지를 입힌 플레이어의 PawnData에 데미지 기록

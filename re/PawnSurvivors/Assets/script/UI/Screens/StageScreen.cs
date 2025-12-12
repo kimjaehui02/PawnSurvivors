@@ -29,6 +29,7 @@ namespace PawnSurvivors.UI
         [SerializeField] private Button OptionButton;
 
         [SerializeField] private TMP_Text stageTimeText;
+        [SerializeField] private TMP_Text roundText;
         
         [Header("LevelUp UI")]
         [SerializeField] private RectTransform levelUpContainer; // 모든 캐릭터 정보를 담을 컨테이너 (인스펙터에서 할당 가능)
@@ -72,6 +73,8 @@ namespace PawnSurvivors.UI
             // 아이템 표시 UI
             public GameObject equippedItemsContainer; // 장착 아이템 컨테이너
             public List<GameObject> equippedItemIcons = new List<GameObject>(); // 장착 아이템 아이콘들
+            // 메인/서포트 구분
+            public bool isMainCharacter;
         }
         
         private List<CharacterLevelUI> _characterUIs = new List<CharacterLevelUI>();
@@ -115,6 +118,9 @@ namespace PawnSurvivors.UI
                 var currencyUI = gameObject.AddComponent<CurrencyUI>();
                 currencyUI.anchorPosition = new Vector2(0.95f, 0.95f); // 우측 상단
             }
+
+            // 라운드 표시 UI 생성
+            CreateRoundUI();
             
             // StageManager 초기화 (StageScene에서만 사용)
             InitializeStageManager();
@@ -338,7 +344,7 @@ namespace PawnSurvivors.UI
         {
             // Resources에서 옵션 아이콘 스프라이트 로드
             Sprite optionSprite = Resources.Load<Sprite>("Asprite/Option");
-            
+
             if (optionSprite != null)
             {
                 // 버튼의 Image 컴포넌트 찾기
@@ -355,6 +361,75 @@ namespace PawnSurvivors.UI
             else
             {
                 LogManager.LogWarning(LogCategory.UI, "'Resources/Asprite/Option' 스프라이트를 찾을 수 없습니다.");
+            }
+        }
+
+        /// <summary>
+        /// 라운드 표시 UI를 생성합니다.
+        /// </summary>
+        private void CreateRoundUI()
+        {
+            // 인스펙터에서 이미 할당되어 있으면 사용
+            if (roundText != null)
+            {
+                UpdateRoundUI();
+                return;
+            }
+
+            // Canvas 가져오기
+            Canvas canvas = gameObject.GetComponent<Canvas>();
+            if (canvas == null) return;
+
+            // 라운드 텍스트 생성 (상단 중앙)
+            var roundObj = new GameObject("RoundText");
+            roundObj.transform.SetParent(canvas.transform, false);
+
+            var roundRect = roundObj.AddComponent<RectTransform>();
+            roundRect.anchorMin = new Vector2(0.5f, 1f);
+            roundRect.anchorMax = new Vector2(0.5f, 1f);
+            roundRect.pivot = new Vector2(0.5f, 1f);
+            roundRect.anchoredPosition = new Vector2(0f, -20f);
+            roundRect.sizeDelta = new Vector2(300f, 50f);
+
+            roundText = roundObj.AddComponent<TextMeshProUGUI>();
+            roundText.fontSize = 32;
+            roundText.color = Color.white;
+            roundText.alignment = TextAlignmentOptions.Center;
+            roundText.fontStyle = FontStyles.Bold;
+
+            // 폰트 적용
+            if (_koreanFont != null)
+            {
+                roundText.font = _koreanFont;
+            }
+
+            // 초기 라운드 업데이트
+            UpdateRoundUI();
+        }
+
+        /// <summary>
+        /// 라운드 UI를 업데이트합니다.
+        /// </summary>
+        private void UpdateRoundUI()
+        {
+            if (roundText == null) return;
+
+            int currentRound = 1;
+            int totalRounds = 0;
+
+            if (GameManager.Instance?.StageManagementUseCase != null)
+            {
+                currentRound = GameManager.Instance.StageManagementUseCase.GetCurrentRound();
+                totalRounds = GameManager.Instance.StageManagementUseCase.GetTotalRounds();
+            }
+
+            if (totalRounds > 0)
+            {
+                roundText.text = $"라운드 {currentRound}/{totalRounds}";
+            }
+            else
+            {
+                roundText.text = $"라운드 {currentRound}";
             }
         }
         #endregion
@@ -608,9 +683,12 @@ namespace PawnSurvivors.UI
                         }
                     }
                     
-                    // 장착 아이템 표시 업데이트
-                    UpdateEquippedItemsUI(ui, playerIndex);
-                    
+                    // 장착 아이템 표시 업데이트 (메인 캐릭터만)
+                    if (ui.isMainCharacter)
+                    {
+                        UpdateEquippedItemsUI(ui, playerIndex);
+                    }
+
                     // UI 활성화 (레벨업 시스템이 있든 없든 표시)
                     ui.rootObject.SetActive(true);
                     activeUICount++;
@@ -663,7 +741,7 @@ namespace PawnSurvivors.UI
             levelUpContainer.anchorMax = new Vector2(0f, 1f);
             levelUpContainer.pivot = new Vector2(0f, 1f);
             levelUpContainer.anchoredPosition = new Vector2(20f, -20f);
-            levelUpContainer.sizeDelta = new Vector2(500f, 600f); // 더 넓고 높게
+            levelUpContainer.sizeDelta = new Vector2(500f, 500f); // 1 메인(110px) + 6 서포트(40px*6) 충분
             
             // VerticalLayoutGroup 추가 (자동 정렬)
             var layoutGroup = containerObj.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
@@ -704,6 +782,7 @@ namespace PawnSurvivors.UI
         
         /// <summary>
         /// 캐릭터 수에 맞게 UI를 재생성합니다.
+        /// 메인 캐릭터(index=0)는 상세 UI, 서포트 캐릭터(index>0)는 간소화된 UI
         /// </summary>
         private void RebuildCharacterUIs(int count)
         {
@@ -720,19 +799,19 @@ namespace PawnSurvivors.UI
                 _characterUIs.Clear();
                 return;
             }
-            
+
             // levelUpContainer 확인
             if (levelUpContainer == null)
             {
                 EnsureLevelUpContainer();
             }
-            
+
             if (levelUpContainer == null)
             {
                 LogManager.LogError(LogCategory.UI, "LevelUpContainer가 없어 UI를 생성할 수 없습니다.");
                 return;
             }
-            
+
             // 기존 UI 삭제
             foreach (var ui in _characterUIs)
             {
@@ -742,25 +821,25 @@ namespace PawnSurvivors.UI
                 }
             }
             _characterUIs.Clear();
-            
-            // 새 UI 생성 (각각 다른 위치에 배치)
+
+            // 새 UI 생성 (메인 캐릭터는 상세, 서포트는 간소화)
             for (int i = 0; i < count; i++)
             {
-                var newUI = CreateCharacterLevelUI(i);
+                bool isMain = (i == 0);
+                var newUI = isMain ? CreateMainCharacterUI(i) : CreateSupportCharacterUI(i);
                 if (newUI != null)
                 {
+                    newUI.isMainCharacter = isMain;
                     _characterUIs.Add(newUI);
                 }
             }
-            
-            // Debug.Log($"[StageScreen] {count}개의 캐릭터 UI를 재생성했습니다.");
         }
         
         /// <summary>
-        /// 개별 캐릭터의 레벨 UI를 생성합니다.
+        /// 메인 캐릭터(index=0)용 상세 UI를 생성합니다.
+        /// 체력바, DPS, 레벨업 진행도, 장착 아이템 표시
         /// </summary>
-        /// <param name="index">캐릭터 인덱스 (위치 계산용)</param>
-        private CharacterLevelUI CreateCharacterLevelUI(int index)
+        private CharacterLevelUI CreateMainCharacterUI(int index)
         {
             if (levelUpContainer == null)
             {
@@ -1005,7 +1084,100 @@ namespace PawnSurvivors.UI
             
             return ui;
         }
-        
+
+        /// <summary>
+        /// 서포트 캐릭터(index>0)용 간소화된 UI를 생성합니다.
+        /// DPS(공격 스탯)만 표시
+        /// </summary>
+        private CharacterLevelUI CreateSupportCharacterUI(int index)
+        {
+            if (levelUpContainer == null)
+            {
+                LogManager.LogError(LogCategory.UI, "CreateSupportCharacterUI: levelUpContainer가 null입니다.");
+                return null;
+            }
+
+            var ui = new CharacterLevelUI();
+
+            // 루트 GameObject
+            ui.rootObject = new GameObject($"SupportCharacterUI_{index}");
+            ui.rootObject.transform.SetParent(levelUpContainer, false);
+
+            var rectTransform = ui.rootObject.AddComponent<RectTransform>();
+
+            // 각 UI의 위치를 인덱스에 따라 계산
+            // 서포트 캐릭터는 메인보다 작은 높이 (40px)
+            float mainUIHeight = 110f; // 메인 UI 높이
+            float supportUIHeight = 40f; // 서포트 UI 높이
+            float spacing = 10f;
+            float startY = -15f;
+
+            // 메인 UI 아래에 배치
+            float yPosition = startY - mainUIHeight - spacing - ((index - 1) * (supportUIHeight + spacing));
+
+            rectTransform.anchorMin = new Vector2(0f, 1f);
+            rectTransform.anchorMax = new Vector2(0f, 1f);
+            rectTransform.pivot = new Vector2(0f, 1f);
+            rectTransform.anchoredPosition = new Vector2(15f, yPosition);
+            rectTransform.sizeDelta = new Vector2(480f, supportUIHeight);
+
+            // 배경 이미지
+            var bgImage = ui.rootObject.AddComponent<Image>();
+            bgImage.color = new Color(0.1f, 0.1f, 0.1f, 0.3f); // 더 투명한 배경
+
+            // 이름 텍스트 (좌측)
+            var nameTextObj = new GameObject("NameText");
+            var nameRect = nameTextObj.AddComponent<RectTransform>();
+            nameTextObj.transform.SetParent(ui.rootObject.transform, false);
+            ui.nameAndLevelText = nameTextObj.AddComponent<TextMeshProUGUI>();
+            ui.nameAndLevelText.text = "Support Lv.1";
+            ui.nameAndLevelText.fontSize = 18;
+            ui.nameAndLevelText.color = new Color(0.8f, 0.8f, 0.8f, 1f); // 약간 어두운 흰색
+            ui.nameAndLevelText.alignment = TextAlignmentOptions.Left;
+
+            if (_koreanFont != null)
+            {
+                ui.nameAndLevelText.font = _koreanFont;
+            }
+
+            nameRect.anchorMin = new Vector2(0f, 0f);
+            nameRect.anchorMax = new Vector2(0.5f, 1f);
+            nameRect.pivot = new Vector2(0f, 0.5f);
+            nameRect.anchoredPosition = new Vector2(10f, 0f);
+            nameRect.sizeDelta = new Vector2(-20f, 0f);
+
+            // DPS 텍스트 (우측) - 서포트는 이것만 표시
+            var dpsTextObj = new GameObject("DPSText");
+            var dpsTextRect = dpsTextObj.AddComponent<RectTransform>();
+            dpsTextObj.transform.SetParent(ui.rootObject.transform, false);
+            ui.dpsText = dpsTextObj.AddComponent<TextMeshProUGUI>();
+            ui.dpsText.text = "DPS: 0";
+            ui.dpsText.fontSize = 18;
+            ui.dpsText.color = new Color(0.5f, 0.8f, 1f, 1f); // 연한 파란색
+            ui.dpsText.alignment = TextAlignmentOptions.Right;
+
+            if (_koreanFont != null)
+            {
+                ui.dpsText.font = _koreanFont;
+            }
+
+            dpsTextRect.anchorMin = new Vector2(0.5f, 0f);
+            dpsTextRect.anchorMax = new Vector2(1f, 1f);
+            dpsTextRect.pivot = new Vector2(1f, 0.5f);
+            dpsTextRect.anchoredPosition = new Vector2(-10f, 0f);
+            dpsTextRect.sizeDelta = new Vector2(-20f, 0f);
+
+            // 서포트 캐릭터는 체력바, 레벨업 진행도 없음
+            ui.healthText = null;
+            ui.healthBar = null;
+            ui.progressText = null;
+            ui.progressBar = null;
+            ui.equippedItemsContainer = null;
+            ui.equippedItemIcons = new List<GameObject>();
+
+            return ui;
+        }
+
         /// <summary>
         /// 특정 Pawn의 장착 아이템 UI를 업데이트합니다.
         /// </summary>
@@ -1139,61 +1311,79 @@ namespace PawnSurvivors.UI
         private void EnsureGlobalItemsContainer()
         {
             if (_globalItemsContainer != null) return;
-            
+
             if (levelUpContainer == null)
             {
                 EnsureLevelUpContainer();
             }
-            
+
             if (levelUpContainer == null) return;
-            
-            // 전역 아이템 컨테이너 생성 (LevelUpContainer 아래에 배치)
+
+            // 전역 아이템 컨테이너 생성 (화면 우측 하단에 배치)
             var globalItemsObj = new GameObject("GlobalItemsContainer");
             var globalItemsRect = globalItemsObj.AddComponent<RectTransform>();
             globalItemsObj.transform.SetParent(levelUpContainer.parent, false);
             _globalItemsContainer = globalItemsObj;
-            
-            // LevelUpContainer 아래에 배치
-            globalItemsRect.anchorMin = new Vector2(0f, 1f);
-            globalItemsRect.anchorMax = new Vector2(0f, 1f);
-            globalItemsRect.pivot = new Vector2(0f, 1f);
-            globalItemsRect.anchoredPosition = new Vector2(20f, -620f); // LevelUpContainer 아래
-            globalItemsRect.sizeDelta = new Vector2(500f, 100f);
-            
+
+            // 우측 하단에 배치
+            globalItemsRect.anchorMin = new Vector2(1f, 0f);
+            globalItemsRect.anchorMax = new Vector2(1f, 0f);
+            globalItemsRect.pivot = new Vector2(1f, 0f);
+            globalItemsRect.anchoredPosition = new Vector2(-20f, 20f);
+            globalItemsRect.sizeDelta = new Vector2(300f, 80f);
+
             // 배경
             var bg = globalItemsObj.AddComponent<Image>();
-            bg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
-            
-            // 제목
+            bg.color = new Color(0.1f, 0.1f, 0.1f, 0.7f);
+
+            // 제목 (상단에 고정, LayoutGroup 영향 안 받게 별도 구조)
             var titleObj = new GameObject("Title");
             var titleRect = titleObj.AddComponent<RectTransform>();
             titleObj.transform.SetParent(globalItemsObj.transform, false);
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
             titleRect.pivot = new Vector2(0f, 1f);
-            titleRect.anchoredPosition = new Vector2(10f, -10f);
-            titleRect.sizeDelta = new Vector2(-20f, 30f);
-            
+            titleRect.anchoredPosition = new Vector2(10f, -5f);
+            titleRect.sizeDelta = new Vector2(-20f, 25f);
+
             var titleText = titleObj.AddComponent<TextMeshProUGUI>();
             titleText.text = "전역 아이템";
-            titleText.fontSize = 20;
+            titleText.fontSize = 16;
             titleText.color = Color.white;
             titleText.alignment = TextAlignmentOptions.Left;
-            
+
             // 무조건 NanumGothic SDF 폰트 사용
             if (_koreanFont != null)
             {
                 titleText.font = _koreanFont;
             }
-            
-            // HorizontalLayoutGroup 추가
-            var horizontalLayout = globalItemsObj.AddComponent<HorizontalLayoutGroup>();
-            horizontalLayout.spacing = 10f;
-            horizontalLayout.padding = new RectOffset(10, 10, 40, 10); // 상단 패딩 40 (제목 공간)
+
+            // LayoutIgnorer 추가 (제목이 레이아웃에 영향받지 않도록)
+            var layoutElement = titleObj.AddComponent<LayoutElement>();
+            layoutElement.ignoreLayout = true;
+
+            // 아이콘 컨테이너 (제목 아래)
+            var iconsContainerObj = new GameObject("IconsContainer");
+            var iconsContainerRect = iconsContainerObj.AddComponent<RectTransform>();
+            iconsContainerObj.transform.SetParent(globalItemsObj.transform, false);
+            iconsContainerRect.anchorMin = new Vector2(0f, 0f);
+            iconsContainerRect.anchorMax = new Vector2(1f, 1f);
+            iconsContainerRect.pivot = new Vector2(0f, 0f);
+            iconsContainerRect.anchoredPosition = Vector2.zero;
+            iconsContainerRect.sizeDelta = Vector2.zero;
+
+            // HorizontalLayoutGroup은 아이콘 컨테이너에 추가
+            var horizontalLayout = iconsContainerObj.AddComponent<HorizontalLayoutGroup>();
+            horizontalLayout.spacing = 8f;
+            horizontalLayout.padding = new RectOffset(10, 10, 30, 10); // 상단 30 (제목 공간)
             horizontalLayout.childControlWidth = false;
             horizontalLayout.childControlHeight = false;
             horizontalLayout.childForceExpandWidth = false;
             horizontalLayout.childForceExpandHeight = false;
+            horizontalLayout.childAlignment = TextAnchor.MiddleLeft;
+
+            // 아이콘은 이 컨테이너에 추가되도록 참조 변경
+            _globalItemsContainer = iconsContainerObj;
         }
         
         /// <summary>

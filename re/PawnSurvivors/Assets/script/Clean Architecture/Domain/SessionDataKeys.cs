@@ -113,9 +113,9 @@ namespace PawnSurvivors.Domain
     public static class GameConstants
     {
         /// <summary>
-        /// 최대 보유 가능한 캐릭터 종류 수
+        /// 최대 보유 가능한 캐릭터 종류 수 (1 메인 + 6 서포트)
         /// </summary>
-        public const int MAX_CHARACTER_TYPES = 6;
+        public const int MAX_CHARACTER_TYPES = 7;
     }
 
     /// <summary>

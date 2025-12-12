@@ -98,12 +98,8 @@ namespace PawnSurvivors.Domain.Usecases
 
             var weightedSlots = new List<ShopSlotData>();
 
-            // 1. 모든 아이템 가져오기
             List<ItemData> allItems = _itemPoolUseCase.GetRandomShopItems(9999, excludeOwnedItems, _itemRepository, excludeItemIds);
-            
-            PawnSurvivors.Managers.LogManager.LogInfo(PawnSurvivors.Managers.LogCategory.System, 
-                $"[ShopUseCase] 아이템 {allItems.Count}개, 캐릭터 가중치: {characterWeight}, 아이템 가중치: {itemWeight}");
-            
+
             // 아이템을 가중치만큼 리스트에 추가
             foreach (var item in allItems)
             {

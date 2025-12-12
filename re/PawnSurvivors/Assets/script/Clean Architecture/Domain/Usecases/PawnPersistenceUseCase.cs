@@ -212,18 +212,14 @@ namespace PawnSurvivors.Domain.Usecases
         {
             _sessionData.activePawnDataList.Clear();
 
-            if (playerPawns == null || playerPawns.Count == 0)
-            {
-                UnityEngine.Debug.Log("[PawnPersistenceUseCase] 저장할 활성 Pawn이 없습니다.");
-                return;
-            }
+            if (playerPawns == null || playerPawns.Count == 0) return;
 
             foreach (var pawn in playerPawns)
             {
                 if (pawn == null) continue;
 
                 var pawnManager = pawn.GetComponent<PawnManager>();
-                if (pawnManager == null || pawnManager.PawnData == null) continue;
+                if (pawnManager?.PawnData == null) continue;
 
                 bool isAlive = pawn.activeInHierarchy;
                 var activePawnData = ActivePawnData.FromPawnData(pawnManager.PawnData, isAlive);
@@ -231,11 +227,8 @@ namespace PawnSurvivors.Domain.Usecases
                 if (activePawnData != null)
                 {
                     _sessionData.activePawnDataList.Add(activePawnData);
-                    UnityEngine.Debug.Log($"[PawnPersistenceUseCase] 활성 Pawn 저장: {activePawnData.characterType} (Index: {activePawnData.playerIndex}, Alive: {isAlive})");
                 }
             }
-
-            UnityEngine.Debug.Log($"[PawnPersistenceUseCase] 총 {_sessionData.activePawnDataList.Count}개의 활성 Pawn 저장 완료");
         }
 
         /// <summary>
@@ -262,7 +255,6 @@ namespace PawnSurvivors.Domain.Usecases
         public void ClearActivePawns()
         {
             _sessionData.activePawnDataList.Clear();
-            UnityEngine.Debug.Log("[PawnPersistenceUseCase] 활성 Pawn 목록 초기화됨");
         }
 
         /// <summary>
@@ -277,7 +269,7 @@ namespace PawnSurvivors.Domain.Usecases
             {
                 characterType = characterType,
                 playerIndex = newIndex,
-                currentHealth = 100f, // 기본값, 실제로는 레시피에서 로드 필요
+                currentHealth = 100f,
                 maxHealth = 100f,
                 experienceProgress = 0f,
                 upgradeLevel = 0,
@@ -285,7 +277,6 @@ namespace PawnSurvivors.Domain.Usecases
             };
 
             _sessionData.activePawnDataList.Add(newPawnData);
-            UnityEngine.Debug.Log($"[PawnPersistenceUseCase] 활성 Pawn 추가: {characterType} (Index: {newIndex})");
         }
 
         /// <summary>

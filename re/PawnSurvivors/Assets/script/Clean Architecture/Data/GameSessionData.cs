@@ -94,21 +94,86 @@ namespace PawnSurvivors.Data
         // ========================================
         
         /// <summary>
-        /// 세션 데이터를 초기화합니다. (새 게임 시작 시)
+        /// 스테이지 간 세션 데이터를 초기화합니다.
+        /// 스테이지 완료 후 다음 스테이지로 이동 시 호출됩니다.
+        /// 플레이어 데이터, 아이템 등은 유지됩니다.
         /// </summary>
         public void Reset()
         {
             currentStageName = "";
             gameStartTime = Time.time;
-            
+
             intValues.Clear();
             floatValues.Clear();
             stringValues.Clear();
             counterMaps.Clear();
             flagSets.Clear();
             // playerPawnPersistentData는 유지 (라운드 간 데이터이므로)
+            // activePawnDataList는 유지 (씬 전환 시 Pawn 복원용)
             // itemSessionData는 유지 (스테이지 간 아이템 유지)
-            // characterSelectionData는 유지 (재시작 시 같은 캐릭터로 시작)
+        }
+
+        /// <summary>
+        /// 완전히 새 게임을 시작할 때 호출합니다.
+        /// 캐릭터 선택으로 돌아갈 때 사용합니다.
+        /// 모든 데이터가 초기화됩니다 (저장된 캐릭터 선택 포함).
+        /// </summary>
+        public void ResetForNewGame()
+        {
+            currentStageName = "";
+            currentStageState = "NotStarted";
+            gameStartTime = Time.time;
+
+            // 모든 런타임 데이터 초기화
+            intValues.Clear();
+            floatValues.Clear();
+            stringValues.Clear();
+            counterMaps.Clear();
+            flagSets.Clear();
+
+            // 플레이어 데이터 초기화
+            playerPawnPersistentData.Clear();
+            activePawnDataList.Clear();
+
+            // 아이템 데이터 초기화
+            itemSessionData = new ItemSessionData();
+        }
+
+        /// <summary>
+        /// 게임오버 후 같은 캐릭터로 재시작할 때 호출합니다.
+        /// Pawn, 아이템 등 게임 진행 데이터는 초기화하지만
+        /// 저장된 캐릭터 선택은 유지합니다.
+        /// </summary>
+        public void ResetForRetry()
+        {
+            currentStageName = "";
+            currentStageState = "NotStarted";
+            gameStartTime = Time.time;
+
+            // 런타임 데이터 초기화 (캐릭터 선택 제외)
+            intValues.Clear();
+            floatValues.Clear();
+            stringValues.Clear();
+            counterMaps.Clear();
+
+            // selectedCharacters 플래그만 유지하고 나머지 초기화
+            HashSet<string> savedCharacters = null;
+            if (flagSets.ContainsKey("selectedCharacters"))
+            {
+                savedCharacters = new HashSet<string>(flagSets["selectedCharacters"]);
+            }
+            flagSets.Clear();
+            if (savedCharacters != null)
+            {
+                flagSets["selectedCharacters"] = savedCharacters;
+            }
+
+            // 플레이어 데이터 초기화
+            playerPawnPersistentData.Clear();
+            activePawnDataList.Clear();
+
+            // 아이템 데이터 초기화
+            itemSessionData = new ItemSessionData();
         }
         
         // ========================================

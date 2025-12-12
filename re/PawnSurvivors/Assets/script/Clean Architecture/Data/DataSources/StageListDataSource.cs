@@ -61,6 +61,36 @@ namespace PawnSurvivors.Data.DataSources
         }
 
         /// <summary>
+        /// 스테이지의 인덱스를 가져옵니다. (1-based)
+        /// </summary>
+        /// <param name="stageName">스테이지 이름</param>
+        /// <returns>스테이지 번호 (1부터 시작), 없으면 0</returns>
+        public int GetStageNumber(string stageName)
+        {
+            if (_stageList == null || _stageList.stages == null || _stageList.stages.Count == 0)
+            {
+                return 0;
+            }
+
+            int index = _stageList.stages.IndexOf(stageName);
+            return index >= 0 ? index + 1 : 0;
+        }
+
+        /// <summary>
+        /// 전체 스테이지 수를 가져옵니다.
+        /// </summary>
+        /// <returns>전체 스테이지 수</returns>
+        public int GetTotalStageCount()
+        {
+            if (_stageList == null || _stageList.stages == null)
+            {
+                return 0;
+            }
+
+            return _stageList.stages.Count;
+        }
+
+        /// <summary>
         /// 현재 스테이지의 다음 스테이지 이름을 가져옵니다.
         /// </summary>
         /// <param name="currentStageName">현재 스테이지 이름</param>
