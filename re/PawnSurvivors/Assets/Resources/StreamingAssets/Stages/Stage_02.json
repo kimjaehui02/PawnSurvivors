@@ -1,0 +1,21 @@
+{
+  "stageName": "Stage_02",
+  "spawnRadius": 10.0,
+  "spawnDistanceFromCamera": 2.0,
+  "stageDuration": 20.0,
+  "bgmName": "Audio/BGM",
+  "enemyWaves": [
+    {
+      "startTime": 0.0,
+      "endTime": -1,
+      "spawnInterval": 2.2,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 100
+        }
+      ]
+    }
+  ]
+}

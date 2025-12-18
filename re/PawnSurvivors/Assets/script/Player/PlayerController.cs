@@ -49,7 +49,7 @@ namespace PawnSurvivors.Player
         public FormationType formationType = FormationType.Polygon;
         
         [Tooltip("정다각형 반지름 (Polygon 타입일 때)")]
-        public float polygonRadius = 1.5f;
+        public float polygonRadius = 1.0f;
         
         [Tooltip("플레이어 폰의 크기 배율 (1.0 = 원본 크기)")]
         public float pawnScale = 1f;

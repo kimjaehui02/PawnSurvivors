@@ -1,17 +1,37 @@
 {
   "campaigns": [
     {
-      "id": "main",
-      "name": "메인 캠페인",
-      "description": "기본 난이도로 모든 스테이지를 클리어하세요",
-      "stages": ["DebugStage", "Stage1", "Stage2"]
+      "id": "standard",
+      "name": "스탠다드 캠페인",
+      "description": "20개의 스테이지를 클리어하세요",
+      "stages": [
+        "Stage_01",
+        "Stage_02",
+        "Stage_03",
+        "Stage_04",
+        "Stage_05",
+        "Stage_06",
+        "Stage_07",
+        "Stage_08",
+        "Stage_09",
+        "Stage_10",
+        "Stage_11",
+        "Stage_12",
+        "Stage_13",
+        "Stage_14",
+        "Stage_15",
+        "Stage_16",
+        "Stage_17",
+        "Stage_18",
+        "Stage_19",
+        "Stage_20"
+      ]
     },
     {
-      "id": "hard",
-      "name": "하드 모드",
-      "description": "더 강한 적들과 싸우세요",
-      "stages": ["Stage1", "Stage2"]
+      "id": "debug",
+      "name": "디버그 모드",
+      "description": "테스트용 스테이지",
+      "stages": ["DebugStage"]
     }
   ]
 }
-

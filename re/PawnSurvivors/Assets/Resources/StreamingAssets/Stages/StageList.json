@@ -1,9 +1,25 @@
 {
   "campaignName": "Main Campaign",
   "stages": [
-    "DebugStage",
-    "Stage1",
-    "Stage2"
+    "Stage_01",
+    "Stage_02",
+    "Stage_03",
+    "Stage_04",
+    "Stage_05",
+    "Stage_06",
+    "Stage_07",
+    "Stage_08",
+    "Stage_09",
+    "Stage_10",
+    "Stage_11",
+    "Stage_12",
+    "Stage_13",
+    "Stage_14",
+    "Stage_15",
+    "Stage_16",
+    "Stage_17",
+    "Stage_18",
+    "Stage_19",
+    "Stage_20"
   ]
 }
-

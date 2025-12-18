@@ -1,0 +1,29 @@
+{
+  "stageName": "Stage_14",
+  "spawnRadius": 10.0,
+  "spawnDistanceFromCamera": 2.0,
+  "stageDuration": 60.0,
+  "bgmName": "Audio/BGM",
+  "enemyWaves": [
+    {
+      "startTime": 0.0,
+      "endTime": -1,
+      "spawnInterval": 1.1,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 25
+        },
+        {
+          "recipeName": "EnemyShooter",
+          "weight": 35
+        },
+        {
+          "recipeName": "EnemyElite",
+          "weight": 40
+        }
+      ]
+    }
+  ]
+}

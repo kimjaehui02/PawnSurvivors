@@ -67,6 +67,12 @@ public class CollisionDamageSubManager : PawnSubManager
 
     private void ProcessCollision(Collider2D other)
     {
+        // null 체크 (자신 또는 대상이 파괴된 경우)
+        if (other == null || _pawnManager == null || gameObject == null)
+        {
+            return;
+        }
+
         // 이미 충돌 처리했으면 무시 (destroyOnHit이 true인 경우)
         if (destroyOnHit && _hasCollided)
         {
@@ -93,6 +99,12 @@ public class CollisionDamageSubManager : PawnSubManager
         // 상대방이 PawnManager를 가지고 있는지 확인
         if (other.TryGetComponent<PawnManager>(out var targetPawnManager))
         {
+            // 대상이 이미 파괴되었으면 무시
+            if (targetPawnManager == null || targetPawnManager.gameObject == null)
+            {
+                return;
+            }
+
             // DamageableSubManager가 있는 대상만 공격 (데미지를 받을 수 있는 대상만)
             // 코인처럼 DamageableSubManager가 없는 아이템은 자동으로 무시됨
             if (!targetPawnManager.TryGetComponent<DamageableSubManager>(out _))
@@ -129,9 +141,9 @@ public class CollisionDamageSubManager : PawnSubManager
             targetPawnManager.Publish(new DamageEvent(targetPawnManager, effectiveDamage, gameObject));
             
             // 임시 디버그 로그 (테스트용 - 문제 해결 후 제거)
-            if (Time.frameCount % 60 == 0) // 1초마다 한 번씩만 로그
+            if (Time.frameCount % 60 == 0 && targetPawnManager != null) // 1초마다 한 번씩만 로그
             {
-                Debug.Log($"[CollisionDamage] {gameObject.name} → {other.name}: base={_pawnData.combatData.damage}, effective={effectiveDamage}, owner={_pawnManager.Owner?.name}");
+                Debug.Log($"[CollisionDamage] {gameObject.name} → {targetPawnManager.name}: base={_pawnData.combatData.damage}, effective={effectiveDamage}, owner={_pawnManager.Owner?.name}");
             }
 
             // destroyOnHit이 true일 경우에만 자신 파괴 (발사체의 경우)

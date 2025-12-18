@@ -1,0 +1,41 @@
+{
+  "stageName": "Stage_20",
+  "spawnRadius": 10.0,
+  "spawnDistanceFromCamera": 2.0,
+  "stageDuration": 60.0,
+  "bgmName": "Audio/BGM",
+  "enemyWaves": [
+    {
+      "startTime": 0.0,
+      "endTime": 40.0,
+      "spawnInterval": 0.8,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "Enemy",
+          "weight": 10
+        },
+        {
+          "recipeName": "EnemyShooter",
+          "weight": 40
+        },
+        {
+          "recipeName": "EnemyElite",
+          "weight": 50
+        }
+      ]
+    },
+    {
+      "startTime": 40.0,
+      "endTime": -1,
+      "spawnInterval": 5.0,
+      "spawnOnce": false,
+      "enemyTypes": [
+        {
+          "recipeName": "EnemyBoss",
+          "weight": 100
+        }
+      ]
+    }
+  ]
+}
