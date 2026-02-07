@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using PawnSurvivors.Managers;
 
-namespace PawnSurvivors.UI
+namespace PawnSurvivors.UI.Legacy
 {
     /// <summary>
     /// 옵션 메인 화면입니다. 하위 옵션 메뉴들을 선택할 수 있습니다.

@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using PawnSurvivors.Managers;
 
-namespace PawnSurvivors.UI
+namespace PawnSurvivors.UI.Legacy
 {
     /// <summary>
     /// 일시정지 메뉴 화면입니다. 코드로 UI를 생성합니다.

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using PawnSurvivors.Domain;
 using PawnSurvivors.Managers;
 
-namespace PawnSurvivors.UI
+namespace PawnSurvivors.UI.Legacy
 {
     public class ShopPawnListScreen : MonoBehaviour
     {

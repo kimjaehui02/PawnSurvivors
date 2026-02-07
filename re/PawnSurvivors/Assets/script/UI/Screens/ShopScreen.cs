@@ -1,243 +1,424 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
+using System.Linq;
 using PawnSurvivors.Managers;
+using PawnSurvivors.Domain.Usecases;
+using PawnSurvivors.Domain.States;
+using PawnSurvivors.UI.Factory;
+using PawnSurvivors.Data;
 
 namespace PawnSurvivors.UI
 {
     /// <summary>
-    /// 상점 화면입니다. 순수 코딩으로 생성됩니다.
+    /// 상점 화면입니다. Builder를 사용하여 UI를 생성합니다.
     /// </summary>
     public class ShopScreen : MonoBehaviour
     {
+        #region Constants
+        private const int SLOT_COUNT = 4;
+        private const int BASE_RESET_COST = 1;
+        #endregion
+
+        #region State
+        private int _resetCost;
+        private List<ShopSlotData> _currentSlots = new();
+        private bool[] _lockedSlots;
+        private bool[] _purchasedSlots;
+        #endregion
+
+        #region References
         private Canvas _canvas;
-        private GameObject _rootPanel;
-        private Button _nextStageButton;
-        private Button _exitButton;
-        private bool _uiCreated = false;
+        private ShopUseCase _shopUseCase;
+        private CurrencyUseCase _currencyUseCase;
+        private ItemManagementUseCase _itemManagementUseCase;
+        #endregion
+
+        #region UI Components
+        private ShopUIBuilder.ShopLayout _layout;
+        #endregion
+
+        #region Unity Lifecycle
+
+        private void Awake()
+        {
+            SetupCanvas();
+            _lockedSlots = new bool[SLOT_COUNT];
+            _purchasedSlots = new bool[SLOT_COUNT];
+        }
 
         private void Start()
         {
-            if (!_uiCreated)
-            {
-                CreateShopUI();
-                _uiCreated = true;
-            }
+            InitializeUseCases();
+            CreateUI();
+            RefreshShop();
         }
 
-        private void OnEnable()
+        private void Update()
         {
-            // 화면이 활성화될 때 UI가 생성되어 있지 않으면 생성
-            if (!_uiCreated)
-            {
-                CreateShopUI();
-                _uiCreated = true;
-            }
-            
-            // UI가 이미 생성되어 있으면 _rootPanel 활성화
-            if (_rootPanel != null)
-            {
-                _rootPanel.SetActive(true);
-            }
+            HandleInput();
         }
 
-        private void OnDisable()
+        #endregion
+
+        #region Initialization
+
+        private void SetupCanvas()
         {
-            // 화면이 비활성화될 때 _rootPanel도 함께 숨김
-            if (_rootPanel != null)
-            {
-                _rootPanel.SetActive(false);
-            }
+            _canvas = UIFactory.SetupCanvas(gameObject);
         }
 
-        private void CreateShopUI()
+        private void InitializeUseCases()
         {
-            // Canvas 찾기 또는 생성
-            _canvas = GetComponentInParent<Canvas>();
-            if (_canvas == null)
-            {
-                _canvas = FindFirstObjectByType<Canvas>();
-            }
-            
-            if (_canvas == null)
-            {
-                GameObject canvasObj = new GameObject("ShopCanvas");
-                _canvas = canvasObj.AddComponent<Canvas>();
-                _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
-                canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-            }
-            
-            // 골드 UI 추가
-            if (GetComponent<CurrencyUI>() == null)
-            {
-                var currencyUI = gameObject.AddComponent<CurrencyUI>();
-                currencyUI.anchorPosition = new Vector2(0.95f, 0.95f); // 우측 상단
-            }
+            if (GameManager.Instance == null) return;
 
-            // 한글 폰트 로드 (Assets/Fonts/NanumGothic SDF.asset)
-            TMP_FontAsset nanumFont = null;
-            // Resources에서 먼저 찾기
-            nanumFont = Resources.Load<TMP_FontAsset>("Fonts/NanumGothic SDF");
-            if (nanumFont == null)
-            {
-                // Resources에 없으면 Assets/Fonts에서 직접 찾기 (에디터 전용)
-                #if UNITY_EDITOR
-                nanumFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/NanumGothic SDF.asset");
-                #endif
-            }
-            
-            if (nanumFont == null)
-            {
-                LogManager.LogWarning(LogCategory.UI, "NanumGothic SDF 폰트를 찾을 수 없습니다. Assets/Fonts/NanumGothic SDF.asset 파일을 확인하세요.");
-            }
-
-            // 루트 패널 생성
-            _rootPanel = new GameObject("ShopPanel");
-            _rootPanel.transform.SetParent(_canvas.transform, false);
-            
-            var panelRect = _rootPanel.AddComponent<RectTransform>();
-            panelRect.anchorMin = Vector2.zero;
-            panelRect.anchorMax = Vector2.one;
-            panelRect.sizeDelta = Vector2.zero;
-            panelRect.anchoredPosition = Vector2.zero;
-            
-            var panelImage = _rootPanel.AddComponent<Image>();
-            panelImage.color = new Color(0.1f, 0.1f, 0.15f, 1f); // 어두운 배경
-
-            // 제목 텍스트
-            var titleObj = new GameObject("TitleText");
-            titleObj.transform.SetParent(_rootPanel.transform, false);
-            var titleRect = titleObj.AddComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0.5f, 0.8f);
-            titleRect.anchorMax = new Vector2(0.5f, 0.8f);
-            titleRect.pivot = new Vector2(0.5f, 0.5f);
-            titleRect.sizeDelta = new Vector2(400f, 80f);
-            titleRect.anchoredPosition = Vector2.zero;
-            
-            var titleText = titleObj.AddComponent<TextMeshProUGUI>();
-            titleText.text = "상점";
-            titleText.fontSize = 48;
-            titleText.color = Color.white;
-            titleText.alignment = TextAlignmentOptions.Center;
-            if (nanumFont != null)
-            {
-                titleText.font = nanumFont;
-            }
-
-            // 다음 스테이지 버튼
-            var buttonObj = new GameObject("NextStageButton");
-            buttonObj.transform.SetParent(_rootPanel.transform, false);
-            var buttonRect = buttonObj.AddComponent<RectTransform>();
-            buttonRect.anchorMin = new Vector2(0.5f, 0.2f);
-            buttonRect.anchorMax = new Vector2(0.5f, 0.2f);
-            buttonRect.pivot = new Vector2(0.5f, 0.5f);
-            buttonRect.sizeDelta = new Vector2(300f, 60f);
-            buttonRect.anchoredPosition = Vector2.zero;
-            
-            _nextStageButton = buttonObj.AddComponent<Button>();
-            var buttonImage = buttonObj.AddComponent<Image>();
-            buttonImage.color = new Color(0.2f, 0.6f, 0.2f, 1f); // 녹색 버튼
-            
-            // 버튼 텍스트
-            var buttonTextObj = new GameObject("Text");
-            buttonTextObj.transform.SetParent(buttonObj.transform, false);
-            var buttonTextRect = buttonTextObj.AddComponent<RectTransform>();
-            buttonTextRect.anchorMin = Vector2.zero;
-            buttonTextRect.anchorMax = Vector2.one;
-            buttonTextRect.sizeDelta = Vector2.zero;
-            buttonTextRect.anchoredPosition = Vector2.zero;
-            
-            var buttonText = buttonTextObj.AddComponent<TextMeshProUGUI>();
-            buttonText.text = "다음 스테이지";
-            buttonText.fontSize = 24;
-            buttonText.color = Color.white;
-            buttonText.alignment = TextAlignmentOptions.Center;
-            if (nanumFont != null)
-            {
-                buttonText.font = nanumFont;
-            }
-            
-            _nextStageButton.targetGraphic = buttonImage;
-            _nextStageButton.onClick.AddListener(OnNextStageButtonClicked);
-
-            // 종료 버튼 (메인 메뉴로)
-            var exitButtonObj = new GameObject("ExitButton");
-            exitButtonObj.transform.SetParent(_rootPanel.transform, false);
-            var exitButtonRect = exitButtonObj.AddComponent<RectTransform>();
-            exitButtonRect.anchorMin = new Vector2(0.5f, 0.1f);
-            exitButtonRect.anchorMax = new Vector2(0.5f, 0.1f);
-            exitButtonRect.pivot = new Vector2(0.5f, 0.5f);
-            exitButtonRect.sizeDelta = new Vector2(300f, 60f);
-            exitButtonRect.anchoredPosition = Vector2.zero;
-            
-            _exitButton = exitButtonObj.AddComponent<Button>();
-            var exitButtonImage = exitButtonObj.AddComponent<Image>();
-            exitButtonImage.color = new Color(0.6f, 0.2f, 0.2f, 1f); // 빨간색 버튼
-            
-            // 종료 버튼 텍스트
-            var exitButtonTextObj = new GameObject("Text");
-            exitButtonTextObj.transform.SetParent(exitButtonObj.transform, false);
-            var exitButtonTextRect = exitButtonTextObj.AddComponent<RectTransform>();
-            exitButtonTextRect.anchorMin = Vector2.zero;
-            exitButtonTextRect.anchorMax = Vector2.one;
-            exitButtonTextRect.sizeDelta = Vector2.zero;
-            exitButtonTextRect.anchoredPosition = Vector2.zero;
-            
-            var exitButtonText = exitButtonTextObj.AddComponent<TextMeshProUGUI>();
-            exitButtonText.text = "메인 메뉴로";
-            exitButtonText.fontSize = 24;
-            exitButtonText.color = Color.white;
-            exitButtonText.alignment = TextAlignmentOptions.Center;
-            if (nanumFont != null)
-            {
-                exitButtonText.font = nanumFont;
-            }
-            
-            _exitButton.targetGraphic = exitButtonImage;
-            _exitButton.onClick.AddListener(OnExitButtonClicked);
-
-            // 기본적으로 숨김
-            gameObject.SetActive(false);
+            _shopUseCase = GameManager.Instance.ShopUseCase;
+            _currencyUseCase = GameManager.Instance.CurrencyUseCase;
+            _itemManagementUseCase = GameManager.Instance.ItemManagementUseCase;
+            _resetCost = BASE_RESET_COST;
         }
 
-        private void OnNextStageButtonClicked()
+        private void CreateUI()
         {
-            if (GameManager.Instance != null && GameManager.Instance.StageManagementUseCase != null)
+            _layout = ShopUIBuilder.CreateShopLayout(
+                transform,
+                SLOT_COUNT,
+                onBuyClicked: OnItemBuyClicked,
+                onLockClicked: OnItemLockClicked,
+                onResetClicked: OnResetClicked,
+                onNextWaveClicked: OnNextWaveClicked
+            );
+
+            UpdateTitle();
+            UpdateGoldDisplay();
+            UpdateNextWaveButton();
+        }
+
+        #endregion
+
+        #region Shop Logic
+
+        private void RefreshShop()
+        {
+            // 잠긴 슬롯의 아이템 ID 수집
+            var lockedItemIds = new List<string>();
+            for (int i = 0; i < SLOT_COUNT && i < _currentSlots.Count; i++)
             {
-                // 다음 스테이지 이름 가져오기
-                string nextStageName = GameManager.Instance.StageManagementUseCase.GetNextStageName();
-                
-                if (string.IsNullOrEmpty(nextStageName))
+                if (_lockedSlots[i] && _currentSlots[i]?.itemData != null)
                 {
-                    // 마지막 스테이지면 게임오버 화면으로 (모든 스테이지 클리어)
-                    LogManager.LogInfo(LogCategory.Stage, "모든 스테이지를 완료했습니다!");
-                    if (GameStateManager.Instance != null)
+                    lockedItemIds.Add(_currentSlots[i].itemData.itemId);
+                }
+            }
+
+            // 필요한 슬롯 수 계산
+            int neededCount = 0;
+            for (int i = 0; i < SLOT_COUNT; i++)
+            {
+                if (!_lockedSlots[i] || i >= _currentSlots.Count)
+                {
+                    neededCount++;
+                }
+            }
+
+            // 새로운 아이템 가져오기
+            var newSlots = _shopUseCase?.GetRandomShopSlots(neededCount, excludeItemIds: lockedItemIds)
+                           ?? new List<ShopSlotData>();
+
+            // 슬롯 업데이트
+            var updatedSlots = new List<ShopSlotData>();
+            int newSlotIndex = 0;
+            for (int i = 0; i < SLOT_COUNT; i++)
+            {
+                if (_lockedSlots[i] && i < _currentSlots.Count)
+                {
+                    // 잠긴 슬롯은 유지
+                    updatedSlots.Add(_currentSlots[i]);
+                }
+                else if (newSlotIndex < newSlots.Count)
+                {
+                    updatedSlots.Add(newSlots[newSlotIndex++]);
+                    _purchasedSlots[i] = false;
+                }
+                else
+                {
+                    // 빈 슬롯
+                    updatedSlots.Add(null);
+                    _purchasedSlots[i] = false;
+                }
+            }
+
+            _currentSlots = updatedSlots;
+            UpdateAllSlots();
+            UpdateGoldDisplay();
+        }
+
+        private void UpdateAllSlots()
+        {
+            for (int i = 0; i < SLOT_COUNT && i < _currentSlots.Count; i++)
+            {
+                var slot = _layout.SlotContainer.GetSlot(i);
+                var slotData = _currentSlots[i];
+
+                if (slot == null) continue;
+
+                if (slotData == null)
+                {
+                    slot.SetData("비어있음", "", "아이템이 없습니다", 0, null);
+                    slot.SetCanAfford(false);
+                    continue;
+                }
+
+                // 아이템 또는 캐릭터에 따라 정보 표시
+                string name, typeText, description;
+                int cost;
+                Sprite icon = null;
+
+                if (slotData.slotType == ShopSlotType.Item && slotData.itemData != null)
+                {
+                    var item = slotData.itemData;
+                    name = item.itemName;
+                    typeText = GetItemTypeText(item.itemType.ToString());
+                    description = item.description;
+                    cost = item.cost;
+                    if (!string.IsNullOrEmpty(item.iconPath))
                     {
-                        GameStateManager.Instance.GoToGameOver();
+                        icon = Resources.Load<Sprite>(item.iconPath);
                     }
+                }
+                else if (slotData.slotType == ShopSlotType.Character && slotData.characterRecipe != null)
+                {
+                    name = slotData.characterRecipeName ?? "캐릭터";
+                    typeText = "캐릭터";
+                    description = slotData.characterRecipe.description ?? "";
+                    cost = 50; // 캐릭터 기본 가격
+                    // icon = slotData.characterRecipe.icon; // 필요시 설정
+                }
+                else
+                {
+                    slot.SetData("비어있음", "", "아이템이 없습니다", 0, null);
+                    slot.SetCanAfford(false);
+                    continue;
+                }
+
+                slot.SetData(name, typeText, description, cost, icon);
+                slot.SetLocked(_lockedSlots[i]);
+                slot.SetPurchased(_purchasedSlots[i]);
+
+                int gold = _currencyUseCase?.GetGold() ?? 0;
+                slot.SetCanAfford(gold >= cost);
+            }
+        }
+
+        private string GetItemTypeText(string type)
+        {
+            return type switch
+            {
+                "Global" => "전역",
+                "Equipped" => "장비",
+                "Weapon" => "무기",
+                "Armor" => "방어구",
+                "Accessory" => "악세서리",
+                "Consumable" => "소모품",
+                _ => type
+            };
+        }
+
+        #endregion
+
+        #region Event Handlers
+
+        private void OnItemBuyClicked(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= _currentSlots.Count) return;
+            if (_purchasedSlots[slotIndex]) return;
+
+            var slotData = _currentSlots[slotIndex];
+            if (slotData == null) return;
+
+            int cost = GetSlotCost(slotData);
+            int gold = _currencyUseCase?.GetGold() ?? 0;
+
+            if (gold < cost)
+            {
+                LogManager.LogWarning(LogCategory.UI, "골드가 부족합니다.");
+                return;
+            }
+
+            // 구매 처리
+            bool success = false;
+            if (slotData.slotType == ShopSlotType.Item && slotData.itemData != null)
+            {
+                success = _itemManagementUseCase?.BuyItem(slotData.itemData) ?? false;
+            }
+            else if (slotData.slotType == ShopSlotType.Character)
+            {
+                // 캐릭터 구매 로직 (나중에 구현)
+                _currencyUseCase?.SpendGold(cost);
+                success = true;
+                LogManager.LogInfo(LogCategory.UI, $"캐릭터 구매: {slotData.characterRecipeName}");
+            }
+
+            if (success)
+            {
+                _purchasedSlots[slotIndex] = true;
+
+                // UI 업데이트
+                _layout.SlotContainer.GetSlot(slotIndex)?.SetPurchased(true);
+                UpdateGoldDisplay();
+                UpdateAllSlots();
+
+                string itemName = slotData.slotType == ShopSlotType.Item
+                    ? slotData.itemData?.itemName
+                    : slotData.characterRecipeName;
+                LogManager.LogInfo(LogCategory.UI, $"구매 완료: {itemName}");
+            }
+        }
+
+        private int GetSlotCost(ShopSlotData slotData)
+        {
+            if (slotData.slotType == ShopSlotType.Item && slotData.itemData != null)
+            {
+                return slotData.itemData.cost;
+            }
+            else if (slotData.slotType == ShopSlotType.Character)
+            {
+                return 50; // 캐릭터 기본 가격
+            }
+            return 0;
+        }
+
+        private void OnItemLockClicked(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= SLOT_COUNT) return;
+
+            _lockedSlots[slotIndex] = !_lockedSlots[slotIndex];
+            _layout.SlotContainer.GetSlot(slotIndex)?.SetLocked(_lockedSlots[slotIndex]);
+        }
+
+        private void OnResetClicked()
+        {
+            int gold = _currencyUseCase?.GetGold() ?? 0;
+
+            if (gold < _resetCost)
+            {
+                LogManager.LogWarning(LogCategory.UI, "골드가 부족합니다.");
+                return;
+            }
+
+            // 비용 지불
+            _currencyUseCase?.SpendGold(_resetCost);
+            _resetCost++;
+
+            // 상점 새로고침
+            RefreshShop();
+
+            // 리셋 버튼 텍스트 업데이트
+            _layout.TopBar.SetResetCost(_resetCost);
+
+            LogManager.LogInfo(LogCategory.UI, "상점 초기화");
+        }
+
+        private void OnNextWaveClicked()
+        {
+            if (GameFlowController.Instance != null)
+            {
+                if (!GameFlowController.Instance.HasNextStage())
+                {
+                    // 모든 스테이지 완료
+                    LogManager.LogInfo(LogCategory.Stage, "모든 스테이지를 완료했습니다!");
+                    GameStateManager.Instance?.GoToGameOver();
                     return;
                 }
-                
-                // 다음 스테이지로 이동: StageState로 전환 (씬 전환)
-                // StageState.OnEnter()에서 스테이지 시작 처리
-                if (GameStateManager.Instance != null)
+
+                // 다음 스테이지 준비 및 이동
+                string nextStageName = GameFlowController.Instance.GetNextStageName();
+                GameManager.Instance?.StageManagementUseCase?.PrepareStageStart(nextStageName, shouldResetSession: false);
+                GameStateManager.Instance?.GoToStage();
+            }
+            else
+            {
+                // Fallback
+                string nextStageName = GameManager.Instance?.StageManagementUseCase?.GetNextStageName();
+                if (string.IsNullOrEmpty(nextStageName))
                 {
-                    // 다음 스테이지 이름 설정
-                    GameManager.Instance.StageManagementUseCase.PrepareStageStart(nextStageName, shouldResetSession: false);
-                    GameStateManager.Instance.GoToStage();
+                    GameStateManager.Instance?.GoToGameOver();
+                    return;
+                }
+
+                GameManager.Instance?.StageManagementUseCase?.PrepareStageStart(nextStageName, shouldResetSession: false);
+                GameStateManager.Instance?.GoToStage();
+            }
+        }
+
+        #endregion
+
+        #region Input
+
+        private void HandleInput()
+        {
+            // F키 - 상점 초기화
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                OnResetClicked();
+            }
+
+            // E키 - 슬롯 잠금 (1~4)
+            for (int i = 0; i < SLOT_COUNT; i++)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i) && Input.GetKey(KeyCode.E))
+                {
+                    OnItemLockClicked(i);
                 }
             }
-        }
 
-        private void OnExitButtonClicked()
-        {
-            // GameStateManager를 통해 CharacterSelectState로 전환 (씬 전환)
-            if (GameStateManager.Instance != null)
+            // Space 또는 Enter - 다음 웨이브
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
             {
-                GameStateManager.Instance.GoToCharacterSelect();
+                OnNextWaveClicked();
             }
         }
+
+        #endregion
+
+        #region UI Updates
+
+        private void UpdateTitle()
+        {
+            if (_layout?.TopBar == null || GameManager.Instance?.StageManagementUseCase == null) return;
+
+            int current = GameManager.Instance.StageManagementUseCase.GetCurrentRound();
+            int total = GameManager.Instance.StageManagementUseCase.GetTotalRounds();
+
+            _layout.TopBar.SetTitle($"상점 (라운드 {current}/{total})");
+        }
+
+        private void UpdateGoldDisplay()
+        {
+            int gold = _currencyUseCase?.GetGold() ?? 0;
+            _layout?.TopBar?.SetGold(gold);
+        }
+
+        private void UpdateNextWaveButton()
+        {
+            if (_layout?.BottomBar == null || GameManager.Instance?.StageManagementUseCase == null) return;
+
+            int current = GameManager.Instance.StageManagementUseCase.GetCurrentRound();
+            int total = GameManager.Instance.StageManagementUseCase.GetTotalRounds();
+
+            bool hasNext = GameFlowController.Instance?.HasNextStage() ??
+                           !string.IsNullOrEmpty(GameManager.Instance.StageManagementUseCase.GetNextStageName());
+
+            if (hasNext)
+            {
+                _layout.BottomBar.SetNextWaveText($"다음 라운드 ({current + 1}/{total})");
+            }
+            else
+            {
+                _layout.BottomBar.SetNextWaveText("게임 완료");
+            }
+        }
+
+        #endregion
     }
 }
-

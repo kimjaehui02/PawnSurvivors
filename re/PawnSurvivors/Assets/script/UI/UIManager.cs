@@ -1,5 +1,6 @@
 using UnityEngine;
 using PawnSurvivors.Managers;
+using PawnSurvivors.UI.Legacy;
 
 namespace PawnSurvivors.UI
 {

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using PawnSurvivors.Managers;
 using Newtonsoft.Json;
 
-namespace PawnSurvivors.UI
+namespace PawnSurvivors.UI.Legacy
 {
     /// <summary>
     /// 캠페인 선택 화면입니다. (구 메인 메뉴)

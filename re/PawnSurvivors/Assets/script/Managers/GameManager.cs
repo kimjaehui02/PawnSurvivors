@@ -328,14 +328,12 @@ public class GameManager : MonoBehaviour
         
         // StageFlowUseCase 초기화
         StageFlowUseCase = new StageFlowUseCase(SessionDataRepository, _stageListDataSource);
-        StageFlowUseCase.OnStageStartRequested += HandleStageStartRequested;
-        StageFlowUseCase.OnStageCompletedToShop += HandleStageCompletedToShop;
-        StageFlowUseCase.OnGameOver += HandleGameOver;
-        StageFlowUseCase.OnAllStagesCleared += HandleAllStagesCleared;
-        
+
         // GameOverUseCase 초기화 (StageFlowUseCase 필요)
         GameOverUseCase = new GameOverUseCase(StageFlowUseCase);
-        GameOverUseCase.OnGameOverTriggered += HandleGameOver;
+
+        // GameFlowController 초기화 (이벤트 구독 중앙화)
+        InitializeGameFlowController();
 
         // StageManager는 이제 StageScreen에서 초기화됨 (StageScene에서만 사용)
 
@@ -686,83 +684,26 @@ public class GameManager : MonoBehaviour
         LogManager.LogInfo(LogCategory.System, "모든 플레이어 Pawn의 영구 데이터 저장 완료");
     }
 
-    private void HandleStageStartRequested(string stageName)
+    /// <summary>
+    /// GameFlowController를 초기화합니다.
+    /// 게임 흐름 관련 이벤트 구독을 GameFlowController에 위임합니다.
+    /// </summary>
+    private void InitializeGameFlowController()
     {
-        // StageManager는 이제 StageScreen에 있으므로, StageScreen을 찾아서 호출
-        var stageScreen = FindFirstObjectByType<PawnSurvivors.UI.StageScreen>();
-        if (stageScreen != null)
+        // GameFlowController 컴포넌트 찾기 또는 생성
+        var flowController = GetComponent<GameFlowController>();
+        if (flowController == null)
         {
-            // StageScreen의 StageManager를 통해 스테이지 시작
-            var stageManager = stageScreen.GetComponent<StageManager>();
-            if (stageManager != null)
-            {
-                // 스테이지가 이미 실행 중이면 종료 (재시작 또는 상태 리셋)
-                if (stageManager.IsStageRunning())
-                {
-                    EndStage();
-                }
-                
-                // PlayerController가 없으면 생성 (선택된 캐릭터로 pawn 생성)
-                if (PlayerController == null)
-                {
-                    CreatePlayerController();
-                }
-                else
-                {
-                    // 기존 플레이어 준비 (다음 스테이지 또는 재시작)
-                    PrepareExistingPlayers();
-                }
-                
-                // 스테이지 시작
-                stageManager.StartStage(stageName, resetSession: false);
-            }
-            else
-            {
-                LogManager.LogError(LogCategory.System, "StageScreen에 StageManager가 없습니다!");
-            }
+            flowController = gameObject.AddComponent<GameFlowController>();
         }
-        else
-        {
-            LogManager.LogWarning(LogCategory.System, "StageScreen을 찾을 수 없습니다. 스테이지 씬이 로드되지 않았을 수 있습니다.");
-        }
-    }
-    
-    private void HandleStageCompletedToShop()
-    {
-        LogManager.LogInfo(LogCategory.Stage, "HandleStageCompletedToShop() 호출됨");
-        
-        EndStage();
-        
-        // GameStateManager를 통해 ShopState로 전환
-        if (GameStateManager.Instance != null)
-        {
-            LogManager.LogInfo(LogCategory.Stage, $"현재 State: {GameStateManager.Instance.CurrentStateName}");
-            GameStateManager.Instance.GoToShop();
-            LogManager.LogInfo(LogCategory.Stage, $"GoToShop() 호출 완료. 새 State: {GameStateManager.Instance.CurrentStateName}");
-        }
-        else
-        {
-            LogManager.LogError(LogCategory.Stage, "GameStateManager.Instance가 null입니다!");
-        }
-    }
-    
-    private void HandleGameOver()
-    {
-        // GameStateManager를 통해 GameOverState로 전환
-        // GameOverState.OnEnter()에서 일시정지 및 화면 표시 처리
-        if (GameStateManager.Instance != null)
-        {
-            GameStateManager.Instance.GoToGameOver();
-        }
-    }
-    
-    private void HandleAllStagesCleared()
-    {
-        // 모든 스테이지 클리어도 GameOver로 처리
-        if (GameStateManager.Instance != null)
-        {
-            GameStateManager.Instance.GoToGameOver();
-        }
+
+        // StageFlowUseCase 이벤트 구독 위임
+        flowController.Initialize(StageFlowUseCase);
+
+        // GameOverUseCase는 GameFlowController를 통해 처리
+        GameOverUseCase.OnGameOverTriggered += () => flowController.FailCurrentStage();
+
+        LogManager.LogInfo(LogCategory.System, "[GameManager] GameFlowController 초기화 완료");
     }
 
     /// <summary>

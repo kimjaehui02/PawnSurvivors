@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using PawnSurvivors.Managers;
 
-namespace PawnSurvivors.UI
+namespace PawnSurvivors.UI.Legacy
 {
     /// <summary>
     /// 타이틀 화면입니다. 씬에 배치하면 자동으로 작동합니다.

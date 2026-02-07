@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using PawnSurvivors.Managers;
 
-namespace PawnSurvivors.UI
+namespace PawnSurvivors.UI.Legacy
 {
     /// <summary>
     /// 오디오 설정 화면입니다. 볼륨 조절 기능을 제공합니다.

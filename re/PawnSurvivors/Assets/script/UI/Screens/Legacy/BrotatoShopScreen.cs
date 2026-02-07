@@ -7,9 +7,10 @@ using System;
 using PawnSurvivors.Managers;
 using PawnSurvivors.Domain;
 using PawnSurvivors.Domain.Usecases;
+using PawnSurvivors.Domain.States;
 using PawnSurvivors.Data;
 
-namespace PawnSurvivors.UI
+namespace PawnSurvivors.UI.Legacy
 {
     /// <summary>
     /// Brotato 스타일의 상점 화면입니다. 순수 코딩으로 생성됩니다.
@@ -1545,12 +1546,11 @@ namespace PawnSurvivors.UI
 
         private void OnNextWaveButtonClicked()
         {
-            if (GameManager.Instance != null && GameManager.Instance.StageManagementUseCase != null)
+            // GameFlowController에 다음 스테이지 이동 위임
+            if (GameFlowController.Instance != null)
             {
-                // 다음 스테이지 이름 가져오기
-                string nextStageName = GameManager.Instance.StageManagementUseCase.GetNextStageName();
-                
-                if (string.IsNullOrEmpty(nextStageName))
+                // 다음 스테이지가 있는지 확인
+                if (!GameFlowController.Instance.HasNextStage())
                 {
                     // 마지막 스테이지면 게임오버 화면으로 (모든 스테이지 클리어)
                     LogManager.LogInfo(LogCategory.Stage, "모든 스테이지를 완료했습니다!");
@@ -1560,14 +1560,42 @@ namespace PawnSurvivors.UI
                     }
                     return;
                 }
-                
-                // 다음 스테이지로 이동: StageState로 전환 (씬 전환)
-                // StageState.OnEnter()에서 스테이지 시작 처리
+
+                // 다음 스테이지 이름 설정 후 이동
+                string nextStageName = GameFlowController.Instance.GetNextStageName();
+                if (GameManager.Instance?.StageManagementUseCase != null)
+                {
+                    GameManager.Instance.StageManagementUseCase.PrepareStageStart(nextStageName, shouldResetSession: false);
+                }
+
+                // StageState로 전환
                 if (GameStateManager.Instance != null)
                 {
-                    // 다음 스테이지 이름 설정
-                    GameManager.Instance.StageManagementUseCase.PrepareStageStart(nextStageName, shouldResetSession: false);
                     GameStateManager.Instance.GoToStage();
+                }
+            }
+            else
+            {
+                // Fallback: GameFlowController가 없으면 기존 방식
+                LogManager.LogWarning(LogCategory.Stage, "GameFlowController가 없습니다. 기존 방식으로 처리합니다.");
+                if (GameManager.Instance != null && GameManager.Instance.StageManagementUseCase != null)
+                {
+                    string nextStageName = GameManager.Instance.StageManagementUseCase.GetNextStageName();
+
+                    if (string.IsNullOrEmpty(nextStageName))
+                    {
+                        if (GameStateManager.Instance != null)
+                        {
+                            GameStateManager.Instance.GoToGameOver();
+                        }
+                        return;
+                    }
+
+                    GameManager.Instance.StageManagementUseCase.PrepareStageStart(nextStageName, shouldResetSession: false);
+                    if (GameStateManager.Instance != null)
+                    {
+                        GameStateManager.Instance.GoToStage();
+                    }
                 }
             }
         }

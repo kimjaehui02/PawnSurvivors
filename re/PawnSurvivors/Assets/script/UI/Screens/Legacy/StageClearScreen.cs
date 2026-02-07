@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using PawnSurvivors.Managers;
 
-namespace PawnSurvivors.UI
+namespace PawnSurvivors.UI.Legacy
 {
     /// <summary>
     /// 스테이지 클리어 화면입니다. 씬에 배치하면 자동으로 작동합니다.
